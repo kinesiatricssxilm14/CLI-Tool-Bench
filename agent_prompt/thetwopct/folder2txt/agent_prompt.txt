@@ -1,0 +1,289 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: dir-consolidator
+**Repository Name**: dir-consolidator
+**Core Functionality Description**:
+This is a CLI tool that converts the contents of a local folder into a single text file. It recursively processes all text files within a directory and its subdirectories, concatenating their contents into a single output file. The output format includes clear separators and metadata (file path, size) for each file. The tool provides options to specify the output file path, set a file size threshold, include all files, and enable a debug mode.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `folder2txt`
+- **Function and Parameter Description**:
+  This is the default command. When executed without any options, the tool recursively scans the current directory for files, concatenates their contents, and saves the result to a default file named `output.txt`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with three text files. Two are in a subdirectory `subdir`, and one is in the root of the test directory.
+  - `/test_data/subdir/normal_file_0.txt`: (content: "D7FOaWU6yF...")
+  - `/test_data/normal_file_1.txt`: (content: "QkcqnYpnsU...")
+  - `/test_data/subdir/normal_file_2.txt`: (content: "T6H0kWQPCA...")
+  **2. Command**:
+  `cd /test_data && dir-consolidator`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 3 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 98 B\n================================================================================\n\nQkcqnYpnsUa7icus6GlenHpUS32J5UgQpLBZRIip1UwEG8k5wgSPfDl9YOvelFAoKgLXZfIL19MGCBxMGNhdQbi2xSAmPQRim4\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 93 B\n================================================================================\n\nD7FOaWU6yFUglDiKmNgsnFu1wAbXPbNBpSy05IioftRublVxs5HzlbN6h7vwXTZaZ4bZlhRcaxSmszcaqSn5S8gcd69g4\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 74 B\n================================================================================\n\nT6H0kWQPCAO4z58p3I8Ic2n4qbsaRYXMwxSSXO9iIk2Xlf7VJpi7Kf1z42jAGkL0hwOk6zCm1a\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The working directory `/test_data` contains `normal_file_1.txt` and a subdirectory `subdir` which contains `normal_file_0.txt` and `normal_file_2.txt`.
+  - Command Behavior Analysis: The `dir-consolidator` command is executed. It scans the current directory (`/test_data`) and its subdirectories. It finds and processes 3 files. The `stdout` confirms the number of files processed and reports that the output is being saved to `output.txt`.
+  - Final State Changes (fs_diff): A new file named `output.txt` is created in `/test_data`. This file contains the contents of the three source files, each preceded by a header block. The header contains a separator line, the relative path to the file (e.g., `subdir/normal_file_0.txt`), and the file's size in bytes.
+
+#### Command Category: `folder2txt -o <file>`
+- **Function and Parameter Description**:
+  - `-o, --output <file>`: This option allows the user to specify a custom name and path for the output file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with four text files across the test directory and a subdirectory.
+  - `/test_data/subdir/normal_file_0.txt`: (content: "3XoN8YaNta...")
+  - `/test_data/normal_file_1.txt`: (content: "5IjTQhUSkn...")
+  - `/test_data/subdir/normal_file_2.txt`: (content: "xlCO8qwMgj...")
+  - `/test_data/normal_file_3.txt`: (content: "VNa1GbiwWU...")
+  **2. Command**:
+  `cd /test_data && dir-consolidator -o out_LUSDQ.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to out_LUSDQ.txt\n",
+      "fs_diff": {
+          "/test_data/out_LUSDQ.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 57 B\n================================================================================\n\n5IjTQhUSknwTIav7foZ4Oirgn7mAeVYgc5a9dDEbRZSOcw032Z1MNEhIB\n\n================================================================================\nFile: normal_file_3.txt\nSize: 56 B\n================================================================================\n\nVNa1GbiwWUO8QnIRSoFcjqPBqUq3wmv7sM6uvBuzbRyX9XiXVA7AsLT8\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 21 B\n================================================================================\n\n3XoN8YaNtatZ03D7uL3x3\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 74 B\n================================================================================\n\nxlCO8qwMgjnEXQEQUG3n1lbXLLaFZ0UeRbzqc5HJbVx5mfXIJi0cc0JuNnDmSvFA5xe3iFqBCq\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The directory `/test_data` and its `subdir` contain a total of four text files.
+  - Command Behavior Analysis: The command is run with the `-o out_LUSDQ.txt` option. The tool processes all four files and reports on `stdout` that the output is being saved to the specified file, `out_LUSDQ.txt`.
+  - Final State Changes (fs_diff): Instead of the default `output.txt`, a new file named `out_LUSDQ.txt` is created. Its content is the formatted concatenation of the four source files, same as the default behavior.
+
+#### Command Category: `folder2txt -t <MB>`
+- **Function and Parameter Description**:
+  - `-t, --threshold <MB>`: This option sets a file size threshold in Megabytes (MB). Files larger than this threshold are supposed to be skipped.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with four text files.
+  - `/test_data/subdir/normal_file_0.txt`: (content: "hUlyFprjWm...")
+  - `/test_data/normal_file_1.txt`: (content: "yWj5Hzw9Wp...")
+  - `/test_data/subdir/normal_file_2.txt`: (content: "KAGKnbMZoW...")
+  - `/test_data/normal_file_3.txt`: (content: "c6cDyqQwbv...")
+  **2. Command**:
+  `cd /test_data && dir-consolidator -t 0.297`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 51 B\n================================================================================\n\nyWj5Hzw9Wp8ueV8lnrAciiRnUr1Hrtmo7P4nIapITnJlLxGL130\n\n================================================================================\nFile: normal_file_3.txt\nSize: 57 B\n================================================================================\n\nc6cDyqQwbvJfvBlfEUcOMlqfne7tsUKbEPwNfN43hJuxoackBE90bXjGc\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 96 B\n================================================================================\n\nhUlyFprjWmFbNxtNwOV3QTjjeO9azqjOmROGlD7IQoi6GtmmcRiS9d2BVtytP8RejGi69FOiseiHn6SV5gtipklBtUHHp9tT\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 58 B\n================================================================================\n\nKAGKnbMZoWjncMYJWs6DCEG2EoYrqOHzV5t0LcbyWvwetg8sjLRMmetyp0\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Four small text files exist in the test directory structure.
+  - Command Behavior Analysis: The command is run with `-t 0.297`, setting a size threshold of 0.297 MB. Since all prepared files are extremely small (under 100 bytes), none of them exceed the threshold. The tool processes all 4 files and reports "0 skipped".
+  - Final State Changes (fs_diff): The default output file `output.txt` is created, containing the content of all four files, as none were filtered out by the size threshold.
+
+#### Command Category: `folder2txt --include-all`
+- **Function and Parameter Description**:
+  - `--include-all`: This flag instructs the tool to include all files, overriding default exclusion rules (like file size or type).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with four text files.
+  - `/test_data/subdir/normal_file_0.txt`: (content: "d5NhGDJeCu...")
+  - `/test_data/normal_file_1.txt`: (content: "sq4MOs4p4U...")
+  - `/test_data/subdir/normal_file_2.txt`: (content: "ZniqQMZqDU...")
+  - `/test_data/normal_file_3.txt`: (content: "AYk2NsHXN5...")
+  **2. Command**:
+  `cd /test_data && dir-consolidator --include-all`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 31 B\n================================================================================\n\nsq4MOs4p4UhAZTdTseOWv4KizLPI9JU\n\n================================================================================\nFile: normal_file_3.txt\nSize: 95 B\n================================================================================\n\nAYk2NsHXN5uXaNZHzj4TbzIEZIO6OLRf1JB18R48sSAx5w5f19r4LMwzAplv1Mf8qp0ZRCTnpkwPgpMymW3ZH6oYBoKmSq7\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 41 B\n================================================================================\n\nd5NhGDJeCuBPtJl4E29P0BWLCoFZr1Fo3jHqEzdkL\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 85 B\n================================================================================\n\nZniqQMZqDUd1mUKFrQz4CVuhQUjWKRBD5Z6yzGrcFzGkzTrfm8HVBkDTyZgqZhyPgTaGQVSfQ8GMmbODyTAdL\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Four text files are present in the test directory.
+  - Command Behavior Analysis: The command is run with the `--include-all` flag. In this sample, since all files are small text files that would be included by default anyway, the flag's effect of overriding filters is not demonstrated, but the tool correctly accepts the flag and processes all 4 files.
+  - Final State Changes (fs_diff): The default `output.txt` is created, containing the concatenated content of all four files.
+
+#### Command Category: `folder2txt --debug`
+- **Function and Parameter Description**:
+  - `--debug`: This flag is intended to enable a debug mode with verbose logging.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with four text files.
+  - `/test_data/subdir/normal_file_0.txt`: (content: "NeELfwHgpU...")
+  - `/test_data/normal_file_1.txt`: (content: "eAajNdHbWv...")
+  - `/test_data/subdir/normal_file_2.txt`: (content: "V4Ffk5w14r...")
+  - `/test_data/normal_file_3.txt`: (content: "5opfxlyKxO...")
+  **2. Command**:
+  `cd /test_data && dir-consolidator --debug`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 82 B\n================================================================================\n\neAajNdHbWvA5UGx0MsVxF47JXnBtbvCyDDI5M2AWz7ektB5BrffucvEAcvBUFKjdmiOZ0XWJ1eAYuMCVBb\n\n================================================================================\nFile: normal_file_3.txt\nSize: 39 B\n================================================================================\n\n5opfxlyKxOlIlwidQMVF9AF8VViwphW58rvRKok\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 48 B\n================================================================================\n\nNeELfwHgpUABGlFWbl4xaKpMJraHKEEPMIVzl5xpmFEY4pNU\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 32 B\n================================================================================\n\nV4Ffk5w14rGYQkg2VicYhIClzuv0J1sg\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Four text files are present in the test directory.
+  - Command Behavior Analysis: The command is run with the `--debug` flag. The tool processes all 4 files. **Crucially, based on this sample, the `stdout` is identical to a normal run and does not contain any extra verbose or debug logging.** The implementation must replicate this behavior: the flag is accepted but produces no change in standard output.
+  - Final State Changes (fs_diff): The default `output.txt` is created with the concatenated content of all four files, identical to the default behavior.
+
+#### Command Category: `folder2txt -o <file> -t <MB>`
+- **Function and Parameter Description**:
+  This command combines the `-o` and `-t` options.
+  - `-o, --output <file>`: Specifies the output file name.
+  - `-t, --threshold <MB>`: Sets a file size threshold.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Four text files are created in the test directory structure.
+  **2. Command**:
+  `cd /test_data && dir-consolidator -o out_60AT6.txt -t 0.445`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to out_60AT6.txt\n",
+      "fs_diff": {
+          "/test_data/out_60AT6.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 77 B\n================================================================================\n\nRu6nrtPq9e94SY96IDE9drik3cu8FI7mVJ1iuHL2QNlBdK6hUp8p0ynQc4XlvtQQCjdeHHv9k4kEF\n\n================================================================================\nFile: normal_file_3.txt\nSize: 41 B\n================================================================================\n\nsqH6l9iYhhc7PTUHXx3U5hygtrDeJpKQ5lqwq1vlf\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 87 B\n================================================================================\n\n55WqVZogpVWHfi2nxlTAmwxUnI1LVi2Aad0tgC70GLTcmOqc4VVeHhOQGg3FsqpFQSDAh53QWkmHkQSUlgxKPI6\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 64 B\n================================================================================\n\nyndQ08lsffqIUuafsa52yQ71vVNLAe9sWdUZlyNFNh24561mWM9gNjpef7GfVKZp\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The tool is executed with both a custom output file `out_60AT6.txt` and a size threshold of `0.445` MB.
+  - Final State Changes (fs_diff): A file named `out_60AT6.txt` is created, containing the content of all four source files, as none exceeded the specified size threshold.
+
+#### Command Category: `folder2txt -o <file> --include-all`
+- **Function and Parameter Description**:
+  This command combines the `-o` and `--include-all` options.
+  - `-o, --output <file>`: Specifies the output file name.
+  - `--include-all`: Overrides default exclusion rules.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Four text files are created in the test directory structure.
+  **2. Command**:
+  `cd /test_data && dir-consolidator -o out_iXUVRvlWQu.txt --include-all`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to out_iXUVRvlWQu.txt\n",
+      "fs_diff": {
+          "/test_data/out_iXUVRvlWQu.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 100 B\n================================================================================\n\nOfHCbFqSvF6g9KhvUd2r8KrWk0KatfNyWHTwFTyzIrL0UD4qnLIX2Z2Zf0FnvXUcaac1EakkID8NLrJVMIaWZgh06G7bbDfLRAOi\n\n================================================================================\nFile: normal_file_3.txt\nSize: 59 B\n================================================================================\n\nOUV22tLlNyMYGwsCgdw6SlMsxhrmhO0Ll8UimT7BEZN8fFt65VeZ1OxMHhR\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 60 B\n================================================================================\n\nBABq0nhsGShshD4wHhJH41ONbhen4EvTwNQyAsAQXdTNJvbKmcG0X1oN0ifv\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 83 B\n================================================================================\n\nxzL5iYtFktnYBppx30eYW2Jx9wDPNAydp9KLwaZp0BITrfepilTOdm2P7jZPfJCsImKD9mtNyI5Bl51q1VB\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The tool is executed with a custom output file `out_iXUVRvlWQu.txt` and the `--include-all` flag.
+  - Final State Changes (fs_diff): A file named `out_iXUVRvlWQu.txt` is created, containing the content of all four source files.
+
+#### Command Category: `folder2txt -t <MB> --include-all`
+- **Function and Parameter Description**:
+  This command combines the `-t` and `--include-all` options.
+  - `-t, --threshold <MB>`: Sets a file size threshold.
+  - `--include-all`: Overrides default exclusion rules.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Four text files are created in the test directory structure.
+  **2. Command**:
+  `cd /test_data && dir-consolidator -t 0.492 --include-all`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 88 B\n================================================================================\n\nb55hADOQKUUOV5xlrcZTFMB0vVJXo9E5sgvAjnIK6X8wavjm1KI6HPdGuRq5toceZyk0oyzafMk88cOKe1CorMF8\n\n================================================================================\nFile: normal_file_3.txt\nSize: 92 B\n================================================================================\n\namJhQZuyoHCqKfywo1tWP08jyTOK4tWOD7DvbFJ9TVLJYWQzwpcr4Hff52bJD04x1ltEsdts9AZlhYciFwJ2hbhZeJa8\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 53 B\n================================================================================\n\nDYLYGW1ILaRhH8iHRkpIrdcWDjA5Y0ViCIoUMdqls1KPhTUpfOIuX\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 46 B\n================================================================================\n\nU3K115T5oFVvDrFQ6bkmAngd9pmfvtwW1xYhist5Nmrs8L\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The tool is executed with both a size threshold and the `--include-all` flag. The `--include-all` flag should take precedence, meaning the size threshold is ignored.
+  - Final State Changes (fs_diff): The default `output.txt` is created, containing the content of all four source files.
+
+#### Command Category: `folder2txt -o <file> --debug`
+- **Function and Parameter Description**:
+  This command combines the `-o` and `--debug` options.
+  - `-o, --output <file>`: Specifies the output file name.
+  - `--debug`: Enables debug mode.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Four text files are created in the test directory structure.
+  **2. Command**:
+  `cd /test_data && dir-consolidator -o out_emr4S5hm6h.txt --debug`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "- Processing files...\n\u2714 Processed 4 files (0 skipped)\n- Writing output file...\n\u2714 Output saved to out_emr4S5hm6h.txt\n",
+      "fs_diff": {
+          "/test_data/out_emr4S5hm6h.txt": {
+              "type": "ADD",
+              "content": "\n================================================================================\nFile: normal_file_1.txt\nSize: 75 B\n================================================================================\n\nPCzIHoy71fXj8vgTTRKUc4HsL0qsbjzEilFPw5MGmB64dtMkeDRWfoVG1l6gtvzw41ApS9jbnDz\n\n================================================================================\nFile: normal_file_3.txt\nSize: 75 B\n================================================================================\n\ntWJlhIcP1C1NtA0mXssm3fhv1z98jAwyxrEkW31kb9rEsQ6ugHPiESqNdB6VGED7Tl6jtAYUUP7\n\n================================================================================\nFile: subdir/normal_file_0.txt\nSize: 79 B\n================================================================================\n\nId2LXReziiCGV7Hdan11lbmqzQzVU96YecZd9BCCdm0Srih1n80gDnJXhOkNxy0vHz2vls5Jnfz0orl\n\n================================================================================\nFile: subdir/normal_file_2.txt\nSize: 24 B\n================================================================================\n\nMlH7aymDWK2vMpX9xnN5XTuQ\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The tool is executed with a custom output file `out_emr4S5hm6h.txt` and the `--debug` flag. As in the standalone `--debug` sample, the flag is accepted but produces no extra output on `stdout`.
+  - Final State Changes (fs_diff): A file named `out_emr4S5hm6h.txt` is created, containing the content of all four source files.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

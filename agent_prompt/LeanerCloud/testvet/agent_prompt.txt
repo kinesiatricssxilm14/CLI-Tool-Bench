@@ -1,0 +1,201 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: testvet
+Repository Name: testvet
+Core Functionality Description:
+A static analysis tool that identifies missing test coverage, low coverage functions, and misplaced test functions in Go projects. It parses Go source files to find functions not called from any test, identifies tests that primarily call functions from a different source file, and can use statement coverage data to find functions below a specified threshold. It supports filtering out private (unexported) functions, toggling coverage-based filtering, and verbose logging.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in Go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: testvet -dir <path>
+- Function and Parameter Description:
+  - Analyzes a specific directory for missing test coverage and misplaced tests.
+  - `-dir`: Directory to analyze.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The following initial files were mounted:
+  - `/test_data/test_proj/go.mod` (Go module definition)
+  - `/test_data/test_proj/main.go` (Contains `UnusedMainFunc` and `main`)
+  - `/test_data/test_proj/utils/helpers.go` (Contains `ExportedUtil` and `unexportedUtil`)
+  - `/test_data/test_proj/utils/helpers_test.go` (Tests `ExportedUtil`)
+  - `/test_data/test_proj/handlers/user.go` (Contains `GetUser`)
+  - `/test_data/test_proj/other/other_test.go` (Tests `GetUser` from a different package)
+2. Command:
+`testvet -dir /test_data/test_proj`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "================================================================================\nGO TEST COVERAGE ANALYSIS\n================================================================================\nProject: <path>\n\n--------------------------------------------------------------------------------\nFUNCTIONS WITHOUT TEST COVERAGE (2)\n--------------------------------------------------------------------------------\n\n<file>:\n  Line <num>: UnusedMainFunc\n\n\n<file>:\n  Line <num>: unexportedUtil\n\n--------------------------------------------------------------------------------\nMISPLACED TESTS (0)\n--------------------------------------------------------------------------------\nAll tests are in the correct files!\n\n================================================================================\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard Go project structure exists with some functions tested (`ExportedUtil`, `GetUser`) and others untested (`UnusedMainFunc`, `unexportedUtil`).
+  - Command Behavior Analysis: The CLI parses the AST of the target directory, identifies all functions, and cross-references them with test calls and coverage data. It correctly flags `UnusedMainFunc` and `unexportedUtil` as lacking coverage.
+  - Final State Changes (fs_diff): No file system changes were made. The tool is purely analytical.
+##### Command Category: testvet -dir <path> -exclude-private
+- Function and Parameter Description:
+  - Analyzes a directory while ignoring unexported (private) functions.
+  - `-dir`: Directory to analyze.
+  - `-exclude-private`: Exclude private (unexported) functions from analysis.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files as above were mounted.
+2. Command:
+`testvet -exclude-private -dir /test_data/test_proj`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "================================================================================\nGO TEST COVERAGE ANALYSIS\n================================================================================\nProject: <path>\n\n--------------------------------------------------------------------------------\nFUNCTIONS WITHOUT TEST COVERAGE (1)\n--------------------------------------------------------------------------------\n\n<file>:\n  Line <num>: UnusedMainFunc\n\n--------------------------------------------------------------------------------\nMISPLACED TESTS (0)\n--------------------------------------------------------------------------------\nAll tests are in the correct files!\n\n================================================================================\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: The CLI performs the same analysis but filters out `unexportedUtil` from the results because it starts with a lowercase letter, leaving only `UnusedMainFunc` as the reported untested function.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: testvet -dir <path> -verbose
+- Function and Parameter Description:
+  - Analyzes a directory and prints verbose output, including underlying commands executed.
+  - `-dir`: Directory to analyze.
+  - `-verbose`: Show verbose output.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files were mounted.
+2. Command:
+`testvet -verbose -dir /test_data/test_proj`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "Running: go test -coverprofile=/tmp/coverage-2467772244.out ./...\nRunning: go tool cover -func=/tmp/coverage-2467772244.out\n================================================================================\nGO TEST COVERAGE ANALYSIS\n... [omitted similar content] ...\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: The CLI runs the analysis and explicitly prints the `go test -coverprofile` and `go tool cover` commands it executes under the hood to stdout before printing the standard report.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: testvet -dir <path> -threshold <N>
+- Function and Parameter Description:
+  - Analyzes a directory and reports functions with statement coverage below a specific percentage.
+  - `-dir`: Directory to analyze.
+  - `-threshold`: Show functions with coverage below this percentage.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files were mounted.
+2. Command:
+`testvet -threshold 15 -dir /test_data/test_proj`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "================================================================================\nGO TEST COVERAGE ANALYSIS\n... [omitted similar content] ...\n--------------------------------------------------------------------------------\nLOW COVERAGE FUNCTIONS (below <threshold>%) (3)\n--------------------------------------------------------------------------------\n\n<file>:\n  Line <num>: UnusedMainFunc (<coverage>%)\n\n\n<file>:\n  Line <num>: GetUser (<coverage>%)\n\n\n<file>:\n  Line <num>: unexportedUtil (<coverage>%)\n\n================================================================================\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: In addition to finding functions with zero coverage, the CLI parses the coverage profile and identifies functions whose coverage percentage is strictly below the provided threshold (15 in this case), appending a "LOW COVERAGE FUNCTIONS" section to the output.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: testvet -dir <path> -use-coverage=false
+- Function and Parameter Description:
+  - Analyzes a directory using only AST analysis, disabling coverage data filtering.
+  - `-dir`: Directory to analyze.
+  - `-use-coverage`: Boolean flag to toggle using coverage data (set to false here).
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files were mounted.
+2. Command:
+`testvet -dir /test_data/test_proj -use-coverage=false`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "================================================================================\nGO TEST COVERAGE ANALYSIS\n... [omitted similar content] ...\nFUNCTIONS WITHOUT TEST COVERAGE (2)\n... [omitted similar content] ...\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: The CLI skips running `go test -cover` and relies purely on AST traversal to find direct function calls within test files to determine coverage.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: testvet -dir <path> -exclude-private -threshold <N>
+- Function and Parameter Description:
+  - Combines excluding private functions and setting a coverage threshold.
+  - `-dir`: Directory to analyze.
+  - `-exclude-private`: Exclude private functions.
+  - `-threshold`: Coverage threshold percentage.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files were mounted.
+2. Command:
+`testvet -dir /test_data/test_proj -exclude-private -threshold 185`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "================================================================================\nGO TEST COVERAGE ANALYSIS\n... [omitted similar content] ...\nFUNCTIONS WITHOUT TEST COVERAGE (1)\n... [omitted similar content] ...\nLOW COVERAGE FUNCTIONS (below <threshold>%) (4)\n... [omitted similar content] ...\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: The CLI applies both filters. It excludes private functions from the "FUNCTIONS WITHOUT TEST COVERAGE" section, but still evaluates all functions against the high threshold (185) for the "LOW COVERAGE FUNCTIONS" section.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: testvet -dir <path> -exclude-private -verbose -threshold <N>
+- Function and Parameter Description:
+  - Combines excluding private functions, verbose logging, and a coverage threshold.
+  - `-dir`: Directory to analyze.
+  - `-exclude-private`: Exclude private functions.
+  - `-verbose`: Show verbose output.
+  - `-threshold`: Coverage threshold percentage.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations were executed. The same Go project files were mounted.
+2. Command:
+`testvet -dir /test_data/test_proj -verbose -threshold 189 -exclude-private`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "Running: go test -coverprofile=/tmp/coverage-1283109945.out ./...\nRunning: go tool cover -func=/tmp/coverage-1283109945.out\nRunning: go test -coverprofile=/tmp/coverage-2219864339.out ./...\nRunning: go tool cover -func=/tmp/coverage-2219864339.out\n================================================================================\nGO TEST COVERAGE ANALYSIS\n... [omitted similar content] ...\nLOW COVERAGE FUNCTIONS (below <threshold>%) (4)\n... [omitted similar content] ...\nSummary: <...>\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as previous.
+  - Command Behavior Analysis: The CLI prints the underlying `go test` and `go tool cover` commands (potentially running them multiple times or for different packages, as seen in the duplicate verbose logs) and applies both the private exclusion and threshold logic to the final report.
+  - Final State Changes (fs_diff): No file system changes.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

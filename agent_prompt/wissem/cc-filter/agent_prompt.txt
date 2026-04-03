@@ -1,0 +1,143 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+
+<Project_Overview>
+CLI Tool Name: cc-filter
+Repository Name: cc-filter
+Core Functionality Description:
+cc-filter is a command-line tool designed to process text input from standard input (stdin) and output it to standard output (stdout). Its primary functionality revolves around handling input text streams based on different contextual conditions: applying default text replacements (such as substituting specific substrings with asterisks), parsing local configuration files (config.yaml) when present in the execution context, and handling structured JSON input payloads.
+</Project_Overview>
+
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+
+Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+
+Language and Environment:
+
+Must be implemented entirely in Go.
+
+The code must run flawlessly in the official golang:latest environment.
+
+Dependencies and Installation (CRITICAL):
+
+The validation environment will ONLY execute the following single installation command in the repository root directory:
+go install .
+
+It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (go.mod), ensuring the single command above can automatically fetch and complete all dependency installations.
+
+Output Consistency: 
+Normal Cases: The standard output stream (stdout) must be as strictly consistent as possible with the provided samples.
+
+Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of stderr is not forced, but you MUST ensure the return code (exit_code) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+
+Command Category: cc-filter < (stdin with default config)
+Function and Parameter Description:
+
+Purpose: Reads text input from standard input (stdin) and applies default built-in filtering transformations before writing to standard output.
+
+Parameters: No specific command-line arguments are used; it relies entirely on piped stdin.
+
+Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts are executed. No initial files are mounted in the file system.
+2. Command:
+echo "$FUZZ_INPUT" | cc-filter
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "yq6UGWhu9G8KR9EBRcOI7zNeB9E8i5Fz7AmLuvoNiRNvGuKF6H\n***************************************************\ntlySB4SBHKF2eX0Q5H7LImHQV0pSNGkQp",
+    "fs_diff": {}
+}
+```
+Deep Sample Analysis (Implementation Logic Reference):
+
+Initial State Analysis: The file system is entirely clean with no user or project configuration files present.
+
+Command Behavior Analysis: The tool reads the piped input from stdin. It identifies a specific sequence or pattern within the input and replaces a segment of it entirely with asterisks (*), outputting the modified multi-line string to stdout. It then gracefully exits with code 0.
+
+Final State Changes (fs_diff): The tool performs text stream processing strictly in memory without making any modifications to the file system (empty fs_diff).
+
+Command Category: cc-filter < (stdin with project config.yaml)
+Function and Parameter Description:
+
+Purpose: Executes the CLI tool while a project-level configuration file exists in the directory, processing the stdin text stream.
+
+Parameters: Operates on piped stdin without explicit command-line flags.
+
+Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts are executed. The following file is mounted into the file system:
+
+Path: /test_data/config.yaml
+
+Content:
+```yaml
+patterns:
+  - name: "project_token"
+    regex: 'PROJECT_TOKEN=([a-zA-Z0-9-_]{29})'
+    replacement: "***PROJECT_FILTERED***"
+file_blocks:
+  - "*.private"
+```
+2. Command:
+echo "$FUZZ_INPUT" | cc-filter
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "My special key is PROJECT_TOKEN=GQ6k2_5UbiW4noJPSWGW6IIrXVF-U",
+    "fs_diff": {}
+}
+```
+Deep Sample Analysis (Implementation Logic Reference):
+
+Initial State Analysis: A config.yaml file is present in the working path containing custom regex pattern definitions and replacement instructions for a "project_token".
+
+Command Behavior Analysis: The tool reads the piped input. Based on the oracle result, the tool simply passes through the string containing the PROJECT_TOKEN directly to stdout without applying the replacement rule defined in the yaml file, exiting with code 0.
+
+Final State Changes (fs_diff): No files are created, modified, or deleted during execution.
+
+Command Category: cc-filter < (stdin with Claude Code JSON hook)
+Function and Parameter Description:
+
+Purpose: Processes structured JSON payload input from stdin.
+
+Parameters: Reads piped JSON data from stdin.
+
+Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts are executed. No initial files are mounted.
+2. Command:
+echo "$FUZZ_INPUT" | cc-filter
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "{\"hookType\": \"UserPromptSubmit\", \"input\": {\"prompt\": \"My prompt contains a secret: xoxb-nyFF1nDy4VPv7kQ7tPsBRxLncxC6Rf1VJiyKJ2Yrypof-h-Rnu\"}}",
+    "fs_diff": {}
+}
+```
+Deep Sample Analysis (Implementation Logic Reference):
+
+Initial State Analysis: Clean environment with no configuration files.
+
+Command Behavior Analysis: The tool reads a JSON string representing a hook submission (UserPromptSubmit). It outputs the exact JSON payload—including the raw secret string (xoxb-...)—back to stdout without structural changes or redaction, and exits with code 0.
+
+Final State Changes (fs_diff): No modifications are made to the file system.
+
+</Command_Specifications>
+
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

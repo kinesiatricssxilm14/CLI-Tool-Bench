@@ -1,0 +1,186 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gpad
+**Repository Name**: gpad
+**Core Functionality Description**:
+This CLI tool automatically scans a Go codebase and reorders struct fields to optimize memory layout and reduce padding. It improves memory efficiency by analyzing structs and rearranging their fields for better alignment.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gpad`
+- **Function and Parameter Description**:
+  The base command `gpad` scans the current directory and all its subdirectories for Go source files. It identifies struct definitions and rewrites them in place to optimize memory layout by reordering the fields. By default, it operates silently, modifying files without producing any standard output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created in the working directory `/test_data/project_DEFAULT_0/`:
+  - `main.go`:
+    ```go
+    
+    package main
+
+    // UnoptimizedStruct is designed to be reordered by gpad.
+    type UnoptimizedStruct struct {
+        B bool    // 1 byte
+        C int32   // 4 bytes
+        A int64   // 8 bytes
+        E float64 // 8 bytes
+        D string  // 16 bytes
+    }
+
+    ```
+  **2. Command**:
+  `cd /test_data/project_DEFAULT_0 && gpad`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/project_DEFAULT_0/main.go": {
+            "type": "MOD",
+            "content": "package main\n\ntype UnoptimizedStruct struct {\n\tD string\n\tA int64\n\tE float64\n\tC int32\n\tB bool\n}\n struct {\n    B bool    // 1 byte\n    C int32   // 4 bytes\n    A int64   // 8 bytes\n    E float64 // 8 bytes\n    D string  // 16 bytes\n}\n"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single Go file `main.go` with a struct `UnoptimizedStruct` whose fields are not ordered by size.
+  - Command Behavior Analysis: The `gpad` command is executed in the directory containing `main.go`. The tool parses this file, finds the `UnoptimizedStruct` definition, and determines that its fields can be reordered for better memory alignment. The fields are sorted in descending order of their data type's size (string, int64, float64, int32, bool).
+  - Final State Changes (fs_diff): The `main.go` file is modified in place. The original `UnoptimizedStruct` definition is replaced by the new, optimized version where fields are ordered by size. Note the specific, unusual format of the modified content: it contains the new struct definition followed by the text of the old struct definition. This exact output format must be replicated.
+
+#### Command Category: `gpad -v`
+- **Function and Parameter Description**:
+  This command performs the same struct optimization as the base `gpad` command. The addition of the `-v` (verbose) flag instructs the tool to print a summary report to standard output, detailing the performance impact of the optimization.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created in the working directory `/test_data/project_VERBOSE_0/`:
+  - `main.go`:
+    ```go
+    
+    package main
+
+    // UnoptimizedStruct is designed to be reordered by gpad.
+    type UnoptimizedStruct struct {
+        B bool    // 1 byte
+        C int32   // 4 bytes
+        A int64   // 8 bytes
+        E float64 // 8 bytes
+        D string  // 16 bytes
+    }
+
+    ```
+  **2. Command**:
+  `cd /test_data/project_VERBOSE_0 && gpad -v`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "────────────────────────────────────────────────────────\nTime Taken: <sanitized>\nInitial Allocation:  40 bytes\nCurrent Allocation:  40 bytes\nSaved:               0 bytes (0.00%)\n────────────────────────────────────────────────────────\n",
+    "fs_diff": {
+        "/test_data/project_VERBOSE_0/main.go": {
+            "type": "MOD",
+            "content": "package main\n\ntype UnoptimizedStruct struct {\n\tD string\n\tA int64\n\tE float64\n\tC int32\n\tB bool\n}\n struct {\n    B bool    // 1 byte\n    C int32   // 4 bytes\n    A int64   // 8 bytes\n    E float64 // 8 bytes\n    D string  // 16 bytes\n}\n"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The initial state is identical to the previous example, with an unoptimized struct in `main.go`.
+  - Command Behavior Analysis: The tool performs the same field reordering logic. Due to the `-v` flag, it also calculates memory allocation statistics. It then prints a formatted table to `stdout` showing the time taken, initial and current memory allocation, and the bytes/percentage saved. The "Time Taken" value is dynamic and should not be hardcoded.
+  - Final State Changes (fs_diff): The `main.go` file is modified in the same way as the non-verbose command, with the struct fields reordered.
+
+#### Command Category: `gpad -path <path>`
+- **Function and Parameter Description**:
+  This command uses the `-path` flag to specify a target directory for scanning. Instead of the current working directory, the tool will only process Go files within the provided path and its subdirectories.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files/directories are created:
+  - `/test_data/project_PATH_0/main.go`: (Content is irrelevant as it's not in the target path)
+    ```go
+    
+    package main
+
+    // UnoptimizedStruct is designed to be reordered by gpad.
+    type UnoptimizedStruct struct {
+        B bool    // 1 byte
+        C int32   // 4 bytes
+        A int64   // 8 bytes
+        E float64 // 8 bytes
+        D string  // 16 bytes
+    }
+
+    ```
+  - `/test_data/empty_dir_0/.placeholder`: An empty file to ensure the directory exists.
+  **2. Command**:
+  `gpad -path /test_data/empty_dir_0`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a directory `/test_data/empty_dir_0` which has no Go source files.
+  - Command Behavior Analysis: The tool is directed to scan only the `/test_data/empty_dir_0` directory. Since it finds no `.go` files containing structs to process within that path, it completes its execution without performing any actions.
+  - Final State Changes (fs_diff): No files are modified, and `fs_diff` is empty. The tool correctly does nothing when the target directory is empty or contains no relevant files.
+
+#### Command Category: `gpad -path <path> -v`
+- **Function and Parameter Description**:
+  This command combines the `-path` and `-v` flags. It scans a specific directory for optimizable structs and prints a verbose summary report of its findings, even if no changes are made.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created:
+  - `/test_data/project_PATH_VERBOSE_0/main.go`: (Content is irrelevant as it's not in the target path)
+    ```go
+    
+    package main
+
+    // UnoptimizedStruct is designed to be reordered by gpad.
+    type UnoptimizedStruct struct {
+        B bool    // 1 byte
+        C int32   // 4 bytes
+        A int64   // 8 bytes
+        E float64 // 8 bytes
+        D string  // 16 bytes
+    }
+
+    ```
+  **2. Command**:
+  `gpad -path /rvmz/xCF1r -v`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "────────────────────────────────────────────────────────\nTime Taken: <sanitized>\nInitial Allocation:  0 bytes\nCurrent Allocation:  0 bytes\nSaved:               0 bytes (NaN%)\n────────────────────────────────────────────────────────\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is prepared, but the command targets a path `/rvmz/xCF1r` that is non-existent or empty of Go files.
+  - Command Behavior Analysis: The tool scans the specified path, finds no structs to optimize, and therefore makes no file modifications. Because the `-v` flag is present, it must still print the summary report. Since no structs were processed, the initial and current allocations are both 0 bytes.
+  - Final State Changes (fs_diff): No files are changed. The `stdout` shows the summary table with all byte values as 0. It is critical to note that the "Saved" percentage is printed as `(NaN%)` in this specific scenario. This behavior must be replicated.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

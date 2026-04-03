@@ -1,0 +1,334 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: ingress-translator
+**Repository Name**: ingress-translator
+**Core Functionality Description**:
+This CLI tool translates Kubernetes Ingress resources, specifically those with certain NGINX annotations, into corresponding Gateway API and related Custom Resource Definition (CRD) resources. It reads Ingress definitions from a file and outputs the translated resources in either YAML or JSON format. Based on the provided examples, the tool supports converting annotations for features like rate limiting, URL rewriting, session affinity, and CORS policies.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `print --input-file <file> --output yaml`
+- **Function and Parameter Description**:
+  - **`print`**: The main command to perform the translation.
+  - **`--input-file <file>`**: Specifies the path to the input YAML file containing the Kubernetes Ingress resource(s). This is a mandatory flag for processing.
+  - **`--output yaml`**: Specifies that the output format for the translated resources should be YAML.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_yaml_1.yaml` is created with the following content. It defines an Ingress resource with annotations for rate limiting (`limit-rps`) and URL rewriting (`rewrite-target`).
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: 9jvqknz6v2c5cv
+    namespace: 4cxaqo5upjg2cab
+    annotations:
+      nginx.ingress.kubernetes.io/limit-rps: "11"
+      nginx.ingress.kubernetes.io/rewrite-target: "/"
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hovyxmd.uojwqjn.otoft.cfe.io
+      http:
+        paths:
+        - path: /app
+          pathType: Prefix
+          backend:
+            service:
+              name: yy56gpkq54xscf1
+              port:
+                number: 4022
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_yaml_1.yaml --output yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Notifications from INGRESS-NGINX:\n+--------------+---------------------------------------------------------------------------+------------------------------------------------------------------------+\n| MESSAGE TYPE |                               NOTIFICATION                                |                             CALLING OBJECT                             |\n+--------------+---------------------------------------------------------------------------+------------------------------------------------------------------------+\n| INFO         | parsed Rewrite (rewrite-target) of ingress 4cxaqo5upjg2cab/9jvqknz6v2c5cv | HTTPRoute: 4cxaqo5upjg2cab/9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io |\n+--------------+---------------------------------------------------------------------------+------------------------------------------------------------------------+\n| INFO         | parsed RateLimit (limit-rps) of ingress 4cxaqo5upjg2cab/9jvqknz6v2c5cv    | HTTPRoute: 4cxaqo5upjg2cab/9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io |\n+--------------+---------------------------------------------------------------------------+------------------------------------------------------------------------+\n\nNotifications from ENVOY-GATEWAY:\n+--------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+\n| MESSAGE TYPE |                                            NOTIFICATION                                            |                             CALLING OBJECT                             |\n+--------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+\n| INFO         | converted Rewrite annotations of ingress 4cxaqo5upjg2cab/9jvqknz6v2c5cv for rule rule-0-prefix-app | HTTPRoute: 4cxaqo5upjg2cab/9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io |\n+--------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+\n| INFO         | converted RateLimit annotations of ingress 4cxaqo5upjg2cab/9jvqknz6v2c5cv                          | HTTPRoute: 4cxaqo5upjg2cab/9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io |\n+--------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+\n\napiVersion: gateway.networking.k8s.io/v1\nkind: Gateway\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: nginx\n  namespace: 4cxaqo5upjg2cab\nspec:\n  gatewayClassName: eg\n  listeners:\n  - hostname: hovyxmd.uojwqjn.otoft.cfe.io\n    name: hovyxmd-uojwqjn-otoft-cfe-io-http\n    port: 80\n    protocol: HTTP\nstatus: {}\n---\napiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io\n  namespace: 4cxaqo5upjg2cab\nspec:\n  hostnames:\n  - hovyxmd.uojwqjn.otoft.cfe.io\n  parentRefs:\n  - name: nginx\n  rules:\n  - backendRefs:\n    - name: yy56gpkq54xscf1\n      port: 4022\n    filters:\n    - type: URLRewrite\n      urlRewrite:\n        path:\n          replaceFullPath: /\n          type: ReplaceFullPath\n    matches:\n    - path:\n        type: PathPrefix\n        value: /app\n    name: rule-0-prefix-app\nstatus:\n  parents: []\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: BackendTrafficPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io\n  namespace: 4cxaqo5upjg2cab\nspec:\n  rateLimit:\n    local:\n      rules:\n      - clientSelectors:\n        - sourceCIDR:\n            type: Distinct\n            value: 0.0.0.0/0\n        limit:\n          requests: 11\n          unit: Second\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 9jvqknz6v2c5cv-hovyxmd-uojwqjn-otoft-cfe-io\nstatus:\n  ancestors: null\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single YAML file with one Ingress resource. The Ingress has `ingressClassName: nginx`.
+  - Command Behavior Analysis: The tool reads the specified file. It first prints two notification tables (one for parsing Ingress annotations, one for converting them to Gateway API resources) to standard output. Then, it prints the translated resources as a multi-document YAML stream.
+    - A `Gateway` resource is created. Its name (`nginx`) is derived from the `ingressClassName` of the Ingress.
+    - An `HTTPRoute` resource is created. Its `filters` array contains a `URLRewrite` filter, corresponding to the `nginx.ingress.kubernetes.io/rewrite-target: "/"` annotation.
+    - A `BackendTrafficPolicy` resource is created. Its `rateLimit` section is configured based on the `nginx.ingress.kubernetes.io/limit-rps: "11"` annotation.
+  - Final State Changes (fs_diff): No changes are made to the file system. All output is directed to `stdout`.
+
+#### Command Category: `print --input-file <file> --output json`
+- **Function and Parameter Description**:
+  - **`print`**: The main command to perform the translation.
+  - **`--input-file <file>`**: Specifies the path to the input YAML file.
+  - **`--output json`**: Specifies that the output format should be JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_json_4.yaml` is created. It defines an Ingress resource with annotations for session affinity (`affinity`, `session-cookie-name`) and CORS (`enable-cors`, `cors-allow-origin`).
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: 55vrmsv3dec
+    namespace: aunswo4i7ekps
+    annotations:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "WAcED"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: qwkdqiw.ukdh.rami.nlebnaqe.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kpr7lkoopn70v8
+              port:
+                number: 12680
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_json_4.yaml --output json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n    \"kind\": \"Gateway\",\n    \"apiVersion\": \"gateway.networking.k8s.io/v1\",\n    \"metadata\": {\n        \"name\": \"nginx\",\n        \"namespace\": \"aunswo4i7ekps\",\n        \"annotations\": {\n            \"gateway.networking.k8s.io/generator\": \"ingress2eg-dev\"\n        }\n    },\n    \"spec\": {\n        \"gatewayClassName\": \"eg\",\n        \"listeners\": [\n            {\n                \"name\": \"qwkdqiw-ukdh-rami-nlebnaqe-io-http\",\n                \"hostname\": \"qwkdqiw.ukdh.rami.nlebnaqe.io\",\n                \"port\": 80,\n                \"protocol\": \"HTTP\"\n            }\n        ]\n    },\n    \"status\": {}\n}\n{\n    \"kind\": \"HTTPRoute\",\n    \"apiVersion\": \"gateway.networking.k8s.io/v1\",\n    \"metadata\": {\n        \"name\": \"55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io\",\n        \"namespace\": \"aunswo4i7ekps\",\n        \"annotations\": {\n            \"gateway.networking.k8s.io/generator\": \"ingress2eg-dev\"\n        }\n    },\n    \"spec\": {\n        \"parentRefs\": [\n            {\n                \"name\": \"nginx\"\n            }\n        ],\n        \"hostnames\": [\n            \"qwkdqiw.ukdh.rami.nlebnaqe.io\"\n        ],\n        \"rules\": [\n            {\n                \"name\": \"rule-0-prefix-root\",\n                \"matches\": [\n                    {\n                        \"path\": {\n                            \"type\": \"PathPrefix\",\n                            \"value\": \"/\"\n                        }\n                    }\n                ],\n                \"backendRefs\": [\n                    {\n                        \"name\": \"kpr7lkoopn70v8\",\n                        \"port\": 12680\n                    }\n                ]\n            }\n        ]\n    },\n    \"status\": {\n        \"parents\": []\n    }\n}\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: SecurityPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io\n  namespace: aunswo4i7ekps\nspec:\n  cors:\n    allowOrigins:\n    - '*'\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io\nstatus:\n  ancestors: null\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: BackendTrafficPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io\n  namespace: aunswo4i7ekps\nspec:\n  loadBalancer:\n    consistentHash:\n      cookie:\n        name: WAcED\n      type: Cookie\n    type: ConsistentHash\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io\nstatus:\n  ancestors: null\nNotifications from ENVOY-GATEWAY:\n+--------------+---------------------------------------------------------------------+--------------------------------------------------------------------+\n| MESSAGE TYPE |                            NOTIFICATION                             |                           CALLING OBJECT                           |\n+--------------+---------------------------------------------------------------------+--------------------------------------------------------------------+\n| INFO         | converted CORS annotations of ingress aunswo4i7ekps/55vrmsv3dec     | HTTPRoute: aunswo4i7ekps/55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io |\n+--------------+---------------------------------------------------------------------+--------------------------------------------------------------------+\n| INFO         | converted Affinity annotations of ingress aunswo4i7ekps/55vrmsv3dec | HTTPRoute: aunswo4i7ekps/55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io |\n+--------------+---------------------------------------------------------------------+--------------------------------------------------------------------+\n\nNotifications from INGRESS-NGINX:\n+--------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------+\n| MESSAGE TYPE |                                     NOTIFICATION                                     |                           CALLING OBJECT                           |\n+--------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------+\n| INFO         | parsed CORS (cors-allow-origin, enable-cors) of ingress aunswo4i7ekps/55vrmsv3dec    | HTTPRoute: aunswo4i7ekps/55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io |\n+--------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------+\n| INFO         | parsed Affinity (affinity, session-cookie-name) of ingress aunswo4i7ekps/55vrmsv3dec | HTTPRoute: aunswo4i7ekps/55vrmsv3dec-qwkdqiw-ukdh-rami-nlebnaqe-io |\n+--------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------+\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single YAML file with one Ingress resource.
+  - Command Behavior Analysis: The tool reads the file and translates the Ingress. **Crucially, the output format is mixed despite the `--output json` flag.**
+    - The `Gateway` and `HTTPRoute` resources are printed as two separate, non-arrayed JSON objects.
+    - These are followed by a YAML separator (`---`).
+    - The `SecurityPolicy` and `BackendTrafficPolicy` resources are then printed in standard YAML format, also separated by `---`.
+    - Finally, the notification tables are printed to `stdout` *after* all the resource definitions.
+    - The `SecurityPolicy` is generated to handle the `enable-cors` and `cors-allow-origin` annotations.
+    - The `BackendTrafficPolicy` is generated to handle the `affinity: "cookie"` and `session-cookie-name` annotations, creating a `loadBalancer` with `consistentHash` of type `Cookie`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `print --input-file <file> --ingress-nginx-ingress-class <class>`
+- **Function and Parameter Description**:
+  - **`print`**: The main command.
+  - **`--input-file <file>`**: Specifies the input YAML file.
+  - **`--ingress-nginx-ingress-class <class>`**: Filters Ingress resources by their `ingressClassName` spec field and uses this value as the name for the generated `Gateway` resource.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_class_2.yaml` is created. The Ingress resource has `ingressClassName: sqezdwmff53i`.
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: wlhvrqzcfzy66zk
+    namespace: hsjqtu94ab1z8x
+    annotations:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "mAjHU"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+  spec:
+    ingressClassName: sqezdwmff53i
+    rules:
+    - host: udtglz.hzfzjm.jtxdvttc.roi.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: vdenm3db7v3
+              port:
+                number: 38718
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_class_2.yaml --ingress-nginx-ingress-class 'sqezdwmff53i'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Notifications from INGRESS-NGINX:\n+--------------+-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| MESSAGE TYPE |                                       NOTIFICATION                                        |                             CALLING OBJECT                              |\n+--------------+-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| INFO         | parsed CORS (enable-cors, cors-allow-origin) of ingress hsjqtu94ab1z8x/wlhvrqzcfzy66zk    | HTTPRoute: hsjqtu94ab1z8x/wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io |\n+--------------+-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| INFO         | parsed Affinity (affinity, session-cookie-name) of ingress hsjqtu94ab1z8x/wlhvrqzcfzy66zk | HTTPRoute: hsjqtu94ab1z8x/wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io |\n+--------------+-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------+\n\nNotifications from ENVOY-GATEWAY:\n+--------------+--------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| MESSAGE TYPE |                               NOTIFICATION                               |                             CALLING OBJECT                              |\n+--------------+--------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| INFO         | converted CORS annotations of ingress hsjqtu94ab1z8x/wlhvrqzcfzy66zk     | HTTPRoute: hsjqtu94ab1z8x/wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io |\n+--------------+--------------------------------------------------------------------------+-------------------------------------------------------------------------+\n| INFO         | converted Affinity annotations of ingress hsjqtu94ab1z8x/wlhvrqzcfzy66zk | HTTPRoute: hsjqtu94ab1z8x/wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io |\n+--------------+--------------------------------------------------------------------------+-------------------------------------------------------------------------+\n\napiVersion: gateway.networking.k8s.io/v1\nkind: Gateway\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: sqezdwmff53i\n  namespace: hsjqtu94ab1z8x\nspec:\n  gatewayClassName: eg\n  listeners:\n  - hostname: udtglz.hzfzjm.jtxdvttc.roi.io\n    name: udtglz-hzfzjm-jtxdvttc-roi-io-http\n    port: 80\n    protocol: HTTP\nstatus: {}\n---\napiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io\n  namespace: hsjqtu94ab1z8x\nspec:\n  hostnames:\n  - udtglz.hzfzjm.jtxdvttc.roi.io\n  parentRefs:\n  - name: sqezdwmff53i\n  rules:\n  - backendRefs:\n    - name: vdenm3db7v3\n      port: 38718\n    matches:\n    - path:\n        type: PathPrefix\n        value: /\n    name: rule-0-prefix-root\nstatus:\n  parents: []\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: SecurityPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io\n  namespace: hsjqtu94ab1z8x\nspec:\n  cors:\n    allowOrigins:\n    - '*'\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io\nstatus:\n  ancestors: null\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: BackendTrafficPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io\n  namespace: hsjqtu94ab1z8x\nspec:\n  loadBalancer:\n    consistentHash:\n      cookie:\n        name: mAjHU\n      type: Cookie\n    type: ConsistentHash\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: wlhvrqzcfzy66zk-udtglz-hzfzjm-jtxdvttc-roi-io\nstatus:\n  ancestors: null\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input Ingress has `ingressClassName: sqezdwmff53i`.
+  - Command Behavior Analysis: The tool is invoked with `--ingress-nginx-ingress-class 'sqezdwmff53i'`. It processes the Ingress because its class name matches the one provided in the flag. The key effect is that the generated `Gateway` resource's `metadata.name` is set to `sqezdwmff53i`. The `HTTPRoute`'s `parentRefs` also correctly points to this Gateway name. The output format is YAML by default.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `print --input-file <file> --emitter <emitter>`
+- **Function and Parameter Description**:
+  - **`print`**: The main command.
+  - **`--input-file <file>`**: Specifies the input YAML file.
+  - **`--emitter <emitter>`**: An additional flag. In the provided sample, its value is `'envoy-gateway'`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_emitter_3.yaml` is created.
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: 9x1hatqgbfrvo
+    namespace: 774qjmkwvh7
+    annotations:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "cswPZ"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: zyibki.ziwd.io
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: j5f4pa8agm
+              port:
+                number: 24432
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_emitter_3.yaml --emitter 'envoy-gateway'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Notifications from INGRESS-NGINX:\n+--------------+--------------------------------------------------------------------------------------+-----------------------------------------------------+\n| MESSAGE TYPE |                                     NOTIFICATION                                     |                   CALLING OBJECT                    |\n+--------------+--------------------------------------------------------------------------------------+-----------------------------------------------------+\n| INFO         | parsed CORS (enable-cors, cors-allow-origin) of ingress 774qjmkwvh7/9x1hatqgbfrvo    | HTTPRoute: 774qjmkwvh7/9x1hatqgbfrvo-zyibki-ziwd-io |\n+--------------+--------------------------------------------------------------------------------------+-----------------------------------------------------+\n| INFO         | parsed Affinity (affinity, session-cookie-name) of ingress 774qjmkwvh7/9x1hatqgbfrvo | HTTPRoute: 774qjmkwvh7/9x1hatqgbfrvo-zyibki-ziwd-io |\n+--------------+--------------------------------------------------------------------------------------+-----------------------------------------------------+\n\nNotifications from ENVOY-GATEWAY:\n+--------------+---------------------------------------------------------------------+-----------------------------------------------------+\n| MESSAGE TYPE |                            NOTIFICATION                             |                   CALLING OBJECT                    |\n+--------------+---------------------------------------------------------------------+-----------------------------------------------------+\n| INFO         | converted CORS annotations of ingress 774qjmkwvh7/9x1hatqgbfrvo     | HTTPRoute: 774qjmkwvh7/9x1hatqgbfrvo-zyibki-ziwd-io |\n+--------------+---------------------------------------------------------------------+-----------------------------------------------------+\n| INFO         | converted Affinity annotations of ingress 774qjmkwvh7/9x1hatqgbfrvo | HTTPRoute: 774qjmkwvh7/9x1hatqgbfrvo-zyibki-ziwd-io |\n+--------------+---------------------------------------------------------------------+-----------------------------------------------------+\n\napiVersion: gateway.networking.k8s.io/v1\nkind: Gateway\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: nginx\n  namespace: 774qjmkwvh7\nspec:\n  gatewayClassName: eg\n  listeners:\n  - hostname: zyibki.ziwd.io\n    name: zyibki-ziwd-io-http\n    port: 80\n    protocol: HTTP\nstatus: {}\n---\napiVersion: gateway.networking.k8s.io/v1\nkind: HTTPRoute\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9x1hatqgbfrvo-zyibki-ziwd-io\n  namespace: 774qjmkwvh7\nspec:\n  hostnames:\n  - zyibki.ziwd.io\n  parentRefs:\n  - name: nginx\n  rules:\n  - backendRefs:\n    - name: j5f4pa8agm\n      port: 24432\n    matches:\n    - path:\n        type: PathPrefix\n        value: /\n    name: rule-0-prefix-root\nstatus:\n  parents: []\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: SecurityPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9x1hatqgbfrvo-zyibki-ziwd-io\n  namespace: 774qjmkwvh7\nspec:\n  cors:\n    allowOrigins:\n    - '*'\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 9x1hatqgbfrvo-zyibki-ziwd-io\nstatus:\n  ancestors: null\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: BackendTrafficPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9x1hatqgbfrvo-zyibki-ziwd-io\n  namespace: 774qjmkwvh7\nspec:\n  loadBalancer:\n    consistentHash:\n      cookie:\n        name: cswPZ\n      type: Cookie\n    type: ConsistentHash\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 9x1hatqgbfrvo-zyibki-ziwd-io\nstatus:\n  ancestors: null\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard Ingress resource is provided in the input file.
+  - Command Behavior Analysis: The tool is invoked with the `--emitter` flag. However, comparing the output to other samples that process similar Ingress resources without this flag, there is no observable difference in the generated resources or the notification messages. The tool must accept this flag, but its implementation can be a no-op as it has no effect on the output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `print --input-file <file> --output json --ingress-nginx-ingress-class <class> --emitter <emitter>`
+- **Function and Parameter Description**:
+  - This command combines all previously seen flags to perform a translation.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_all_opts_1.yaml` is created.
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: 9geluvpoq9bi5
+    namespace: w5ukngsj9h64x
+    annotations:
+      nginx.ingress.kubernetes.io/limit-rps: "46"
+      nginx.ingress.kubernetes.io/rewrite-target: "/"
+  spec:
+    ingressClassName: arv-9r5f4
+    rules:
+    - host: zjkxikb.jkhkqa.tmilalg.dbu.com
+      http:
+        paths:
+        - path: /app
+          pathType: Prefix
+          backend:
+            service:
+              name: tg8224bftob
+              port:
+                number: 43110
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_all_opts_1.yaml --output json --ingress-nginx-ingress-class 'arv-9r5f4' --emitter 'envoy-gateway'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Notifications from INGRESS-NGINX:\n+--------------+------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| MESSAGE TYPE |                              NOTIFICATION                              |                            CALLING OBJECT                             |\n+--------------+------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| INFO         | parsed Rewrite (rewrite-target) of ingress w5ukngsj9h64x/9geluvpoq9bi5 | HTTPRoute: w5ukngsj9h64x/9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com |\n+--------------+------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| INFO         | parsed RateLimit (limit-rps) of ingress w5ukngsj9h64x/9geluvpoq9bi5    | HTTPRoute: w5ukngsj9h64x/9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com |\n+--------------+------------------------------------------------------------------------+-----------------------------------------------------------------------+\n\nNotifications from ENVOY-GATEWAY:\n+--------------+-------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| MESSAGE TYPE |                                          NOTIFICATION                                           |                            CALLING OBJECT                             |\n+--------------+-------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| INFO         | converted Rewrite annotations of ingress w5ukngsj9h64x/9geluvpoq9bi5 for rule rule-0-prefix-app | HTTPRoute: w5ukngsj9h64x/9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com |\n+--------------+-------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------+\n| INFO         | converted RateLimit annotations of ingress w5ukngsj9h64x/9geluvpoq9bi5                          | HTTPRoute: w5ukngsj9h64x/9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com |\n+--------------+-------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------+\n\n{\n    \"kind\": \"Gateway\",\n    \"apiVersion\": \"gateway.networking.k8s.io/v1\",\n    \"metadata\": {\n        \"name\": \"arv-9r5f4\",\n        \"namespace\": \"w5ukngsj9h64x\",\n        \"annotations\": {\n            \"gateway.networking.k8s.io/generator\": \"ingress2eg-dev\"\n        }\n    },\n    \"spec\": {\n        \"gatewayClassName\": \"eg\",\n        \"listeners\": [\n            {\n                \"name\": \"zjkxikb-jkhkqa-tmilalg-dbu-com-http\",\n                \"hostname\": \"zjkxikb.jkhkqa.tmilalg.dbu.com\",\n                \"port\": 80,\n                \"protocol\": \"HTTP\"\n            }\n        ]\n    },\n    \"status\": {}\n}\n{\n    \"kind\": \"HTTPRoute\",\n    \"apiVersion\": \"gateway.networking.k8s.io/v1\",\n    \"metadata\": {\n        \"name\": \"9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com\",\n        \"namespace\": \"w5ukngsj9h64x\",\n        \"annotations\": {\n            \"gateway.networking.k8s.io/generator\": \"ingress2eg-dev\"\n        }\n    },\n    \"spec\": {\n        \"parentRefs\": [\n            {\n                \"name\": \"arv-9r5f4\"\n            }\n        ],\n        \"hostnames\": [\n            \"zjkxikb.jkhkqa.tmilalg.dbu.com\"\n        ],\n        \"rules\": [\n            {\n                \"name\": \"rule-0-prefix-app\",\n                \"matches\": [\n                    {\n                        \"path\": {\n                            \"type\": \"PathPrefix\",\n                            \"value\": \"/app\"\n                        }\n                    }\n                ],\n                \"filters\": [\n                    {\n                        \"type\": \"URLRewrite\",\n                        \"urlRewrite\": {\n                            \"path\": {\n                                \"type\": \"ReplaceFullPath\",\n                                \"replaceFullPath\": \"/\"\n                            }\n                        }\n                    }\n                ],\n                \"backendRefs\": [\n                    {\n                        \"name\": \"tg8224bftob\",\n                        \"port\": 43110\n                    }\n                ]\n            }\n        ]\n    },\n    \"status\": {\n        \"parents\": []\n    }\n}\n---\napiVersion: gateway.envoyproxy.io/v1alpha1\nkind: BackendTrafficPolicy\nmetadata:\n  annotations:\n    gateway.networking.k8s.io/generator: ingress2eg-dev\n  name: 9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com\n  namespace: w5ukngsj9h64x\nspec:\n  rateLimit:\n    local:\n      rules:\n      - clientSelectors:\n        - sourceCIDR:\n            type: Distinct\n            value: 0.0.0.0/0\n        limit:\n          requests: 46\n          unit: Second\n  targetRefs:\n  - group: gateway.networking.k8s.io\n    kind: HTTPRoute\n    name: 9geluvpoq9bi5-zjkxikb-jkhkqa-tmilalg-dbu-com\nstatus:\n  ancestors: null\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input Ingress has `ingressClassName: arv-9r5f4` and annotations for rate limiting and rewriting.
+  - Command Behavior Analysis: This sample confirms the combined behavior of all flags.
+    - The notification tables are printed first.
+    - `--ingress-nginx-ingress-class 'arv-9r5f4'` is respected, setting the `Gateway` name.
+    - `--output json` results in the mixed-format output: `Gateway` and `HTTPRoute` are JSON, but `BackendTrafficPolicy` is YAML.
+    - `--emitter 'envoy-gateway'` is accepted but has no visible effect.
+    - The annotations are correctly translated into the respective fields in `HTTPRoute` and `BackendTrafficPolicy`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `print --input-file <file> --namespace <namespace>`
+- **Function and Parameter Description**:
+  - **`print`**: The main command.
+  - **`--input-file <file>`**: Specifies the input YAML file.
+  - **`--namespace <namespace>`**: Filters Ingress resources from the input file, only processing those that match the specified namespace.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/ingress_print_file_with_ns_0.yaml` is created. The Ingress resource is in namespace `rl3vf5d31sdb`.
+  ```yaml
+  
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: i181kniaxnamtz1
+    namespace: rl3vf5d31sdb
+    annotations:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "\t"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: qvsmdblj.wsof.com
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: w2ghdyxvdhk8
+              port:
+                number: 59983
+  ```
+  **2. Command**:
+  `ingress-translator print --input-file /test_data/ingress_print_file_with_ns_0.yaml --namespace '\n'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "No resources found in \n namespace\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains an Ingress in namespace `rl3vf5d31sdb`.
+  - Command Behavior Analysis: The command is run with `--namespace '\n'`, which is a literal newline character. The tool reads the input file but finds that the Ingress resource's namespace (`rl3vf5d31sdb`) does not match the one specified in the flag. Consequently, it processes no resources and prints the message "No resources found in \n namespace".
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

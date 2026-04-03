@@ -1,0 +1,343 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: nub
+**Repository Name**: nub
+**Core Functionality Description**:
+This CLI tool is designed for processing and displaying the content of files. Its core functionalities include:
+- Reading a file and printing its content to standard output, with each line prefixed by its corresponding line number.
+- Allowing the suppression of line numbers in the output using the `--no-line-numbers` flag.
+- Extracting and displaying a specific range of lines from a file using the `--range` option.
+- Generating a file analysis report, including statistics like file size, line count, and content characteristics, when the `--profile` flag is used.
+- Forcing a specific processing format via the `--type` flag, which can result in a summarized or "folded" view of the content.
+- The tool also accepts several other options like `--shape`, `--limit`, `--grep`, and `--deduplicate`. Based on the provided examples, for standard text files, these options are parsed but do not alter the standard behavior of printing file content.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `nub <file>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file>`
+  - **Description**: The most basic usage. It reads the content of the specified `file` and prints it to standard output.
+  - **Output Format**: Each line of the output is prefixed with its 1-based line number, followed by a colon and a space (e.g., `1: ...`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_BASIC_FILE_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_BASIC_FILE_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: tZpL,23ZpQlX,afHE,MoNoJXZY,7QC6\n2: oOo4dScgQVK6A,gCyfgds9wqd0KS,NSdJ9rqmMb8,GZYYC,o42fseFaI\n3: iEBKu,DToZBI9TOq0,8drBi,Y9Mis1PG4Aj8E,M0kcQD6GwvPIS\n4: 3ranZM,v2HA0Sb,o8R97yUsZn,vXFOTLqQxD,DZEvJAalehVP\n5: 202dG,86UZiYIYG,NuYRPeLzh,3JSqd31Sc2hAq,ImA28SI\n6: mllnBoe7xB,VqaGLZdt7x9,IAU3D,5UyPpcUc,erfRmHAe\n7: NjXoFP,2JJQGOdIm1T9i,FGWr9NPGRvjXa,AiWaMTb419mba,OiZUkAQXUhW\n8: zsiAQH9jNvjBYR4,phWpqd3IrSlG0y,eIh7iD,I8GBv,cBaG3KH\n9: N3S6Yf,qSCai1qI,7oNBP2,Ib1V6nWW0jJS,WaPBEZ03CN6f5yh\n10: iAq3ocrT,py6mzyTOJi,LnyYclagSq,EwoPmwo,UtsCNHKH7UR8\n11: 30vNUIwOLx0f,25zfxvDNUi,tVcAk,AmVpu,uZvLB69FmM\n12: P5vJ5VF,xMMrBa28goCCB,1PPh77sjfFEn,aBM3iMdQ31g,puoAaUuR5k\n13: JLj9WvtU8,EZNJpmppb6zcnVf,uIOVX,NpQY0e1KIOKv4U,HS38FQ\n14: vZ7Oa5covURfUf,U8TvStTw4ENZ8Wz,oKtiosE0M,gSBVQBBaUPcwV,RAVup45kHWaaz\n15: KGPDpZ,TRdSvdcCp,ir9D1vGaHi8ZlIE,pqhJncp0t3wj,mVzQrlidXbCv\n16: MXhar5TLb,6dyDRw6O3,8ZDaLsO,sWqpYx,bLhBEbHWn\n17: Eedgo,oF49l3paaIE6vS,spHDBzT,ymHdwsd,hoWLCd3Bfk3uAc\n18: MvYz0S8GF3jz,oOgHNQ94ie4,4rmkrPNiN2E5,bsnUfaEFoB,NtQmXCBZlIT40l\n19: hfszR,6q7P7DHEcRICs,zzna6EOSLqnjG,btDnQCg,q2EGEyl\n20: ByQJdBZDK15B0,4j5OdqikZ1J,JkxoF9e3xZMW3l9,HuQlZO,TKNrRaT1WBCoSI\n21: UtCpwgJrYdl,aHOWD,f8YBtU,3jmdULOGAU,mTacKQon\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file at the specified path.
+  - Command Behavior Analysis: The program reads the file path from the command-line arguments. It then iterates through the file line by line, prepending each line with its number (starting from 1), and prints the result to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system. The operation is read-only.
+
+#### Command Category: `nub <file> --shape <W:H>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --shape <W:H>`
+  - **Aliases**: `-s`
+  - **Description**: Reads the content of the specified `file`. The `--shape` option is accepted but has no effect on the output for a standard text file as shown in this sample.
+  - **Output Format**: The entire file is printed with 1-based line numbering, identical to the basic command.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_SHAPE_1.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_SHAPE_1.txt --shape 105:34`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: 2FixE,9Kd8o,sapSVz,KnwB3rc,s0Mp\n2: ldPiYPilWpdT4,MrzAGlqgsuWlSi,Y4zt7,mKiGe4VLJQIa,z2A2Vjn3\n3: FJoHZjh,9SOqSZszRzN2Pob,jeFc6qdhmLj9zb,XcwLs9SzIsB4Cp,L4Jwcc5G\n4: YzRB0X,woocQrxdCmOT0Qn,kMrQMPNZj,TNXzvggJ,zAroX\n5: YJiNj6lP,3MvHS1ymhh,xdw69sHCz8,vcMKOD1lKc,KDjByGjns1h2n\n6: huFRj,tmFuyHEK,jwBaj0oX,HhbuHWBujnPcZf,my9HQvQ3abcaOnS\n7: HC5eX1,cWH1At6KZ,HRCoQ34o,pqCpVE9Yh9e,1zlkpS1c6C\n8: aEKtC,sndXsJ5fw,Ao94DWwsP,Dav1NZEBRu5zGcQ,5COE70N9Qb0h\n9: bLb5q,tnDeupIb9,TDsinjtcCUGNk,n4qtAp,pQf9WdbF\n10: JWLAH5EeORK68,TRaojksTOtq07w,sSmGxbHiQiIkV,6XGoSGdQd,7HjNZOqO9z7u\n11: j1h3t,NBM6S7s,rL5U21SSzWf,QfFXMvDaPm85HY,ls5Djb\n12: Uvuh0K5NJIt,LeZXJhCn7,HhEQuAnjojlAgR,lb02QM,UizyhKY5Vp8ldF\n13: utWRQ3Iq2wpt,WElCwYXBspj,uAt2b5BeEiSIYk0,WGm5aNArywV,YLpMSi\n14: NOZMj,WWapFvXQ,p8NYL,DzeS0EhcfYzoF,DlRX555l\n15: CMHJCW9zQR8ndoo,xjTOY,bxxwi26N,Q5apfMvu,bGFsl8A\n16: Vgm7Icfeca,3FLcbaU7uS,4EDoJtNLznd,HmVOHc,iY4w7pslIqxrDwK\n17: 3k1Mdhjq9Le7,ODRCLhoKduyU,ZL3bDqfzkKw,Yegvx3JaRfWp,vrcl9VytaCuX\n18: WAqPAGDLH7HEq,FABxnhmOBhdEU6,zErshPVIjHoYyW,qABf1,PvYTI2Lv\n19: ew7nDqYvUnVH,4Uv7HGDp1oyMRsL,lJhJCx7GzO,bwAZi,aSCvsv7uA\n20: bJykEGqedazijs,WRWFmib,LIn3kPlRJ74r,3Rm92wNptvNjMr,nhCkk2JzvN3\n21: 9wNvugAQ,ymjFdwHcNp,oE2Yi74405dx,YgXBBxgtB,ZzFOXPAQ3z\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program must be able to parse the `--shape` argument, which takes a `W:H` formatted string. However, for this input file, the logic should ignore the value and proceed with the default behavior of printing the entire file with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --limit <N>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --limit <N>`
+  - **Description**: Reads the content of the specified `file`. The `--limit` option specifies a maximum number of characters for the output. If the total character count of the formatted output is within this limit, the full content is displayed.
+  - **Output Format**: In this sample, the output is not truncated, so the entire file is printed with 1-based line numbering.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_LIMIT_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_LIMIT_4.txt --limit 4190`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: TYRApfI,ijaKn,l91D,zkJ7,DaKkP\n2: lXeIy,znj3IUoPz,QJu3EioSNxP,D5Lt98HbhXkzbc,VWSuNT\n3: 14nqB,Z1OvRXyIQReE7mp,mVZRBTgyJgxl2tx,hyeV75Zm,vvUtmzIJPALifwK\n4: eZZOm,4MpzF3PkNob,NBdEFLmuR28g5,xUkhuJlq9,G6hlNQIqgelg\n5: OZz1qjnpZf46Z4,8pN0H,YSrxJrBxSQTMGT,cWjqsact3T3,JVISz4\n6: m0UOSzENZVD2oNq,RhcuwAHWua,4kan6cCNBHfmI,f8rp8Hf43Xv,x6BB7gu\n7: l1ecqpBL,9e6HUFMn1AI64Tk,ZykDB7is7x87l,Ud8Zl,Hll3cj5Bk\n8: fui3k6e,709rfTHhD4H,pxe7HxN7NPk9jp,l8vHOK41DbvkFyC,iEDXOc6A8nXyX\n9: NJWYFM9up,P6rvu0xz9zlFOa,GGEuIe,FD5vNBS,rtobZczj2OeW\n10: rIo9FL5nK,UokVwU,rrp67QPhcIB1mQh,x1WXdGtW1Il,MevZE5LTebr2q4\n11: HNZkMMrhVg1ZafB,dEqGjKvbchowQV9,As0MNmDIt1w8u,VZMV8QWV,iwzuoqxSZzEr\n12: jGwaIAWygcq49,3rVDBAwSE,4QCwyhnBBan,8kL14d21BJYhi,7ul3e06DtRseFx\n13: Y5JMXT8uJ,ahMVpOJ0iO7ZVyw,XgCEbU9w1,lmSGipBla4MUmDA,YlmZUc8f\n14: bGlgyrI,Hcy9VaUp,K9YJ5yKxhM,KloBu,9DwiUnJvxJqkq2\n15: JmYkf2,I7UDJ,BpcdZABgwltWXBO,N8cpQTu97XB,GMx8okFI9Q\n16: gmMqxYI,7aMPgLT2Wif2,Od5ZSfdfz,EqKzESO8,wrtdzkxK\n17: 5uLsX7sLWxOVzaT,CHRBNcp,0reuV0UuGmj7,MpDDom8HAoqG,98ye7uzWfL\n18: 0L9gcVBtSZDT,DCxn9,JJ73vKf2jCu,FPEPNVt0j,Oq48XKEKjD\n19: QZiAGc2C4fmQpVs,o8R2qOkOEza3F,p2AYeMs,JMCD6m6IWyRq2QC,IZbp4e1KvgsLa\n20: 5nIfC1Q2LA,K3paFrcjE,rqVejsd425,EC6T2bifWC2Hvu,noevwXME7EIxHhZ\n21: CiYI4bS1,m3rfQNCXswNRN,JmzuHPN8GZgb,jxn1iTcjHtbG0o,k4jbfdyJtXWkmV\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program parses the `--limit` argument. It should process the file for printing, but before outputting, it would check if the total length of the generated string exceeds the limit. In this case, the limit `4190` is large enough, so the entire content is printed.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --range <S:E>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --range <S:E>`
+  - **Aliases**: `-r`
+  - **Description**: Reads a file and displays only the lines within the specified 1-based range from start line `S` to end line `E`, inclusive.
+  - **Output Format**: The selected lines are printed, each prefixed with its original line number.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_RANGE_1.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_RANGE_1.txt --range 2:6`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2: ZF4o5kPCINrB,4TTwW,tFA91,knZ6yNB,rv7axLm\n3: wia6GlftY7WPYf,RCgk6ZgRM,Hekhh1KBK,M5r47qB,Wp5P7m\n4: VHabP,9QtdaGVo,ka0hEy9mm,RI6pR,sV9U0GZjXEXCJZ\n5: sIuNgk4sr7jw,UUjrZbBArj,wrW6jmX2fNat,G8bp08lqoPg,8nwhS0eUd6Hr\n6: cQKRX,r4G2p2mDGfh5b7,ov2u9Z0OUuYPj7,UQ2ZR1in0wAL,jJ7C6Q\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program parses the `--range` argument to get the start and end line numbers. It then reads the input file, and for each line, it checks if the current line number falls within the specified range [2, 6]. If it does, the line is printed with its original line number prefix.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --grep <PATTERN>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --grep <PATTERN>`
+  - **Aliases**: `-g`
+  - **Description**: Reads the content of the specified `file`. The `--grep` option is accepted but has no effect on the output for a standard text file as shown in this sample.
+  - **Output Format**: The entire file is printed with 1-based line numbering, identical to the basic command.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_GREP_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_GREP_4.txt --grep DDJEWEzGLpA,kNVQT,NSzcN,qAlACBf,d06jssOkMJU`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: FBB1rIY,zZspg4Sz,UvVTgssd,cP6ajIlu,WFwtZK\n2: XbYM5,iFgGFXXOrMJuXZ,4fn5slwaS,RfYC6d,g53nl\n3: MMCXwkCJRjPiS,mmGWO2,CUzn5L,bUBnpy,XuBgTCgZhQXOF\n4: GxDbwX4WcdKpZ,rmQZM,pt8ktRu8IhsstoL,RvXRL1gxgFx5J,f6lGht\n5: dptI1z,rHUPrNiF9GL3x,81yomOmXyBeYp,hfxh57jOOFWX,04dXlG\n6: GK8WSz,9ZsXNAm,crhiJ2tSYi,7NFTBYVi6cxA,7czap8Jx0\n7: J3WX0iBnIpfvS,hczOE,gLxayGiVve0b,r2mhd28E,851ZeYcRvzP07\n8: N6gYWpmd5,RKCJhfhiaBom,f6c0wbSjEf6nBQ,EiqRax74Xvq9hz,D8fnln4gwY2mWv\n9: DRmKvhSZ5kxYr,33V8Xau,80V5SXZYpzO3I,mQghjUSrhp8ki,3z4ZbkH\n10: 6tDPurBCxy,6UBkrm4cU,KE3OiVu4jA,DYkpWOb3mlGsFD,H7wB2J8Si\n11: DDJEWEzGLpA,kNVQT,NSzcN,qAlACBf,d06jssOkMJU\n12: rU5WOUuLVskk,p2ouPqpsfhiWDN,luskhqxHy3,ghk4qaguYmC,Gmkz50c381J\n13: PTfqbJXioxQnn6,17tANHjgUHEM,Welv8,HV2jufvlPaWFNC,b927QrAcLt\n14: CMUIS,pDUeZrj,iKpBXwOsTAOqYh,GCHWR9WnzEAj,CGGrc1Kzd\n15: 2KlyiIFJHnt0ssz,yp55yvG,Lt4JrWRy,I6TOv6,KcKARwb4Su\n16: jBDC1O3qC,rKDdNOEUjPZH,HD8quyOJBAwz,TCY8y7p2,EnBLgl5Ac\n17: 4jfk12a3E7Abias,exUONfwd8jWK,xwcg95Yy,Km9epi,KM3gZdp6\n18: sKYykmZ,8EKzkl5NNW1z6Sc,AtwKxpxJXqV,x2EJUFRXed,0Efe2Jqqi\n19: RXCIJxU,ZvOThDW6JXi,6yiWR7J9,brUMph57wgRQ,Tm9Gd\n20: VmXK9c,r43F52iz,Kn2sK0,8UIZegbo3Gb,bOBjMqnu\n21: YDCoEen7XVAdZ,QO7eh3d1XbGX9,3F6m0Pv8WkJd9o,dpPVpe,Aoryf8\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program must be able to parse the `--grep` argument. However, for this input file, the logic should ignore the pattern and proceed with the default behavior of printing the entire file with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --deduplicate`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --deduplicate`
+  - **Aliases**: `-d`
+  - **Description**: Reads the content of the specified `file`. The `--deduplicate` flag is accepted but has no effect on the output for a standard text file as shown in this sample.
+  - **Output Format**: The entire file is printed with 1-based line numbering.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_DEDUPLICATE_1.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_DEDUPLICATE_1.txt --deduplicate`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: Hxda3tI,jKfW2Mr,VDCwJmM,2n4fA,wOK3Wj\n2: Oe6xxna7MfKqK,HAMrf8aTmXYnu,JLuV7,QgxkN,a0PrH1VVJho5O\n3: E2INbMZg0V,xrj0dSrjIl8N,VG3OqOuWvr,RMHZn,q1B7DDv46PJmH\n4: QPiu32,v4Gojm0F0,X3mXh4t2e5m,PNMMeUF1Pdl1Er,2IRkVjv\n5: o7v98lEZGn,vo3wlH5e8PA13g,Uj3nuqS3Xf7R,sCMULOlaf8rFuD,H7qrOnLVlK9et2\n6: DqjHvdR4q,GXVrjrGVN8Tc9SJ,k7SoJNbJR9ml5,jl8aicaA213qo,2zKBbp7\n7: kiuFkfbIi,lMKhKWcT,OcQwkgAsiMwz8,2jtGNE6e,7C80h0n\n8: 2DyxTd,dpUmhbJMf,SA49YnZR3,1huSFp8BbrUlii,qZp4yya5\n9: 7pPloT56tU9,HunogQc,EO3DM,InWwkRjzlyUO,lMVAg89D\n10: XaP9dv8atIi,q4pN3MIiYh,Wl3yJi7sb,QQ5GWmV0SU,jsAIPVbB\n11: RFk0Xok,k0zxO,MiORmt3poyq,Dd8dq0F2pLE9V,MgpvlDF\n12: UOd6vyTtL5,1isBudxWqoPAqF,gEHpaKn,s6CxKX0g6L,IfK5S0NkkBpSZ\n13: Yz1yY,vw46Zxm1us,RbGMQYEVk,PY2fVYeSJb0Uz,Xn641mVaOLiGJ\n14: et6TZcL8R,phS0mdm4h,ST6PTC4mRWp,F3nAANRJlY15,ysv94X2M4\n15: uoWiX,BezzHzbHZKQc,lfLQ48,nIeyLEEdB53Kbn,YJuOK7bL\n16: 0MGMiyDXy6yQ,aLcLbK0gC,YLSnSlI0RqGh,wsGcKeA4cVH6,exFMRcEV0K0cEr\n17: LddQrn,lMGFM6A,CFnw6qQIuhOjX,gpiTQ,e1PqFfV3\n18: aIwaRdfZeC,3ZRlMa7b,dXqWkaayG9,ub411nW,ub6wK7g\n19: gGF4c8y,A4n5ID,P50mO,rasfj,fST2vggnQkK\n20: nWCgyodj,61JSHspgxZMvKf,X7yDkeBtLR,bbiFvn,w61HBFiV\n21: cfhoBI97EeHc5sb,6KsgylN4Rvd,to5mE1WwU,4oTEQuv,QWzqJ7kYw5\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program must accept the `--deduplicate` flag. For this input, it should proceed with the default behavior of printing the entire file with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --profile`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --profile`
+  - **Aliases**: `-p`
+  - **Description**: Instead of printing file content, this command analyzes the file and outputs a structured profile report.
+  - **Output Format**: A formatted multi-line string containing headers (STATE PROFILE, STATS, RECOMMENDED POLICY) and key-value pairs describing the file's characteristics.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_PROFILE_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_PROFILE_4.txt --profile`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "STATE PROFILE\n============================================================\n\nScale:       < 20K tokens (301)\nStructure:   medium\nDensity:     moderate\nLine length: short (avg 56.5 chars)\nClustering:  random\n\nSTATS\n------------------------------------------------------------\nFile size:   1,207 bytes\nLines:       21\nBlank ratio: 0.0%\n\nRECOMMENDED POLICY\n------------------------------------------------------------\n1. Structure discovery (grep, head/tail)\n2. Wide survey + semantic grep\n\nTarget budget: 20.0% of file\n============================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: When the `--profile` flag is detected, the program enters a different mode. It should read the file to compute statistics: total bytes (`File size`), number of lines (`Lines`), and average characters per line (`Line length`). The other fields (`Scale`, `Structure`, `Density`, `Clustering`, `Blank ratio`, and `RECOMMENDED POLICY`) can be implemented with simple heuristics or even hardcoded to match the sample output, as the logic behind them is not fully specified. The final output must match the given formatted string structure.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --type <FORMAT>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --type <FORMAT>`
+  - **Description**: Forces the file to be processed as a specific `FORMAT`. This can alter the output, causing summarization or "folding".
+  - **Output Format**: In this sample with `--type mindmap`, some lines from the original file are replaced with markers like `[...1 more...]`, indicating they have been folded.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Python file named `/test_data/fuzz_test_TYPE_4.py` is created.
+  **2. Command**:
+  `nub /test_data/fuzz_test_TYPE_4.py --type mindmap`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: [...1 more...]\n2: import os\n3: import sys\n4: [...1 more...]\n5: class MyClass:\n6:     # Vh24PuROtxHQZjNxZnekfPMI\n7:     def __init__(self, name):\n8:         self.name = name\n9:         print(f\"Hello, {self.name}\")\n10: [...1 more...]\n11:     def do_work(self, value: int) -> int:\n12:         # A simple calculation\n13:         # U91sgKlThMd1sQC2sGJa\n14:         result = (value * 2) + 10\n15:         return result\n16: [...1 more...]\n17: def main():\n18:     # 3K56SjSrYHIIfuV\n19:     instance = MyClass(\"n62KiM\")\n20:     instance.do_work(86)\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a Python source file.
+  - Command Behavior Analysis: The program detects the `--type mindmap` option. Instead of printing the file verbatim, it applies a folding logic. By comparing the input and output, it appears that blank lines are being folded. The implementation should read the file and, when encountering a blank line, replace it with a fold marker like `[...1 more...]`. All other lines are printed as-is with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --no-line-numbers`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --no-line-numbers`
+  - **Aliases**: `-N`
+  - **Description**: Reads the content of the specified `file` and prints it to standard output without any line number prefixes.
+  - **Output Format**: The raw content of the file, line by line.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_NO_LINE_NUMBERS_3.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_NO_LINE_NUMBERS_3.txt --no-line-numbers`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "AiQCJH0,FLmYu,pb4CChr0,yRAWAP1i,oWrj\nWue9igG7IPydbYW,ct5hKsdgioOJ,EObU6ZniifJlITX,Rak7ewUULDJ,akgzmusvI\nFGHhekkDxLAkSK,X9ZY5,1BUGAOY1OBa68i,sxp8prKYoA8m,tqp0OdHgRA\nvYwZc3VTjmF,MxSEhicZaSYJCi,qdJSQoerUb,J0qpIdcIH2c,6BLvc\nVAsX37Nv935wqT,JywfL,KhUMJOKMKTM,0LE0N,IQ2e0R\nQ8A6ng4P8vnO,fY1jYIpLWC,TNJIlI,Jdv8x09h0yYUPQ,iulrd26\nrxyUak1pHCsHk,qoBG7Zyy9,YBzaVPwMwpT1Ifc,QTAtpEZqz5,AFEdidHOuZYZ0qf\no4BhBtReW2FkA,a6OBL02V,mAr2H13sGyfKMJ,jWoiHmy,rQtxpxgLGf\njmvLPsqOpZMJ,iis8QxuGZsmu,On4uEb4C,9oV2h,gteL6gjeuKWg\nan0FRa6SB,DGdDZgEC76o0V,kC0aUli,4JS0F,gUQpuAia0MPv\nXS5RI,uIJBOlIgsOBiK,8iPrkg23Xnh,hWnY9,0tKCGZvef5PZoj\nl26iyFQxkWy5w,3f5IBvaPx,nX65D1GWEnudOQd,PwaGBiqqUZJnV,lbBiXxSDCR34Rx\ne7CyTRCmQtaD,329gfIzeqtZ0,ZXrUoufR64Mf,Ji0Gc,HBniwScxJn\nV49Fy3uRxiX2l,JdFdIUzDk01O,ZTauok3XqwlN,TsegsJYvYK,8sbqTMz46\nrUVaLfB,jZxvva,WUv57PKigB,hyZKDs9,0jp9Ns4FwzC\nMNv7g,xQil21qwnsk1RK,tQEgVfXgq,9YZt5sIktSdlhs,Nd2AcmWp\ngNOj80IiwvKhCQ,4VbysxVUiN,sjzJC8fHMGLPB,rAOPmeCfFNJff00,RyQjE7\nl7llpS,WMValtJ4BE,S9Wwka,YJV5Uan,ijtxTaaK\n5ONljv54yzYf,E2TxPPLumeWduZ,XAaXg8c5l3oeozD,OcFdbnDz,RR1iq\nwWiNvrxTPuxREd,YuJDJWOL5Q,C6WIeo,8gAWtpLsajKSYaG,UqtR9f\nLrLZ4VnoLkPpu,YcP8hAfOwa,fzjYU,KhvjR,A6CiSV\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program checks for the `--no-line-numbers` flag. If present, it reads the file and prints each line directly to standard output without any prefix.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --shape <W:H> --grep <PATTERN>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --shape <W:H> --grep <PATTERN>`
+  - **Description**: A combination of flags. For the given text file, neither `--shape` nor `--grep` alters the output.
+  - **Output Format**: The entire file is printed with 1-based line numbering.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_SHAPE_AND_GREP_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_SHAPE_AND_GREP_4.txt --shape 150:37 --grep 1qe`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "1: KDZ00G,cMxq5R,U3Pg,oc8J7,vH8r\n2: 6xcpc,f8lbj1WTp7OY,DnmLjqDY,HPbx4UcG,F2c91x\n3: h3Lyzti6vPZZxJ,sFmJwNSgnl,1pbyR4,Zb4OT,hmaDdUvv\n4: dZUppK,O4Yrd,VCLL72hBtn3MV,tpcN0,XZT95vue\n5: MAAWgJl,laMO8f4fC3IX1,06pYooqU8j3mXZ,AR469rK,nOOBvdJEvKvg3\n6: QwbhBoR8trw,WtmDqPGOFMqg0,0mNwYLgt,TRxZJOTXvQNf,LlmORb63uOm8l2M\n7: ZOPD2058wvcm,QiG5BFjx0Weh,PqMtKhDMy7300,VLEIiRdS3,oAnRhGkgtYVW\n8: DvfV7B8n,CX34Y,qYE9YE,L2d5BvmZ,b4aNju\n9: DvigLxRbaDmrgHD,Hf2E3ougbMZOj9,NJ11qMb6n,7j0IUUrFd35ndjG,YYA2wAje\n10: 3SxuO1b3AQ9Cn,sgCpZ,r6Z8J7PVjPPIWY,zwVpBZYl,oYckEHoHR\n11: h8QExUo,D65hV3gDOfCh,SqM3zm3PciH,kvy8HwSufXw3d,mF5HrJPQRasJXDO\n12: 4lMVv,0YItrhDl,wh7jubwLWqcX8M,4ovZYFd,D4WO0AXrKiQg\n13: CW1ID1BX,TcKbxHbyQOcI82n,5lejSU,mEVTZXawWeslLd,gNLPN4odUeHdGk\n14: aVsFl2tNK0K,Nmf9YS8Pqny5,nXuBU7bxv5L,FYezwA,q5QoER8ZQiU1rlA\n15: pj1vaF7nZx,Oy1VCIt3,bb6uajsSpB1,8yeDLA3x4,EJrgYR4a4Clp\n16: RdS2LZgLa,mzcylDEpJA5,A7CeOY9e,jssPu0,fdy8j\n17: xIIHM,RTJu9O,6eMJPmakH,YaCKsS,CLsMy\n18: ntDHZlQJV2,4oPUQgrezk27yjX,bciPqBw9Ya,GYzy3qt,haKTfWbEhfBV\n19: KyCCoYPtJz,d3Yk8N,srbqWUIO,PxNys59EARGLEvJ,6uD4VVjoSs\n20: cr3ORfpafiq,sVgLj6W5fdO3,VsiHweC4d0,W7h0TJtbT1sX,o5pbIHdUmf0Kx\n21: jqCOHZ,bGyEBULfrzeW,xNVAJ0c,ZN80cR2l6c,Pb2RoV9N5hs\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program must accept both `--shape` and `--grep` arguments. For this input, the logic should ignore both and perform the default action of printing the entire file with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --limit <N> --range <S:E>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --limit <N> --range <S:E>`
+  - **Description**: A combination of `--limit` and `--range`. The tool first filters the file content to the specified line range and then displays it. The `--limit` is not triggered as the output size is small.
+  - **Output Format**: The selected lines from the range are printed, each with its original line number.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_LIMIT_AND_RANGE_4.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_LIMIT_AND_RANGE_4.txt --limit 1467 --range 5:17`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "5: zLCoX0bovAWPcTk,EtuC9k,1YW7Jb0qZx,f3Ip4bYDXT0iD,5MMwluQ\n6: dosb6GUM3Zve,rIXk0avA,xn0UiHaTSodfl8f,4CjdY5BZoYi,eEz7u\n7: L6zvLf,in2JNwWgBSYDcO,I8mmyvjraNkWu,8eF1TElokn4EXbM,GE4Jjzw\n8: 9j9N0v0SdEGnD,AIKq5,i5AD1iwwS2YkgDw,E4vmw,0Kn5baYIBbP\n9: idxzs5,bauUZ7Ns5zxp,QeyvBSzd,i5L8GdG5MOU,31ezjPFeiq\n10: lL1wKFk,SE76f6Y668,Mfb1szNJLpRI1r,juDLN,TbJx4k2Q\n11: JvGAfVV4Tr6eUq,YyTwZvaBhj8,BJd1Mmt,7zV0U21nbcs2sHp,6QsVYqIYL\n12: ZdNaQ,qdOxlZ91Sc5O,rcOIxg,AWkuTjY9AtJuqK,ambLqbND\n13: etH2nz69,gSpelVUi,kO9cegAr9,cvBAm0hj,D2wqEiGptXmyVm\n14: 56YA2mHIO,31hx8,LMhiPF0sTZ,JQWa5JP6P2ZHuDk,EFz0THS5Ck\n15: STcFrITIRC4K,GHrtuthf3I5FkY,TXcDrxEbpG0U6Mb,f4PlrqF,S9umNc6N\n16: cIuYgm3nHR,xFOAma7XB4H,k4w4gP9w5UbgE,BPIpAFB0tUH0k2V,3Gl2wjS\n17: dMcgj,U2qZ8aic,H3R4C,4ojRmsgB,4FxWpfxHDiXVhc\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program should first apply the `--range` logic, selecting lines 5 through 17. Then, it should apply the `--limit` logic to the result. Since the resulting output is smaller than the 1467 character limit, the entire selected range is printed.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --deduplicate --no-line-numbers`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --deduplicate --no-line-numbers`
+  - **Description**: A combination of `--deduplicate` and `--no-line-numbers`. The output is the raw file content without line numbers. The `--deduplicate` flag has no visible effect.
+  - **Output Format**: The raw content of the file, line by line.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_DEDUPLICATE_AND_NO_LINE_NUMBERS_2.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_DEDUPLICATE_AND_NO_LINE_NUMBERS_2.txt --deduplicate --no-line-numbers`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "4a2Qg,KLZaL4k,jfpE,OI1uqQDK,abh2\ndrnw04,eLK0CXClH,RvNMC8rJtPbXmxL,FiCgHMm9,eK6FzvCN\ntyOJuLCJ,weeLsAtZJWukqSp,0LoNDP,KRnF2IrF7Jl,iJ8LD\nozx070rd,DwBPHQpO8bFz,OymyeNHVHkjRhL,di67WC68Fe,pXN7VnSl5ovl9rT\nXWrOUn,zAHcJNDAC,1gvzUNMDOXuRyi,Bfzox3,TOt16VBb\nKOzB3m7oBjDq,61gC6Ez,2SJ2I6xG3,kINzgfu4yrRv6c,glH4ahe\nCXMo7WpOdZGVvK,PqiAz9y8pf9MVR3,EUlSSRG,eqynSkMeYgj,NdvZCeRUm8\nykHxXIaY,bDQpVs,xSnSS4z,8j8bHFZdeavtj,Zssgga\nqSvFY,nOzDYdOthYccK,4POpaD9X,tqkad,5thGGBr3d4zhQ\nykeT8yNW,8LOcdr,utH6yl40AZ,4D4dfgy,fxAPUHuUx4\n6l3WBQz,5gMOamPcbg9J,5x6u0PBvtUPec6x,wBiCIVta9,kPWeZz4lZZGdz4\ni9CIihwayJfTvo8,HsWD6,NBhGjDVnaS,3HknNHx,KCUGZ\nuzmpeUiTs,U45Ny0U,Ag7mjkChJ6,8jmjWcEVQAU,bJIjH8GIkUpNm\nyytQTuEUdB6RgN,Bkfj7WOh,Mqj9oXnh6XXcyEO,e5YEM39Et,OL65L\nuW3zKJfvQqRPvt,dVXl1ZlZpW9eI,XwWh3fDZiRLJX,21loMIVz7WvT5o,lqrfWPX\nExGw2,xsS9EGwcgdLP,XoFK25U,1kbtVq0,rOKejPtllDOURx\neJL2o2xKEF,790UwEOEA18DJ,c13CrwUYNE7M,NaUdJ,JzE3SyUUzt7v\ngf7dzirAevet,q9PpiTWVe5nRz,RGlSVPO84jK,2rTdO8ZNB,NB7aDvJ1Q\nP8nn1giSp,8Yc3Zj,OvYjmMXQfQ41Egi,iIvbwQU0je,o4TUc9x\nmWyb8Wbe,L20pXo3RMqTyXiX,EPDDe8smTzei4X,XYUh1uj,C0zvk3ynitSgd\nbivbcAwk,kQ3Rvelwo,HQ3pBVn,61CpBKPgb,UAsLoI\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file.
+  - Command Behavior Analysis: The program must accept both flags. The logic for `--no-line-numbers` is applied, so no prefixes are printed. The `--deduplicate` flag is parsed but does not change the behavior for this input.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nub <file> --shape <W:H> --range <S:E> --grep <PATTERN>`
+- **Function and Parameter Description**:
+  - **Command**: `nub <file> --shape <W:H> --range <S:E> --grep <PATTERN>`
+  - **Description**: A combination of multiple flags. The primary effect comes from `--range`, which selects a subset of lines. The `--shape` and `--grep` flags are accepted but have no visible effect on the output.
+  - **Output Format**: The selected lines from the range are printed, each with its original line number.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_SHAPE_RANGE_GREP_1.txt` is created with 21 lines of random text.
+  **2. Command**:
+  `nub /test_data/fuzz_test_SHAPE_RANGE_GREP_1.txt --shape 110:23 --range 5:29 --grep uSUu8`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "5: 9cOsZoRF9Rh,sjfkpuppFq8s61,B87ac,vzHTMM2pBOAoxL,yNk3sDk\n6: qCb3R3y2wJV,i0qd7MB6ZE,SdQM0,4qaa4cSI6pqO,NAmSaYmb2mZR\n7: 3REpkhoV6,DBEgzxXivGYixf8,vJEvZPq79qZ,LEUOkVLJGG,RldaDEVtPIhpb\n8: nPQrmQFU9XOxN,2c0BSxvSJd,BwUIMzhl0w8IFi4,lrZ1XvgDnRoNX,wGbW9QnnEplpqw\n9: AxfUOa,nrUMvweC22C,7yXelHsx5cM,ZKJrJU977O,XCII2JJhX3WmzOQ\n10: uC37DGblsPy,tdKpkZQ4dOz85Et,Zzr0kmkuqJ,4Ae374uZ,gx9ng\n11: OwSKyoUX5tpt,y0cMSG9,MP0a5i41,Gydib,iFn7F95PONB\n12: tGTRfNrXaPheMI,CGbmnzrXriFLb,Q0KRjYHFz,rLTcOtxfb,buD6cnALYhnqe5H\n13: SucXU58,75efXw3ABX,PIbcIYd,IfG8GEHu,TcsLnBM6kYTU5Z\n14: 9hEiQqbywyjCw,7gCw7,3fgxXGLFe6,tp8PPF0R3gh0f,mDMkKXScxna9V\n15: nDXqw5B4,vK7C9m9Ra7I,KhkwBvip98sQlw,4c4mYh6Xx,AoXLZ\n16: unSpbN3VF6W,aodwM42TO8FIrhm,BNzVRFvKBtkz5,joVd0vQZ3m,BfFUNN\n17: Mve1FIF,M5bick,BYouP,ok6k6Fe,LjoYxJVFTY\n18: Pbaek,R3pRNdYINv8,DehML0he,bbdzpa5I,BxTtMKmd\n19: VzBGg0nQJ8OSPR,CwphfI0ZdCSsg4L,8Avid4,5jWRbN,8uOHPH\n20: NpUiVdtvUXQl7,F0wsUmTlc0RRuVL,FVEjcQcEwgY77H,YvPz6ka41bMgCAz,U7E3E7mQlzOB\n21: e48VtxuOQ,rHRfFjhFgQmKw4p,iuWYm2Ct05BN,LxcTJIrnh3wuI,SVtbeW3y5t\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file with 21 lines.
+  - Command Behavior Analysis: The program must accept all three flags. The `--range 5:29` is applied first. Since the file only has 21 lines, this effectively means selecting lines from 5 to the end of the file. The `--shape` and `--grep` arguments are parsed but do not influence the final output for this input.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

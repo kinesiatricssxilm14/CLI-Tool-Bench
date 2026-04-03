@@ -1,0 +1,200 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gotmplfmt
+**Repository Name**: gotmplfmt
+**Core Functionality Description**:
+This is a CLI tool for formatting Go template files that contain HTML. The tool reads unformatted template content from standard input and outputs a properly indented and formatted version to standard output. The formatting logic is based on tokenizing the input and applying indentation rules. Indentation is done using tabs. An extra newline is introduced before a `{{block}}` or `{{define}}` statement.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gotmplfmt < <file>`
+- **Function and Parameter Description**:
+  This command reads Go template content from standard input, formats it, and prints the formatted result to standard output. It uses a default line width for formatting.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_test_BASIC_2.tmpl` is created with the following content:
+  ```html
+  
+<html><head>
+<title>{{.Title}}</title></head>
+<body>
+<h1>tzzxq</h1>
+{{if .ShowSection}}
+  <p>This is a section.</p>
+  <ul>{{range .Items}}
+    <li>{{.Name}} - lxObDcH5EgnW6G</li>{{end}}
+  </ul>
+{{else}}
+  <p>Section is hidden for {{.User}}.</p>
+{{end}}
+<footer>Ho5AP5Jzwccd1OKRtg</footer>
+</body></html>
+{{define "test"}}<div>{{.}}{{end}}
+
+  ```
+  **2. Command**:
+  `gotmplfmt < /test_data/fuzz_test_BASIC_2.tmpl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "<html>\n<head>\n<title>\n\t{{.Title}}\n</title>\n</head>\n<body>\n<h1>\n\ttzzxq\n</h1>\n{{if .ShowSection}}\n\t<p>\n\t\tThis is a section.\n\t</p>\n\t<ul>\n\t\t{{range .Items}}\n\t\t\t<li>\n\t\t\t\t{{.Name}} - lxObDcH5EgnW6G\n\t\t\t</li>\n\t\t{{end}}\n\t</ul>\n{{else}}\n\t<p>\n\t\tSection is hidden for {{.User}}.\n\t</p>\n{{end}}\n<footer>\n\tHo5AP5Jzwccd1OKRtg\n</footer>\n</body>\n</html>\n\n{{define \"test\"}}\n\t<div>\n\t\t{{.}}\n\t{{end}}\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An unformatted Go template file exists. It contains a mix of HTML tags and Go template actions like `{{if}}`, `{{range}}`, and `{{define}}`.
+  - Command Behavior Analysis: The program reads the content from standard input. It tokenizes and parses the content, applying formatting rules. The rules include:
+    - Indenting nested elements with a single tab (`\t`). For example, `{{.Title}}` is indented inside `<title>`.
+    - Both HTML tags (e.g., `<ul>`, `<li>`) and template actions (e.g., `{{if}}`, `{{range}}`) increase the indentation level for subsequent lines.
+    - A blank line is inserted before the `{{define "test"}}` block.
+    - Certain block-level HTML tags like `html`, `body`, `head` do not add a positive indent themselves to prevent excessive nesting.
+  - Final State Changes (fs_diff): No changes are made to the file system. The formatted output is printed directly to `stdout`.
+
+#### Command Category: `gotmplfmt -w <N> < <file>`
+- **Function and Parameter Description**:
+  This command formats a Go template file from standard input, similar to the basic usage.
+  - `-w <int>`: Specifies the maximum line width for the output. The default is 120.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_test_WIDTH_1.tmpl` is created with content similar to the previous example.
+  ```html
+  
+<html><head>
+<title>{{.Title}}</title></head>
+<body>
+<h1>bxvqbwnfY8</h1>
+{{if .ShowSection}}
+  <p>This is a section.</p>
+  <ul>{{range .Items}}
+    <li>{{.Name}} - tQtFU451cIjMPe</li>{{end}}
+  </ul>
+{{else}}
+  <p>Section is hidden for {{.User}}.</p>
+{{end}}
+<footer>aUgHNeM37VrxFlUKSt</footer>
+</body></html>
+{{define "test"}}<div>{{.}}{{end}}
+
+  ```
+  **2. Command**:
+  `gotmplfmt -w 115 < /test_data/fuzz_test_WIDTH_1.tmpl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "<html>\n<head>\n<title>\n\t{{.Title}}\n</title>\n</head>\n<body>\n<h1>\n\tbxvqbwnfY8\n</h1>\n{{if .ShowSection}}\n\t<p>\n\t\tThis is a section.\n\t</p>\n\t<ul>\n\t\t{{range .Items}}\n\t\t\t<li>\n\t\t\t\t{{.Name}} - tQtFU451cIjMPe\n\t\t\t</li>\n\t\t{{end}}\n\t</ul>\n{{else}}\n\t<p>\n\t\tSection is hidden for {{.User}}.\n\t</p>\n{{end}}\n<footer>\n\taUgHNeM37VrxFlUKSt\n</footer>\n</body>\n</html>\n\n{{define \"test\"}}\n\t<div>\n\t\t{{.}}\n\t{{end}}\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An unformatted Go template file is available.
+  - Command Behavior Analysis: The program receives the `-w 115` argument, setting the maximum line width to 115 characters. It then reads, parses, and formats the template from stdin. In this specific sample, the line width of 115 is large enough that the output is identical to the default formatting. The logic for line wrapping based on the `-w` parameter must still be implemented.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `gotmplfmt -t < <file>`
+- **Function and Parameter Description**:
+  This command formats a Go template file and also provides debug information about the parsed tokens.
+  - `-t`: If this flag is present, the tool first prints a list of all identified tokens to `stdout` before printing the final formatted output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_test_TOKENS_3.tmpl` is created with similar content.
+  ```html
+  
+<html><head>
+<title>{{.Title}}</title></head>
+<body>
+<h1>ucygFvGDPdt1</h1>
+{{if .ShowSection}}
+  <p>This is a section.</p>
+  <ul>{{range .Items}}
+    <li>{{.Name}} - W5MryORBzyjjf9V</li>{{end}}
+  </ul>
+{{else}}
+  <p>Section is hidden for {{.User}}.</p>
+{{end}}
+<footer>mpRPhS1QbSGGVzNXDLH</footer>
+</body></html>
+{{define "test"}}<div>{{.}}{{end}}
+
+  ```
+  **2. Command**:
+  `gotmplfmt -t < /test_data/fuzz_test_TOKENS_3.tmpl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Type: html, Subtype: 14, Value: \"<html>\"\nType: html, Subtype: 14, Value: \"<head>\"\nType: html, Subtype: 12, Value: \"<title>\"\nType: tmpl, Subtype:  0, Value: \"{{.Title}}\"\nType: html, Subtype: 13, Value: \"</title>\"\n... [omitted 30 lines of similar token data] ...\nType: html, Subtype: 12, Value: \"<div>\"\nType: tmpl, Subtype:  0, Value: \"{{.}}\"\nType: tmpl, Subtype: 11, Value: \"{{end}}\"\n<html>\n<head>\n<title>\n\t{{.Title}}\n</title>\n</head>\n<body>\n<h1>\n\tucygFvGDPdt1\n</h1>\n{{if .ShowSection}}\n\t<p>\n\t\tThis is a section.\n\t</p>\n\t<ul>\n\t\t{{range .Items}}\n\t\t\t<li>\n\t\t\t\t{{.Name}} - W5MryORBzyjjf9V\n\t\t\t</li>\n\t\t{{end}}\n\t</ul>\n{{else}}\n\t<p>\n\t\tSection is hidden for {{.User}}.\n\t</p>\n{{end}}\n<footer>\n\tmpRPhS1QbSGGVzNXDLH\n</footer>\n</body>\n</html>\n\n{{define \"test\"}}\n\t<div>\n\t\t{{.}}\n\t{{end}}\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An unformatted Go template file exists.
+  - Command Behavior Analysis: The `-t` flag instructs the program to enter a token-display mode. The program first tokenizes the entire input stream. For each token, it prints its type (e.g., `html`, `tmpl`, `text`), a numeric subtype, and its string value. After printing all tokens, it proceeds with the standard formatting logic and prints the formatted template content to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `gotmplfmt -w <N> -t < <file>`
+- **Function and Parameter Description**:
+  This command combines the functionality of the `-w` and `-t` flags.
+  - `-w <int>`: Sets the maximum line width.
+  - `-t`: Enables the display of parsed tokens.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_test_WIDTH_AND_TOKENS_4.tmpl` is created.
+  ```html
+  
+<html><head>
+<title>{{.Title}}</title></head>
+<body>
+<h1>eDVNUEdbsBXNr</h1>
+{{if .ShowSection}}
+  <p>This is a section.</p>
+  <ul>{{range .Items}}
+    <li>{{.Name}} - haDQcP</li>{{end}}
+  </ul>
+{{else}}
+  <p>Section is hidden for {{.User}}.</p>
+{{end}}
+<footer>3VvJ7RIoD8izWMOMK</footer>
+</body></html>
+{{define "test"}}<div>{{.}}{{end}}
+
+  ```
+  **2. Command**:
+  `gotmplfmt -w 20 -t < /test_data/fuzz_test_WIDTH_AND_TOKENS_4.tmpl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Type: html, Subtype: 14, Value: \"<html>\"\nType: html, Subtype: 14, Value: \"<head>\"\nType: html, Subtype: 12, Value: \"<title>\"\nType: tmpl, Subtype:  0, Value: \"{{.Title}}\"\nType: html, Subtype: 13, Value: \"</title>\"\n... [omitted 30 lines of similar token data] ...\nType: html, Subtype: 12, Value: \"<div>\"\nType: tmpl, Subtype:  0, Value: \"{{.}}\"\nType: tmpl, Subtype: 11, Value: \"{{end}}\"\n<html>\n<head>\n<title>\n\t{{.Title}}\n</title>\n</head>\n<body>\n<h1>\n\teDVNUEdbsBXNr\n</h1>\n{{if .ShowSection}}\n\t<p>\n\t\tThis is a section.\n\t</p>\n\t<ul>\n\t\t{{range .Items}}\n\t\t\t<li>\n\t\t\t\t{{.Name}} - haDQcP\n\t\t\t</li>\n\t\t{{end}}\n\t</ul>\n{{else}}\n\t<p>\n\t\tSection is hidden for \n\t\t{{.User}}.\n\t</p>\n{{end}}\n<footer>\n\t3VvJ7RIoD8izWMOMK\n</footer>\n</body>\n</html>\n\n{{define \"test\"}}\n\t<div>\n\t\t{{.}}\n\t{{end}}\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An unformatted Go template file is available.
+  - Command Behavior Analysis: The program processes both flags. First, due to `-t`, it prints the token list. Then, it formats the content. The `-w 20` flag sets a very narrow line width. This forces a line break within the text content inside the `{{else}}` block, demonstrating the line-wrapping logic. The line `Section is hidden for {{.User}}.` is broken into `Section is hidden for ` and `{{.User}}.` on a new, indented line.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

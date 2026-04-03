@@ -1,0 +1,139 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: hardcache
+Repository Name: hardcache
+Core Functionality Description:
+A tool for managing the Go build cache, specifically supporting a more flexible trimming policy of a standard local cache. It allows manual trimming of the cache based on unused duration and maximum size, overriding the default cache directory if necessary.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation: The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:
+  - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: hardcache local trim --dir <dir> --unused-for <duration>
+- Function and Parameter Description:
+Trims the local cache based on how long entries have been unused.
+  - `--dir`: Directory to use for the cache.
+  - `--unused-for`: Always remove entries unused for this duration.
+- Execution Context and Sample:
+1. Preparation:
+The preparation script creates a mock cache directory structure with two subdirectories `aa` and `bb`. It creates an `old_file` in `aa` and modifies its timestamp to be 3 days ago. It then creates a `new_file` in `bb` with the current timestamp. No initial files were mounted.
+2. Command:
+`hardcache local trim --dir=/test_data/cache_TRIM_UNUSED_FOR_4 --unused-for=2d`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "hardcache: <NUM>:<NUM>:<NUM>.<NUM> INFO Local cache trimmed before=<SIZE> freed=<SIZE>\n",
+    "fs_diff": {
+        "/test_data/cache_TRIM_UNUSED_FOR_4/trim.txt": {
+            "type": "ADD",
+            "content": "1773685285"
+        },
+        "/test_data/cache_TRIM_UNUSED_FOR_4/bb/new_file": {
+            "type": "ADD",
+            "content": "This is a recent cache entry\n"
+        },
+        "/test_data/cache_TRIM_UNUSED_FOR_4/aa/old_file": {
+            "type": "ADD",
+            "content": "This is an old cache entry\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a target directory `/test_data/cache_TRIM_UNUSED_FOR_4` with an old cache entry (3 days old) and a recent cache entry.
+  - Command Behavior Analysis: The command is executed to trim the cache directory, specifying that entries unused for 2 days (`2d`) should be removed. The program processes the directory and outputs an INFO log detailing the size before trimming and the freed size.
+  - Final State Changes (fs_diff): A `trim.txt` file is added to the root of the cache directory containing a timestamp. The `old_file` and `new_file` are retained in the final state diff.
+##### Command Category: hardcache local trim --dir <dir> --max-size <size>
+- Function and Parameter Description:
+Trims the local cache based on a maximum size threshold.
+  - `--dir`: Directory to use for the cache.
+  - `--max-size`: Remove entries, starting from least recently used, if cache size is larger than this value. Supports percentages.
+- Execution Context and Sample:
+1. Preparation:
+The preparation script creates a mock cache directory structure with two subdirectories `aa` and `bb`. It creates an `old_file` in `aa` and modifies its timestamp to be 3 days ago. It then creates a `new_file` in `bb` with the current timestamp. No initial files were mounted.
+2. Command:
+`hardcache local trim --dir=/test_data/cache_TRIM_MAX_SIZE_0 --max-size=150%`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "hardcache: <NUM>:<NUM>:<NUM>.<NUM> INFO Local cache trimmed before=<SIZE> freed=<SIZE>\n",
+    "fs_diff": {
+        "/test_data/cache_TRIM_MAX_SIZE_0/bb/new_file": {
+            "type": "ADD",
+            "content": "This is a recent cache entry\n"
+        },
+        "/test_data/cache_TRIM_MAX_SIZE_0/trim.txt": {
+            "type": "ADD",
+            "content": "1773685412"
+        },
+        "/test_data/cache_TRIM_MAX_SIZE_0/aa/old_file": {
+            "type": "ADD",
+            "content": "This is an old cache entry\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a target directory `/test_data/cache_TRIM_MAX_SIZE_0` with an old cache entry (3 days old) and a recent cache entry.
+  - Command Behavior Analysis: The command is executed to trim the cache directory, specifying a maximum size of `150%`. The program processes the directory and outputs an INFO log detailing the size before trimming and the freed size.
+  - Final State Changes (fs_diff): A `trim.txt` file is added to the root of the cache directory containing a timestamp. The `old_file` and `new_file` are retained in the final state diff.
+##### Command Category: hardcache local trim --dir <dir> --unused-for <duration> --max-size <size>
+- Function and Parameter Description:
+Trims the local cache based on both unused duration and a maximum size threshold.
+  - `--dir`: Directory to use for the cache.
+  - `--unused-for`: Always remove entries unused for this duration.
+  - `--max-size`: Remove entries, starting from least recently used, if cache size is larger than this value. Supports percentages.
+- Execution Context and Sample:
+1. Preparation:
+The preparation script creates a mock cache directory structure with two subdirectories `aa` and `bb`. It creates an `old_file` in `aa` and modifies its timestamp to be 3 days ago. It then creates a `new_file` in `bb` with the current timestamp. No initial files were mounted.
+2. Command:
+`hardcache local trim --dir=/test_data/cache_TRIM_UNUSED_AND_MAX_SIZE_4 --unused-for=2d --max-size=74%`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "hardcache: <NUM>:<NUM>:<NUM>.<NUM> INFO Local cache trimmed before=<SIZE> freed=<SIZE>\n",
+    "fs_diff": {
+        "/test_data/cache_TRIM_UNUSED_AND_MAX_SIZE_4/aa/old_file": {
+            "type": "ADD",
+            "content": "This is an old cache entry\n"
+        },
+        "/test_data/cache_TRIM_UNUSED_AND_MAX_SIZE_4/trim.txt": {
+            "type": "ADD",
+            "content": "1773686226"
+        },
+        "/test_data/cache_TRIM_UNUSED_AND_MAX_SIZE_4/bb/new_file": {
+            "type": "ADD",
+            "content": "This is a recent cache entry\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a target directory `/test_data/cache_TRIM_UNUSED_AND_MAX_SIZE_4` with an old cache entry (3 days old) and a recent cache entry.
+  - Command Behavior Analysis: The command is executed to trim the cache directory, specifying both that entries unused for 2 days (`2d`) should be removed, and a maximum size of `74%`. The program processes the directory and outputs an INFO log detailing the size before trimming and the freed size.
+  - Final State Changes (fs_diff): A `trim.txt` file is added to the root of the cache directory containing a timestamp. The `old_file` and `new_file` are retained in the final state diff.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

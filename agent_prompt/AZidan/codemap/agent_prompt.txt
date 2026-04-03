@@ -1,0 +1,449 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: codemap
+**Repository Name**: codemap
+**Core Functionality Description**:
+This CLI tool is a structural indexer for codebases. Its primary function is to scan a repository, identify code symbols (like classes, functions, and methods) along with their exact line ranges, and save this information into a local index stored in a `.codemap` directory.
+
+The tool provides functionalities to:
+- Initialize the index for a project (`init`).
+- Find symbols by name, with options for type filtering and fuzzy matching (`find`).
+- Display the indexed structure of a file (`show`).
+- Check for files that have been modified since the last indexing (`validate`).
+- Update the index for specific files or all modified files (`update`).
+- Display statistics about the indexed codebase (`stats`).
+- Validate line ranges within a file (`lines`).
+- Install Git hooks to automate index updates (`install-hooks`).
+
+The core purpose is to enable fast and precise lookups of code locations without needing to read entire files.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `codemap init .`
+- **Function and Parameter Description**:
+  - `codemap init [PATH]`: This command scans the specified directory (or the current directory if `.` is given) and builds a code index. It identifies files, parses them for symbols (like classes and functions), and saves the structured data.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data` directory:
+  - `/test_data/main_app.py`:
+    ```python
+    class MainApp:
+      def run(self):
+        print('Running')
+    
+    def start_app():
+      app = MainApp()
+      app.run()
+    ```
+  - `/test_data/utils/helpers.py`:
+    ```python
+    def format_data(data):
+      return str(data).strip()
+    ```
+  - `/test_data/README.md`:
+    ```markdown
+    # Project
+    This is a test project.
+    ```
+  **2. Command**:
+  `cd /test_data && codemap init .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Scanning /test_data...\nFound 3 files\nIndexed 4 symbols\n\nSaved to /test_data/.codemap\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.codemap/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"config\": {\n    \"exclude_patterns\": [\n      \"**/node_modules/**\",\n      \"**/__pycache__/**\",\n ... [omitted 10 lines of similar content] ...\n      \"**/*.egg-info/**\"\n    ],\n    \"include_patterns\": [\n      \"**/*.py\",\n      \"**/*.ts\",\n ... [omitted 27 lines of similar content] ...\n      \"**/*.gemspec\"\n    ],\n    \"languages\": [\n      \"python\",\n      \"typescript\",\n ... [omitted 17 lines of similar content] ...\n      \"ruby\"\n    ]\n  },\n  \"directories\": [\n    \"\",\n    \"utils\"\n  ],\n  \"generated_at\": \"2026-03-17T08:33:30.513580+00:00\",\n  \"root\": \"/test_data\",\n  \"stats\": {\n    \"last_full_index\": \"2026-03-17T08:33:30.513102+00:00\",\n    \"total_files\": 3,\n    \"total_symbols\": 4\n  },\n  \"version\": \"1.0\"\n}"
+      },
+      "/test_data/.codemap/_root.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"\",\n  \"files\": {\n    \"README.md\": {\n      \"hash\": \"b4df45fca4cd\",\n      \"indexed_at\": \"2026-03-17T08:33:30.512698+00:00\",\n      \"language\": \"markdown\",\n      \"lines\": 2,\n      \"symbols\": []\n    },\n    \"main_app.py\": {\n      \"hash\": \"dd9b281d1d9e\",\n      \"indexed_at\": \"2026-03-17T08:33:30.512432+00:00\",\n      \"language\": \"python\",\n      \"lines\": 7,\n      \"symbols\": [\n        {\n          \"children\": [\n            {\n              \"lines\": [\n                2,\n                3\n              ],\n              \"name\": \"run\",\n              \"signature\": \"(self)\",\n              \"type\": \"method\"\n            }\n          ],\n          \"lines\": [\n            1,\n            3\n          ],\n          \"name\": \"MainApp\",\n          \"type\": \"class\"\n        },\n        {\n          \"lines\": [\n            5,\n            7\n          ],\n          \"name\": \"start_app\",\n          \"signature\": \"()\",\n          \"type\": \"function\"\n        }\n      ]\n    }\n  },\n  \"generated_at\": \"2026-03-17T08:33:30.513110+00:00\",\n  \"version\": \"1.0\"\n}"
+      },
+      "/test_data/.codemap/utils/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"utils\",\n  \"files\": {\n    \"helpers.py\": {\n      \"hash\": \"54f859304670\",\n      \"indexed_at\": \"2026-03-17T08:33:30.513063+00:00\",\n      \"language\": \"python\",\n      \"lines\": 2,\n      \"symbols\": [\n        {\n          \"lines\": [\n            1,\n            2\n          ],\n          \"name\": \"format_data\",\n          \"signature\": \"(data)\",\n          \"type\": \"function\"\n        }\n      ]\n    }\n  },\n  \"generated_at\": \"2026-03-17T08:33:30.513393+00:00\",\n  \"version\": \"1.0\"\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system starts with three files: `main_app.py`, `utils/helpers.py`, and `README.md`.
+  - Command Behavior Analysis: The command `codemap init .` is executed. The tool scans the current directory (`/test_data`) and its subdirectories. It finds 3 files that match its default include patterns. It parses the Python files to extract 1 class, 1 method, and 2 functions, for a total of 4 symbols. It prints a summary of its findings to stdout.
+  - Final State Changes (fs_diff): The tool creates a `.codemap` directory. Inside, it creates a distributed index. A manifest file `.codemap.json` is created at the top level of the index, containing configuration, stats, and a list of indexed subdirectories. For each directory containing indexed files, a corresponding `.codemap.json` file is created (e.g., `_root.codemap.json` for the root, and `utils/.codemap.json` for the `utils` directory). These files contain detailed information about each file's hash, language, line count, and a list of its parsed symbols with their names, types, and line ranges.
+
+#### Command Category: `codemap init . -l <lang>`
+- **Function and Parameter Description**:
+  - `codemap init . -l <lang>`: Builds the index, but restricts the scan to files of the specified language.
+  - `-l, --language`: Specifies a language to index. Can be used multiple times.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Same initial files as the previous example.
+  **2. Command**:
+  `cd /test_data && codemap init . -l python`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Scanning /test_data...\nFound 2 files\nIndexed 4 symbols\n\nSaved to /test_data/.codemap\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.codemap/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"config\": {\n    \"languages\": [\n      \"python\"\n    ]\n ... [content is similar to the previous example, but reflects the language filter] ... \n  },\n  \"stats\": {\n    \"total_files\": 2,\n    \"total_symbols\": 4\n  }\n ... \n}"
+      },
+      "/test_data/.codemap/_root.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"\",\n  \"files\": {\n    \"main_app.py\": {\n ... [content for main_app.py is identical to previous example] ... \n    }\n  }\n ... \n}"
+      },
+      "/test_data/.codemap/utils/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"utils\",\n  \"files\": {\n    \"helpers.py\": {\n ... [content for helpers.py is identical to previous example] ... \n    }\n  }\n ... \n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system starts with a Python file, a Markdown file, and another Python file in a subdirectory.
+  - Command Behavior Analysis: The `-l python` option instructs the tool to only consider Python files. The tool scans the directory, finds `main_app.py` and `utils/helpers.py`, but ignores `README.md`. It then proceeds to index the 2 Python files, finding the same 4 symbols as before.
+  - Final State Changes (fs_diff): The generated `.codemap` structure is similar to the default `init`, but the index files (`_root.codemap.json`) only contain entries for the Python files. The `README.md` file is not present in the index. The main manifest (`.codemap.json`) reflects that only 2 files were indexed and that the language configuration is limited to "python".
+
+#### Command Category: `codemap init . -e <pattern>`
+- **Function and Parameter Description**:
+  - `codemap init . -e <pattern>`: Builds the index, excluding any files or directories that match the provided glob pattern.
+  - `-e, --exclude`: A glob pattern to exclude from indexing.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Same initial files as the previous examples.
+  **2. Command**:
+  `cd /test_data && codemap init . -e 'nalekG'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Scanning /test_data...\nFound 3 files\nIndexed 4 symbols\n\nSaved to /test_data/.codemap\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.codemap/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"config\": {\n    \"exclude_patterns\": [\n ... [default patterns] ...\n      \"nalekG\"\n    ],\n ... [rest of the file is identical to the first 'init' example] ... \n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains three files.
+  - Command Behavior Analysis: The command is run with an exclude pattern `'nalekG'` which does not match any of the files. Therefore, the tool behaves identically to the standard `codemap init .`, finding and indexing all 3 files.
+  - Final State Changes (fs_diff): The generated index is identical to the one from the first `init` sample. The only difference is that the provided exclude pattern `'nalekG'` is added to the `exclude_patterns` list within the main `.codemap/.codemap.json` configuration file. This demonstrates that the option is registered even if it doesn't affect the outcome in this specific case.
+
+#### Command Category: `codemap find <query>`
+- **Function and Parameter Description**:
+  - `codemap find <query>`: Searches the index for symbols matching the query. The match is a case-insensitive substring search.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is first created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap find '`reboot`'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "No symbols found matching '`reboot`'\nTip: try --fuzzy for broader matching\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists for the project.
+  - Command Behavior Analysis: The tool loads the index from the `.codemap` directory. It then iterates through all the symbols in the index, checking if the query string '`reboot`' is a substring of any symbol's name. Since no symbols (like `MainApp`, `run`, `start_app`, `format_data`) contain this substring, the search yields no results.
+  - Final State Changes (fs_diff): The command is read-only. It prints a "No symbols found" message to `stdout` and makes no changes to the file system.
+
+#### Command Category: `codemap find <query> -t <type>`
+- **Function and Parameter Description**:
+  - `codemap find <query> -t <type>`: Searches the index for symbols matching the query and filtered by a specific symbol type.
+  - `-t, --type`: Filters the search results to a specific symbol type (e.g., 'class', 'function', 'method').
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is first created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap find 'I0hBJ' -t 39O3W2M1`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "No symbols found matching 'I0hBJ'\nTip: try --fuzzy for broader matching\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists.
+  - Command Behavior Analysis: The tool loads the index. It searches for symbols where the name contains 'I0hBJ' AND the type is '39O3W2M1'. Since no symbols match these random criteria, the search finds nothing.
+  - Final State Changes (fs_diff): This is a read-only command. It prints a "No symbols found" message and does not alter the file system.
+
+#### Command Category: `codemap find <query> --fuzzy`
+- **Function and Parameter Description**:
+  - `codemap find <query> --fuzzy`: Performs a broader, "fuzzy" search that can match on parts of words, filenames, and has some tolerance for typos.
+  - `--fuzzy`: Enables fuzzy search mode.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is first created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap find 'main app' --fuzzy`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "main_app.py:1-3 [class] MainApp\nmain_app.py:1-7 [file] main_app.py\nmain_app.py:5-7 [function] start_app\n  ()\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists.
+  - Command Behavior Analysis: The tool performs a fuzzy search for 'main app'. This logic should match not just exact substrings but also split the query into words ("main", "app") and match them against symbol names and filenames. It finds:
+    1. The class `MainApp` (matches "main" and "app").
+    2. The file `main_app.py` itself.
+    3. The function `start_app` (which is inside `main_app.py` and contains "app").
+    The results are printed to `stdout` in the format `filepath:start-end [type] name`, with signatures on a new line.
+  - Final State Changes (fs_diff): This is a read-only command and makes no changes to the file system.
+
+#### Command Category: `codemap show <filepath>`
+- **Function and Parameter Description**:
+  - `codemap show <filepath>`: Displays a summary of the indexed information for a specific file, including its metadata and a tree of its symbols.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is first created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap show main_app.py`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "File: main_app.py (hash: SANITIZED)\nLines: 7\nLanguage: python\n\nSymbols:\n- MainApp [class] L1-3\n  - run [method] L2-3\n    (self)\n- start_app [function] L5-7\n  ()\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists.
+  - Command Behavior Analysis: The tool finds the `main_app.py` entry in the index. It then formats and prints the file's metadata (hash, line count, language) and a hierarchical list of its symbols. The output shows the `MainApp` class at the top level, with its `run` method indented underneath. The `start_app` function is also at the top level. Line numbers and signatures are included. The hash value in the output should be sanitized or represented as a placeholder.
+  - Final State Changes (fs_diff): This is a read-only command and makes no changes to the file system.
+
+#### Command Category: `codemap validate`
+- **Function and Parameter Description**:
+  - `codemap validate`: Checks all files in the index to see if they have been modified since they were last indexed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  1. An index is created by running `codemap init .`.
+  2. The file `main_app.py` is modified by appending a comment.
+  **2. Command**:
+  `cd /test_data && codemap validate`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Stale entries (1):\n  - main_app.py\n\nRun 'codemap update --all' to refresh\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/main_app.py": {
+        "type": "MOD",
+        "content": "class MainApp:\n  def run(self):\n    print('Running')\n\ndef start_app():\n  app = MainApp()\n  app.run()# New line\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An index exists, but one of the indexed files (`main_app.py`) has been modified on disk, so its content no longer matches the hash stored in the index.
+  - Command Behavior Analysis: The tool iterates through every file listed in its index. For each file, it calculates the current file's hash and compares it to the hash stored in the `.codemap.json` file. It finds that the hash for `main_app.py` has changed, while the hashes for the other files match.
+  - Final State Changes (fs_diff): The command is read-only. It reports the stale file to `stdout` and suggests running `codemap update`. It does not modify the index itself.
+
+#### Command Category: `codemap validate <filepath>`
+- **Function and Parameter Description**:
+  - `codemap validate <filepath>`: Checks if a specific file in the index is "stale" (i.e., has been modified).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  1. An index is created by running `codemap init .`.
+  2. The file `main_app.py` is modified by appending a comment.
+  **2. Command**:
+  `cd /test_data && codemap validate main_app.py`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "main_app.py is stale or not indexed\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/main_app.py": {
+        "type": "MOD",
+        "content": "class MainApp:\n  def run(self):\n    print('Running')\n\ndef start_app():\n  app = MainApp()\n  app.run()# New line\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the previous sample: an index exists, and `main_app.py` has been modified.
+  - Command Behavior Analysis: The tool focuses only on `main_app.py`. It calculates the file's current hash and compares it to the one stored in the index. Finding a mismatch, it prints a message to `stdout` indicating the file is stale.
+  - Final State Changes (fs_diff): This is a read-only command and does not modify the file system or the index.
+
+#### Command Category: `codemap update --all`
+- **Function and Parameter Description**:
+  - `codemap update --all`: Finds all stale files in the index and re-indexes them to bring the codemap up-to-date.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  1. An index is created via `codemap init .`.
+  2. The file `main_app.py` is modified.
+  3. A new file `new.txt` is created (which is not an indexable language).
+  **2. Command**:
+  `cd /test_data && codemap update --all`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Updated 1 files\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.codemap/_root.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"\",\n  \"files\": {\n    \"README.md\": {\n      \"hash\": \"b4df45fca4cd\",\n ... \n    },\n    \"main_app.py\": {\n      \"hash\": \"519985606c9e\",\n      \"indexed_at\": \"2026-03-17T09:00:47.467317+00:00\",\n ... \n      ]\n    }\n  },\n  \"generated_at\": \"2026-03-17T09:00:47.467351+00:00\",\n  \"version\": \"1.0\"\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An index exists where `main_app.py` is stale. A new, non-indexable file `new.txt` also exists.
+  - Command Behavior Analysis: The tool first performs a validation check, identifying `main_app.py` as stale. It then re-runs the parsing logic for `main_app.py` only. It does not re-scan the whole project. The new file `new.txt` is ignored as it's not part of the initial index and `update` doesn't scan for new files.
+  - Final State Changes (fs_diff): The tool modifies the `_root.codemap.json` file. Specifically, it updates the entry for `main_app.py` with a new hash (`519985606c9e`) and a new `indexed_at` timestamp. The rest of the index remains unchanged.
+
+#### Command Category: `codemap update <filepath>`
+- **Function and Parameter Description**:
+  - `codemap update <filepath>`: Re-indexes a single specified file, updating its entry in the codemap.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  1. An index is created via `codemap init .`.
+  2. The file `utils/helpers.py` is modified.
+  **2. Command**:
+  `cd /test_data && codemap update utils/helpers.py`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Updated utils/helpers.py (0 symbols changed)\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.codemap/utils/.codemap.json": {
+        "type": "ADD",
+        "content": "{\n  \"directory\": \"utils\",\n  \"files\": {\n    \"helpers.py\": {\n      \"hash\": \"0244b00aa308\",\n      \"indexed_at\": \"2026-03-17T09:04:30.075807+00:00\",\n      \"language\": \"python\",\n      \"lines\": 2,\n      \"symbols\": [\n        {\n          \"lines\": [\n            1,\n            2\n          ],\n          \"name\": \"format_data\",\n          \"signature\": \"(data)\",\n          \"type\": \"function\"\n        }\n      ]\n    }\n  },\n  \"generated_at\": \"2026-03-17T09:04:30.075929+00:00\",\n  \"version\": \"1.0\"\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An index exists, and the file `utils/helpers.py` has been modified on disk.
+  - Command Behavior Analysis: The tool is directed to update `utils/helpers.py`. It re-parses this specific file. Since the change was just adding a comment, the number of symbols found (1 function) remains the same, which is reflected in the stdout message "(0 symbols changed)".
+  - Final State Changes (fs_diff): The tool modifies the `.codemap/utils/.codemap.json` file. It updates the entry for `helpers.py` with its new hash (`0244b00aa308`) and a new timestamp.
+
+#### Command Category: `codemap stats`
+- **Function and Parameter Description**:
+  - `codemap stats`: Reads the entire index and displays aggregated statistics about the codebase.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap stats`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\nCodeMap Statistics\n========================================\nRoot: <WORKDIR>\nVersion: 1.0\nGenerated: 2026-03-17T09:08:02.050122+00:00\nIndexed directories: 2\n\nTotal files: 3\nTotal symbols: 4\n\nFiles by language:\n  markdown: 1\n  python: 2\n\nSymbols by type:\n  function: 2\n  class: 1\n  method: 1\n\nIndexed directories:\n  .codemap/ (root files)\n  .codemap/utils/\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists for the project.
+  - Command Behavior Analysis: The tool reads the main `.codemap/.codemap.json` manifest and then loads all per-directory index files (`_root.codemap.json`, `utils/.codemap.json`). It aggregates the data to count total files, total symbols, and create breakdowns by language and symbol type.
+  - Final State Changes (fs_diff): This is a read-only command. It formats the aggregated statistics and prints them to `stdout`. The `<WORKDIR>` in the output indicates that the absolute path of the project root should be displayed.
+
+#### Command Category: `codemap lines <range_spec>`
+- **Function and Parameter Description**:
+  - `codemap lines <range_spec>`: Checks if a given line range is valid for a file in the index. The range spec is in the format `filepath:start-end`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An index is created by running `codemap init .` on the sample project files.
+  **2. Command**:
+  `cd /test_data && codemap lines main_app.py:1-3`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Lines 1-3 in main_app.py are valid\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid `.codemap` index exists.
+  - Command Behavior Analysis: The tool parses the argument `main_app.py:1-3`. It looks up `main_app.py` in the index and finds its total line count (7). It then checks if the range 1-3 is within the valid bounds (i.e., `1 <= start <= end <= 7`). Since it is, the tool prints a success message. If the file wasn't found or the range was invalid, it should report an error.
+  - Final State Changes (fs_diff): This is a read-only command and makes no changes to the file system.
+
+#### Command Category: `codemap install-hooks`
+- **Function and Parameter Description**:
+  - `codemap install-hooks`: Installs a Git pre-commit hook to automatically update the codemap for staged files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Git repository is initialized in the `/test_data` directory via `git init`.
+  **2. Command**:
+  `cd /test_data && codemap install-hooks`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Git hooks installed\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/.git/hooks/pre-commit": {
+        "type": "ADD",
+        "content": "#!/bin/bash\n# CodeMap pre-commit hook\n# Automatically updates the codemap when code files are committed\n\n# Get list of staged Python/TS/JS files\nSTAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(py|ts|js|tsx|jsx)$')\n\nif [ -z \"$STAGED_FILES\" ]; then\n    exit 0\nfi\n\n# Check if codemap is initialized\nif [ ! -f \".codemap.json\" ]; then\n    exit 0\nfi\n\n# Check if codemap command is available\nif ! command -v codemap &> /dev/null; then\n    echo \"Warning: codemap command not found, skipping index update\"\n    exit 0\nfi\n\n# Update index for each staged file\nUPDATED=0\nfor FILE in $STAGED_FILES; do\n    if [ -f \"$FILE\" ]; then\n        codemap update \"$FILE\" > /dev/null 2>&1\n        if [ $? -eq 0 ]; then\n            UPDATED=$((UPDATED + 1))\n        fi\n    fi\ndone\n\n# Stage the updated map if any files were updated\nif [ $UPDATED -gt 0 ]; then\n    git add .codemap.json\n    echo \"CodeMap: Updated index for $UPDATED file(s)\"\nfi\n\nexit 0\n"
+      },
+      "/test_data/.git/hooks/pre-commit.sample": {
+        "type": "ADD",
+        "content": "... [omitted content of standard git hook sample] ..."
+      },
+      "...": {
+        "type": "ADD",
+        "content": "... [omitted 12 other standard git hook sample files] ..."
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory exists with a `.git` subdirectory, but no custom hooks are installed.
+  - Command Behavior Analysis: The tool locates the `.git/hooks` directory. It then writes a new executable file named `pre-commit` into this directory. The content of this file is a shell script designed to run on `git commit`.
+  - Final State Changes (fs_diff): A new file `.git/hooks/pre-commit` is created with the specific script content shown in the sample. This script will, upon commit, find staged files with relevant extensions, run `codemap update` on them, and stage the resulting changes to the index files. Other files shown in the diff are standard sample files created by `git init` and are not directly created by the `install-hooks` command itself. The key action is the creation of the `pre-commit` file.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

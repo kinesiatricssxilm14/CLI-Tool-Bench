@@ -1,0 +1,150 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: typeshell
+**Repository Name**: typeshell
+**Core Functionality Description**:
+This tool is a transpiler for a high-level, Go-like scripting language. It takes a source file written in this language and converts it into either a Batch (.bat) script for Windows or a Bash (.sh) script for Unix-like systems. The language supports features like variable declaration, simple arithmetic, slice manipulation (creation and getting length), and built-in functions for printing to the console and writing to files.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `typeshell -i <file> -t batch -o <dir>`
+- **Function and Parameter Description**:
+  This command transpiles a source script file into a Windows Batch script.
+  - `typeshell`: The main command to invoke the transpiler.
+  - `-i <file>`: Specifies the path to the input source file that needs to be transpiled.
+  - `-t batch`: Specifies the target script type. In this case, it's a Windows Batch file.
+  - `-o <dir>`: Specifies the output directory where the generated script file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An output directory `/test_output` is created. A source file `/test_data/test_transpile_to_batch_2.tsh` is created with the following content:
+  ```
+  a := 10
+  b := 20
+  c := a + b
+  print("Sum is: ", c)
+  ```
+  **2. Command**:
+  `typeshell -i /test_data/test_transpile_to_batch_2.tsh -t batch -o /test_output`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_output/test_transpile_to_batch_2.bat": {
+              "type": "ADD",
+              "content": "@echo off\r\nsetlocal EnableDelayedExpansion\r\nsetlocal\r\nset \"_e=0\"\r\n(set LF=^\r\n\r\n)\r\n:: global echo helper begin\r\ngoto :_eo__ech\r\n:_ech\r\nif \"!_fa0!\" neq \"\" (echo !_fa0!) else echo.\r\nexit /B\r\n:_eo__ech\r\n:: global echo helper end\r\nset \"a=10\"\r\nset \"b=20\"\r\nset /A \"_h0=!a!+!b!\"\r\nset \"c=!_h0!\"\r\nset \"_fa0=Sum is:  !c!\"\r\ncall :_ech \r\n:end\r\nendlocal & exit /B %_e%\r\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Before execution, the file system contains a source script at `/test_data/test_transpile_to_batch_2.tsh` and an empty directory at `/test_output`.
+  - Command Behavior Analysis: The tool is invoked with instructions to transpile the given `.tsh` file into a `batch` script and place it in the `/test_output` directory. The tool parses the source script, which involves:
+    1.  `a := 10`: Short variable declaration and assignment.
+    2.  `b := 20`: Another variable declaration.
+    3.  `c := a + b`: An arithmetic operation (addition) between two variables.
+    4.  `print("Sum is: ", c)`: A call to the built-in `print` function with a string literal and a variable.
+    The tool then translates this logic into an equivalent Windows Batch script.
+  - Final State Changes (fs_diff): A new file, `/test_output/test_transpile_to_batch_2.bat`, is created. The content of this file is a Batch script that replicates the source logic: it declares variables `a` and `b`, calculates their sum and stores it in `c` (using `set /A`), and finally uses `echo` to print the concatenated string "Sum is:  30" to the standard output.
+
+#### Command Category: `typeshell -i <file> -t bash -o <dir>`
+- **Function and Parameter Description**:
+  This command transpiles a source script file into a Bash script.
+  - `typeshell`: The main command to invoke the transpiler.
+  - `-i <file>`: Specifies the path to the input source file.
+  - `-t bash`: Specifies the target script type, a Bash script.
+  - `-o <dir>`: Specifies the output directory for the generated script.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An output directory `/test_output` is created. A source file `/test_data/test_transpile_to_bash_1.tsh` is created with the following content:
+  ```
+  s := []int{1,2,3}
+  print(len(s))
+  ```
+  **2. Command**:
+  `typeshell -i /test_data/test_transpile_to_bash_1.tsh -t bash -o /test_output`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_output/test_transpile_to_bash_1.sh": {
+              "type": "ADD",
+              "content": "#!/bin/bash\n_dvc=$((${_dvc}+1))\n_h0=\"_dv${_dvc}\"\neval \"${_h0}=(\\\"1\\\" \\\"2\\\" \\\"3\\\")\"\ns=\"${_h0}\"\n_h1=\"$(eval \"echo \\${#${s}[@]}\")\"\necho \"${_h1}\"\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system has a source script at `/test_data/test_transpile_to_bash_1.tsh` and an empty directory `/test_output`.
+  - Command Behavior Analysis: The tool is asked to transpile the `.tsh` file to a `bash` script. The source script contains:
+    1.  `s := []int{1,2,3}`: Declaration of a slice of integers with initial values.
+    2.  `print(len(s))`: A call to the `print` function with the result of the built-in `len` function, which gets the length of the slice `s`.
+    The tool translates this logic into an equivalent Bash script.
+  - Final State Changes (fs_diff): A new file, `/test_output/test_transpile_to_bash_1.sh`, is created. This Bash script first creates an array with elements "1", "2", and "3". It then calculates the length of this array using the Bash syntax `${#array[@]}` and prints the result (3) to standard output using `echo`.
+
+#### Command Category: `typeshell -i <file> -t batch -t bash -o <dir>`
+- **Function and Parameter Description**:
+  This command transpiles a single source script file into multiple target formats (both Batch and Bash) in one operation.
+  - `typeshell`: The main command.
+  - `-i <file>`: Specifies the input source file.
+  - `-t batch`: Specifies one of the target script types. The `-t` flag can be used multiple times.
+  - `-t bash`: Specifies the other target script type.
+  - `-o <dir>`: Specifies the output directory for all generated scripts.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An output directory `/test_output` is created. A source file `/test_data/test_transpile_to_both_2.tsh` is created with the following content:
+  ```
+  write("/test_data/output.txt", "content from typeshell")
+  ```
+  **2. Command**:
+  `typeshell -i /test_data/test_transpile_to_both_2.tsh -t batch -t bash -o /test_output`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_output/test_transpile_to_both_2.sh": {
+              "type": "ADD",
+              "content": "#!/bin/bash\n_h0=\"$(if [ \"0\" -eq \"1\" ]; then echo \">>\"; else echo \">\"; fi)\"\neval \"echo \\\"content from typeshell\\\" ${_h0} /test_data/output.txt\"\n"
+          },
+          "/test_output/test_transpile_to_both_2.bat": {
+              "type": "ADD",
+              "content": "@echo off\r\nsetlocal EnableDelayedExpansion\r\nsetlocal\r\nset \"_e=0\"\r\n(set LF=^\r\n\r\n)\r\n:: global file write helper begin\r\ngoto :_eo__fwh\r\n:_fwh\r\nset \"_a=>\"\r\nif \"%2\" equ \"1\" set \"_a=>>\"\r\nfor /f \"delims=\" %%i in (\"!_fa0!\") do (\r\nfor /f \"delims=\" %%j in ('echo %%i!_a! %~1') do (\r\nrem\r\n)\r\nset \"_a=>>\"\r\n)\r\nexit /B\r\n:_eo__fwh\r\n:: global file write helper end\r\nset \"_fa0=content from typeshell\"\r\ncall :_fwh /test_data/output.txt 0\r\n:end\r\nendlocal & exit /B %_e%\r\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the source script `/test_data/test_transpile_to_both_2.tsh` and an empty directory `/test_output`.
+  - Command Behavior Analysis: The tool is instructed to transpile the source file to both `batch` and `bash` targets. The source script contains a single line: `write("/test_data/output.txt", "content from typeshell")`. This is a call to the built-in `write` function, which takes a file path and content as arguments and writes the content to the file (overwriting it by default). The tool processes this command and generates two separate script files, one for each specified target.
+  - Final State Changes (fs_diff): Two new files are created in the `/test_output` directory:
+    1.  `/test_output/test_transpile_to_both_2.sh`: A Bash script that uses `echo "content from typeshell" > /test_data/output.txt` to write the specified string to the target file.
+    2.  `/test_output/test_transpile_to_both_2.bat`: A Batch script that performs the equivalent file-writing operation using its own syntax.
+    This demonstrates that the tool can handle multiple `-t` flags to produce multiple outputs in a single run.
+
+</Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

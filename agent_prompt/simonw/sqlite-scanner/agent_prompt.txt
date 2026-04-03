@@ -1,0 +1,311 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: sqlite-scanner
+**Repository Name**: sqlite-scanner
+**Core Functionality Description**:
+The CLI tool recursively scans one or more specified directory paths to find SQLite database files. If no paths are provided, it defaults to scanning the current directory (`.`). File identification is performed by checking the first 16 header bytes for the magic string `SQLite format 3\x00`, not by relying on file extensions. The tool is designed for speed, utilizing a configurable number of parallel workers. It outputs the absolute paths of matching files. The output format can be controlled via flags to be plain text, a single pretty-printed JSON object, or newline-delimited JSON (JSONL). An option is also available to include the file size in the output.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `sqlite-scanner <paths...>`
+- **Function and Parameter Description**:
+  - This is the default command. It recursively scans the specified directory paths for SQLite files.
+  - `[paths...]`: One or more positional arguments specifying the directories to scan. If no paths are given, it should scan the current working directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_paths_2/subdir` was created. The following files were mounted:
+  - `/test_data/case_scan_paths_2/valid.db`: A valid SQLite file.
+  - `/test_data/case_scan_paths_2/not_a_db.txt`: A non-SQLite file.
+  - `/test_data/case_scan_paths_2/empty.file`: An empty file.
+  - `/test_data/case_scan_paths_2/subdir/another_valid.db`: A valid SQLite file.
+  - `/test_data/case_scan_paths_2/subdir/random.bin`: A non-SQLite file.
+  **2. Command**:
+  `sqlite-scanner /test_data/case_scan_paths_2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "/test_data/case_scan_paths_2/subdir/another_valid.db\n/test_data/case_scan_paths_2/valid.db",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a directory `/test_data/case_scan_paths_2` with a subdirectory and various files. Two of these files (`valid.db` and `subdir/another_valid.db`) are valid SQLite databases, identified by their content starting with `SQLite format 3\x00`.
+  - Command Behavior Analysis: The command instructs the tool to scan `/test_data/case_scan_paths_2`. The tool recursively finds all files within this directory, reads their initial bytes, and identifies the two SQLite files. It then prints the absolute path of each found file to standard output, with each path on a new line. The order of output may vary due to parallel processing.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming that the tool is read-only and does not alter the file system.
+
+#### Command Category: `sqlite-scanner --size <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files and includes their size in the output.
+  - `--size`: A flag that modifies the output format to include the file size in bytes.
+  - `[paths...]`: Optional paths to scan. If omitted, scans the current directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_paths_with_size_1/subdir` was created. Files similar to the previous example were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_paths_with_size_1 && sqlite-scanner --size`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "/test_data/case_scan_paths_with_size_1/subdir/another_valid.db (33 bytes)\n/test_data/case_scan_paths_with_size_1/valid.db (164 bytes)",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The working directory is set to `/test_data/case_scan_paths_with_size_1`, which contains two valid SQLite files of different sizes.
+  - Command Behavior Analysis: The command is run without a path argument, so it scans the current directory. The `--size` flag is present. The tool finds the two SQLite files and prints their absolute paths. For each path, it appends the file size in the format ` (X bytes)`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `sqlite-scanner --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files using a specified number of parallel workers.
+  - `--workers <N>`: An integer flag to set the number of parallel workers for scanning.
+  - `[paths...]`: One or more paths to scan.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_paths_with_workers_0/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `sqlite-scanner --workers 1 /test_data/case_scan_paths_with_workers_0`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "/test_data/case_scan_paths_with_workers_0/subdir/another_valid.db\n/test_data/case_scan_paths_with_workers_0/valid.db",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The command initiates a scan with the number of parallel workers explicitly set to 1. The tool's output (list of found files) is identical to the default scan. The `--workers` flag is a performance-tuning parameter and does not alter the final output format or content.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --size --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - A combination of the `--size` and `--workers` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_paths_with_size_workers_1/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_paths_with_size_workers_1 && sqlite-scanner --workers 5 --size`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "/test_data/case_scan_paths_with_size_workers_1/subdir/another_valid.db (30 bytes)\n/test_data/case_scan_paths_with_size_workers_1/valid.db (171 bytes)",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The command combines `--workers 5` and `--size`. The tool scans the current directory, finds the two SQLite files, and prints their absolute paths along with their sizes, in the format ` (X bytes)`. The worker count affects performance but not the output structure.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --json <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files and outputs the results as a single, pretty-printed JSON object.
+  - `--json`: A flag to switch the output mode to JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_json_2/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `sqlite-scanner --json /test_data/case_scan_json_2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"entries\": [\n    {\n      \"path\": \"/test_data/case_scan_json_2/subdir/another_valid.db\"\n    },\n    {\n      \"path\": \"/test_data/case_scan_json_2/valid.db\"\n    }\n  ]\n}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The `--json` flag is used. The tool finds all matching files and then formats the entire result set as a single JSON object. This object has a root key `entries`, which is an array of objects. Each object in the array contains a `path` key with the absolute path to a found file. The output is pretty-printed with newlines and indentation.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --json --size <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files and outputs the results as a JSON object, including file sizes.
+  - `--json`: A flag to switch the output mode to JSON.
+  - `--size`: A flag to include file size in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_json_with_size_1/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_json_with_size_1 && sqlite-scanner --size --json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"entries\": [\n    {\n      \"path\": \"/test_data/case_scan_json_with_size_1/subdir/another_valid.db\",\n      \"size\": 36\n    },\n    {\n      \"path\": \"/test_data/case_scan_json_with_size_1/valid.db\",\n      \"size\": 190\n    }\n  ]\n}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: With both `--json` and `--size` flags, the tool produces a single JSON object. Each object within the `entries` array now contains two keys: `path` (the absolute file path) and `size` (an integer representing the file size in bytes).
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --json --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - Combines JSON output with a specified number of workers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_json_with_workers_1/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_json_with_workers_1 && sqlite-scanner --json --workers 7`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"entries\": [\n    {\n      \"path\": \"/test_data/case_scan_json_with_workers_1/subdir/another_valid.db\"\n    },\n    {\n      \"path\": \"/test_data/case_scan_json_with_workers_1/valid.db\"\n    }\n  ]\n}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The command combines `--json` and `--workers`. The output is a single pretty-printed JSON object listing the paths of the found files, identical in structure to the basic `--json` command. The `--workers` flag influences performance, not the output format.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --json --size --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - Combines JSON output, size inclusion, and a specified number of workers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_json_with_size_workers_0/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `sqlite-scanner --workers 7 --size --json /test_data/case_scan_json_with_size_workers_0`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"entries\": [\n    {\n      \"path\": \"/test_data/case_scan_json_with_size_workers_0/subdir/another_valid.db\",\n      \"size\": 36\n    },\n    {\n      \"path\": \"/test_data/case_scan_json_with_size_workers_0/valid.db\",\n      \"size\": 174\n    }\n  ]\n}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: This command uses all three flags. The output is a single pretty-printed JSON object where each entry contains both the `path` and `size` of the found SQLite files. The `--workers` flag is for performance.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --jsonl <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files and outputs each result as a separate JSON object on a new line (newline-delimited JSON).
+  - `--jsonl`: A flag to switch the output mode to JSONL.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_jsonl_0/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `sqlite-scanner --jsonl /test_data/case_scan_jsonl_0`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\"path\": \"/test_data/case_scan_jsonl_0/subdir/another_valid.db\"}\n{\"path\": \"/test_data/case_scan_jsonl_0/valid.db\"}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The `--jsonl` flag is used. For each SQLite file found, the tool prints a single-line, compact JSON object containing the `path`. Each JSON object is followed by a newline character. This format is suitable for streaming results.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --jsonl --size <paths...>`
+- **Function and Parameter Description**:
+  - Scans for SQLite files and outputs each result as a JSONL object, including file size.
+  - `--jsonl`: A flag to switch the output mode to JSONL.
+  - `--size`: A flag to include file size in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_jsonl_with_size_2/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `sqlite-scanner --size --jsonl /test_data/case_scan_jsonl_with_size_2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\"path\": \"/test_data/case_scan_jsonl_with_size_2/subdir/another_valid.db\", \"size\": 28}\n{\"path\": \"/test_data/case_scan_jsonl_with_size_2/valid.db\", \"size\": 216}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: With both `--jsonl` and `--size` flags, the tool prints a newline-delimited stream of JSON objects. Each object contains both the `path` (string) and `size` (integer) for a found file.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --jsonl --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - Combines JSONL output with a specified number of workers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_jsonl_with_workers_3/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_jsonl_with_workers_3 && sqlite-scanner --workers 4 --jsonl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\"path\": \"/test_data/case_scan_jsonl_with_workers_3/subdir/another_valid.db\"}\n{\"path\": \"/test_data/case_scan_jsonl_with_workers_3/valid.db\"}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: The command combines `--jsonl` and `--workers`. The output is a newline-delimited stream of JSON objects, each with a `path`. The structure is identical to the basic `--jsonl` command.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `sqlite-scanner --jsonl --size --workers <N> <paths...>`
+- **Function and Parameter Description**:
+  - Combines JSONL output, size inclusion, and a specified number of workers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data/case_scan_jsonl_with_size_workers_1/subdir` was created. Files were mounted, including two valid SQLite databases.
+  **2. Command**:
+  `cd /test_data/case_scan_jsonl_with_size_workers_1 && sqlite-scanner --jsonl --workers 7 --size`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\"path\": \"/test_data/case_scan_jsonl_with_size_workers_1/subdir/another_valid.db\", \"size\": 26}\n{\"path\": \"/test_data/case_scan_jsonl_with_size_workers_1/valid.db\", \"size\": 178}",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The test directory contains two valid SQLite files.
+  - Command Behavior Analysis: This command uses all three flags. The output is a newline-delimited stream of JSON objects, where each object contains both the `path` and `size` of a found file. The `--workers` flag is for performance.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

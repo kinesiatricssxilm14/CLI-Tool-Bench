@@ -1,0 +1,77 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: ccv
+**Repository Name**: ccv
+**Core Functionality Description**:
+This is a CLI tool for inspecting conversation history files stored in JSONL format, with a specific focus on identifying and analyzing "compaction" events. A compaction event is a process where a long conversation is summarized to preserve context.
+
+The tool provides two main functionalities:
+1.  It can scan a directory of projects to find all conversation files, analyze them for compaction events, and display a summary table showing metrics like line count and number of compactions for each conversation.
+2.  It can analyze a single specified conversation file and print a detailed report for each compaction event found within it, including the trigger type and the full summary text.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `ccv --scan`
+- **Function and Parameter Description**:
+  The `ccv --scan` command scans a predefined directory structure for conversation session files. By default, it searches within `~/.claude/projects/`. It identifies all `.jsonl` files, analyzes them, and prints a summary table to standard output. The table includes the project name, session ID, line count, and number of compaction events.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The prerequisite script creates a directory structure mimicking a user's project data. It creates `/root/.claude/projects/proj_0_d1njRM/` and populates it with two session files, `sess_0.jsonl` and `sess_1.jsonl`, each containing multiple lines of JSON data representing a conversation. An empty project directory `/root/.claude/projects/proj_1_9IQNHlMb` is also created.
+  **2. Command**:
+  `ccv --scan`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\nProject                                  Session     Lines Compactions  Tokens In Tokens Out   Duration\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nproj_0_d1njRM                            sess_1\u2026         9                    0          0          0           \nproj_0_d1njRM                            sess_0\u2026         7                    0          0          0           \n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nTotal compaction events: 0\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is pre-populated with a directory structure at `/root/.claude/projects/`. This directory contains subdirectories representing projects, and these subdirectories contain `.jsonl` files representing conversation sessions.
+  - Command Behavior Analysis: Upon execution, the program should locate the `~/.claude/projects` directory (in this test environment, it's `/root/.claude/projects`). It must then recursively search for all files ending in `.jsonl`. For each file found (`sess_1.jsonl` and `sess_0.jsonl`), it reads the file to count the total number of lines (which corresponds to the number of JSON objects). It also scans the content for compaction events (in this case, finding none). Finally, it formats this collected data into a table with specific columns (`Project`, `Session`, `Lines`, `Compactions`, etc.) and prints it to `stdout`. The `Project` column is the name of the parent directory, and the `Session` is the filename (with ellipsis if long).
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating that this command is read-only and does not modify the file system.
+
+#### Command Category: `ccv --summary <file>`
+- **Function and Parameter Description**:
+  The `ccv --summary <file>` command analyzes a single specified JSONL file for compaction events. It takes one argument: the path to the `.jsonl` file. It prints a detailed report for each compaction event found, including file statistics, the trigger for the compaction, and the full text of the generated summary.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file, `/test_data/fuzz_summary_4.jsonl`, is created. This file contains 9 lines of JSON data. A key part of this data is a `system` message with `subtype: "compact_boundary"`, immediately followed by a `user` message with `isCompactSummary: true`. This pair represents a single compaction event.
+  **2. Command**:
+  `ccv --summary /test_data/fuzz_summary_4.jsonl`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\nfuzz_summary_4.jsonl\n  Messages: 9 | User: 2 | Assistant: 1\n  Tool calls: 0 | Models: N/A\n  Tokens in: 0 | out: 0\n  Cache read: 0 | Cache create: 0\n  CWD:  | Branch: \n\n  1 compaction(s) found:\n\n  \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n  \u26a1 Compaction 1 (66% through conversation)\n  Line: 6 \u2192 7 | Trigger: auto | Pre-tokens: 0\n  Timestamp:  | Summary: 111 chars\n\n    This is a fuzzed summary: yuwfGCYZWvnEJdGR8RtfH4WIAqwnrAe6c1DED33i666dNeE6tzO91nKBuWA3s9sZuftGdP5zxqWwRtmgHHTHy\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single JSONL file exists at `/test_data/fuzz_summary_4.jsonl`. This file's content is structured to contain exactly one compaction event.
+  - Command Behavior Analysis: The program must parse the file provided as an argument. It should first perform a full pass to gather general statistics, such as the total number of messages and the count of messages by type (`user`, `assistant`). Then, it must specifically search for a JSON object where `type` is `system` and `subtype` is `compact_boundary`. Upon finding one, it must look at the immediately following JSON object, verify its `type` is `user` and it has `isCompactSummary: true`, and then extract the `content` of this second object. The program then formats all this information into a report, including the file stats, the number of compactions found, and a detailed block for each compaction showing the trigger (`auto` from the `compactMetadata` field), and the summary content.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming this command is also read-only.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

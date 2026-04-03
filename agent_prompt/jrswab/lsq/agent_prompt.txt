@@ -1,0 +1,256 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: journal-cli
+**Repository Name**: journal-cli
+**Core Functionality Description**:
+This is a command-line tool designed for quick interaction with a local directory of notes. The tool allows users to manage a collection of notes structured into `journals` and `pages` subdirectories.
+
+Key functionalities include:
+- Appending new entries to specific daily journal files or named page files.
+- Creating new page files on the fly if they don't exist when appending content.
+- Supporting content appending directly from a command-line argument or from STDIN.
+- Formatting appended entries as markdown list items, with support for custom indentation levels.
+- Printing the content of a specific journal or page to standard output.
+- Searching for page files by matching a substring in the filename.
+- Searching through the content of all page files using a regular expression and reporting the matching lines.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `lsq -d <dir> -c -s <date>`
+- **Function and Parameter Description**:
+  - This command prints the content of a specific daily journal file to standard output.
+  - `-d <dir>`: Specifies the root directory for the notes. This directory is expected to contain a `journals` subdirectory.
+  - `-c`: A flag that indicates the content should be printed to `stdout`.
+  - `-s <date>`: Specifies the date of the journal to be read. The date format is `YYYY-MM-DD`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following script is executed: `mkdir -p /test_data/notes/journals /test_data/notes/pages`. A file is created at `/test_data/notes/journals/2024_12_16.md` with the content: `Content for 2024-12-16\n`.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -c -s '2024-12-16'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Content for 2024-12-16\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory structure `/test_data/notes` exists, containing `journals` and `pages` subdirectories. A journal file for December 16, 2024, exists at `/test_data/notes/journals/2024_12_16.md`.
+  - Command Behavior Analysis: The tool receives the base directory `/test_data/notes` and the date `2024-12-16`. It needs to translate the date format from `YYYY-MM-DD` (from the `-s` flag) to the filename format `YYYY_MM_DD.md`. It then constructs the full path to the journal file: `/test_data/notes/journals/2024_12_16.md`. The `-c` flag instructs the tool to read the content of this file and print it to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system, as this is a read-only operation.
+
+#### Command Category: `lsq -d <dir> -c -p <page>`
+- **Function and Parameter Description**:
+  - This command prints the content of a specific page file to standard output.
+  - `-d <dir>`: Specifies the root directory for the notes, which should contain a `pages` subdirectory.
+  - `-c`: A flag that instructs the tool to print content to `stdout`.
+  - `-p <page>`: Specifies the filename of the page to be read from the `pages` subdirectory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. A file is created at `/test_data/notes/pages/page_3.md` with content: `Initial content for page_3.md\n`.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -c -p 'page_3.md'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Initial content for page_3.md\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data/notes/pages` exists and contains a file named `page_3.md`.
+  - Command Behavior Analysis: The tool is given the base directory and the page filename `page_3.md`. It constructs the full path `/test_data/notes/pages/page_3.md`. The `-c` flag causes the tool to read this file's content and write it to `stdout`.
+  - Final State Changes (fs_diff): The file system remains unchanged.
+
+#### Command Category: `lsq -d <dir> -a <text> -p <page> && lsq -d <dir> -c -p <page>`
+- **Function and Parameter Description**:
+  - This command appends a line of text to a specified page file. If the file does not exist, it is created.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-a <text>`: The text content to append.
+  - `-p <page>`: The filename of the target page within the `pages` subdirectory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. A file `/test_data/notes/pages/page_0.md` is created, but it is not used in this command.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -a '-1' -p 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' && journal-cli -d /test_data/notes -c -p 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "- -1\n",
+    "fs_diff": {
+      "/test_data/notes/pages/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA": {
+        "type": "ADD",
+        "content": "- -1\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `pages` directory exists but does not contain the file `AAAAAAAAAAAAAAAA...AAAA`.
+  - Command Behavior Analysis: The first command attempts to append the text `'-1'` to the specified page. Since the file does not exist, the tool must create it. The content written to the new file is the provided text formatted as a markdown list item: `- <text>\n`. In this case, it becomes `- -1\n`. The second command then reads this newly created file and prints its content to `stdout`.
+  - Final State Changes (fs_diff): A new file is added to the `pages` directory with the specified long filename and the content `- -1\n`.
+
+#### Command Category: `lsq -d <dir> -a <text> -s <date> && lsq -d <dir> -c -s <date>`
+- **Function and Parameter Description**:
+  - This command appends a line of text to a specified daily journal file.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-a <text>`: The text content to append.
+  - `-s <date>`: The date (`YYYY-MM-DD`) of the target journal.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. A file `/test_data/notes/journals/2024_06_09.md` is created with content `Content for 2024-06-09\n`.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -a 'appended text' -s '2024-06-09' && journal-cli -d /test_data/notes -c -s '2024-06-09'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Content for 2024-06-09\n- appended text\n",
+    "fs_diff": {
+      "/test_data/notes/journals/2024_06_09.md": {
+        "type": "MOD",
+        "content": "Content for 2024-06-09\n- appended text\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A journal file for June 9, 2024, exists with some initial content.
+  - Command Behavior Analysis: The first command targets the journal file corresponding to the date `2024-06-09`. It appends the text `'appended text'` to this existing file. The appended content is formatted as a new markdown list item. The logic should be to append the string `- appended text\n` to the file. The second command reads the modified file and prints its full content to `stdout`.
+  - Final State Changes (fs_diff): The journal file `2024_06_09.md` is modified. The new content is the original content plus the appended formatted line.
+
+#### Command Category: `lsq -d <dir> -a <text> -p <page> -i <level> && lsq -d <dir> -c -p <page>`
+- **Function and Parameter Description**:
+  - Appends an indented line of text to a specified page file.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-a <text>`: The text content to append.
+  - `-p <page>`: The filename of the target page.
+  - `-i <level>`: An integer specifying the indentation level (number of tabs).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. A file `/test_data/notes/pages/page_1.md` is created with content `Initial content for page_1.md\n`.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -a 'indented item' -p 'page_1.md' -i '5' && journal-cli -d /test_data/notes -c -p 'page_1.md'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Initial content for page_1.md\n\t\t\t\t\t- indented item\n",
+    "fs_diff": {
+      "/test_data/notes/pages/page_1.md": {
+        "type": "MOD",
+        "content": "Initial content for page_1.md\n\t\t\t\t\t- indented item\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The page file `page_1.md` exists with initial content.
+  - Command Behavior Analysis: The first command appends text to `page_1.md` with an indentation level of 5. The tool should construct a string consisting of 5 tab characters (`\t`), followed by `- indented item\n`. This string is then appended to the target file. The second command reads the modified file and prints its content.
+  - Final State Changes (fs_diff): The file `page_1.md` is modified by appending the indented list item.
+
+#### Command Category: `cat <file> | lsq -d <dir> -A -p <page> && lsq -d <dir> -c -p <page>`
+- **Function and Parameter Description**:
+  - Appends content read from standard input (STDIN) to a specified page file.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-A`: A flag indicating that content should be read from STDIN.
+  - `-p <page>`: The filename of the target page.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. Two files are created: `/test_data/notes/pages/page_2.md` with content `Initial content for page_2.md\n`, and `/test_data/stdin_2.txt` with content `V4YcLLbesKnbNi43Pl7r8Uur09npXD9ZjJFPicklZyNKNUIC6orvK`.
+  **2. Command**:
+  `cat /test_data/stdin_2.txt | journal-cli -d /test_data/notes -A -p 'page_2.md' && journal-cli -d /test_data/notes -c -p 'page_2.md'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Initial content for page_2.md\n- V4YcLLbesKnbNi43Pl7r8Uur09npXD9ZjJFPicklZyNKNUIC6orvK\n",
+    "fs_diff": {
+      "/test_data/notes/pages/page_2.md": {
+        "type": "MOD",
+        "content": "Initial content for page_2.md\n- V4YcLLbesKnbNi43Pl7r8Uur09npXD9ZjJFPicklZyNKNUIC6orvK\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The target page `page_2.md` exists. A separate file `stdin_2.txt` contains the content to be piped.
+  - Command Behavior Analysis: The `cat` command pipes the content of `stdin_2.txt` to the `journal-cli` process's STDIN. The `-A` flag tells the tool to read this piped content. The tool then formats this content as a markdown list item (`- <stdin_content>\n`) and appends it to the specified page file, `page_2.md`. The second command reads and prints the updated content.
+  - Final State Changes (fs_diff): The file `page_2.md` is modified by appending the formatted content from STDIN.
+
+#### Command Category: `lsq -d <dir> -f <string>`
+- **Function and Parameter Description**:
+  - Searches for files within the `pages` directory whose names contain a given substring.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-f <string>`: The substring to search for in the filenames.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. Three files are created in `/test_data/notes/pages`: `apple_1.md`, `banana_1.md`, and `cherry_1.md`.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -f 'cherry'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Search Results:\ncherry_1.md\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `pages` directory contains three files with different names.
+  - Command Behavior Analysis: The tool lists all files in the `/test_data/notes/pages` directory. It checks if the filename of each file contains the substring `'cherry'`. Only `cherry_1.md` matches. The tool then prints the header `Search Results:\n` followed by the matching filename on a new line.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `lsq -d <dir> -r <regex>`
+- **Function and Parameter Description**:
+  - Searches the content of all files in the `pages` directory for lines matching a given regular expression.
+  - `-d <dir>`: Specifies the root notes directory.
+  - `-r <regex>`: The regular expression pattern to match against file content.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The script `mkdir -p /test_data/notes/journals /test_data/notes/pages` is run. Three files are created in `/test_data/notes/pages`: `apple_4.md`, `banana_4.md`, and `cherry_4.md`, each containing a line of text with a space.
+  **2. Command**:
+  `journal-cli -d /test_data/notes -r '.*\\ .*'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "/test_data/notes/pages/apple_4.md#1: content for apple\n/test_data/notes/pages/banana_4.md#1: content for banana\n/test_data/notes/pages/cherry_4.md#1: content for cherry\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `pages` directory contains three files, each with content that will match the regex.
+  - Command Behavior Analysis: The tool iterates through each file in the `/test_data/notes/pages` directory. For each file, it reads its content line by line. It applies the regex pattern `.* .*` (a line containing a space) to each line. For every matching line, it prints a formatted string: `<full_file_path>#<line_number>: <line_content>\n`. In this sample, the first line of all three files matches.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

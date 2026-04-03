@@ -1,0 +1,211 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: shamsi-calendar
+Repository Name: shamsi-calendar
+Core Functionality Description:
+A command-line tool to display the Jalali (Shamsi) calendar, similar to the Unix `cal` command. It supports displaying the current month's calendar, a specific month and year, the entire year, and three months spanning a specific date.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: shamsi-calendar
+- Function and Parameter Description:
+Displays the calendar for the current Jalali month based on the system's current date. No parameters are provided.
+- Execution Context and Sample:
+1. Preparation:
+The system date is set to "1381-02-21 12:00:00" (Gregorian equivalent for testing purposes, mapped to Jalali date). No files are mounted.
+2. Command:
+`shamsi-calendar`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                Esfand 1404\n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n                                      1    \n    2      3   4   5     6      7     8    \n    9     10   11  12    13     14    15   \n    16    17   18  19    20     21    22   \n    23    24   25  26    27     28    29   \n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The system has a specific mocked date.
+  - Command Behavior Analysis: The CLI calculates the current Jalali month and year based on the system time and prints the calendar grid for that month, aligning days of the week (SHANBE to JOME).
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --month <M>
+- Function and Parameter Description:
+Displays the calendar for a specific month of the current Jalali year.
+  - `--month` / `-m`: The target month (1-12).
+- Execution Context and Sample:
+1. Preparation:
+The system date is set to "1381-04-16 12:00:00". No files are mounted.
+2. Command:
+`shamsi-calendar --month 5`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                Mordad 1404\n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n                         1      2     3    \n    4      5   6   7     8      9     10   \n    11    12   13  14    15     16    17   \n    18    19   20  21    22     23    24   \n    25    26   27  28    29     30    31   \n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The system has a specific mocked date.
+  - Command Behavior Analysis: The CLI uses the current year but overrides the month with the provided argument (5 = Mordad), then prints the corresponding calendar grid.
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --year <Y>
+- Function and Parameter Description:
+Displays the calendar for an entire specific Jalali year.
+  - `--year` / `-y`: The target year.
+- Execution Context and Sample:
+1. Preparation:
+No specific script executed. No files mounted.
+2. Command:
+`shamsi-calendar --year 1366`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                                                                 1366\n\n                 Farvardin                                   Ordibehesht                                    Khordad                  \n... [omitted intermediate months grid for brevity] ...\n                    Dey                                        Bahman                                       Esfand                   \n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n                   1     2      3     4                                      1     2          1      2   3   4     5      6     7    \n    5      6   7   8     9      10    11         3      4   5   6     7      8     9          8      9   10  11    12     13    14   \n    12    13   14  15    16     17    18         10    11   12  13    14     15    16         15    16   17  18    19     20    21   \n    19    20   21  22    23     24    25         17    18   19  20    21     22    23         22    23   24  25    26     27    28   \n    26    27   28  29    30                      24    25   26  27    28     29    30         29    30                               \n                                                                                                                                     \n\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard environment.
+  - Command Behavior Analysis: The CLI generates a 3x4 grid layout displaying all 12 months of the specified year (1366).
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --month <M> --year <Y>
+- Function and Parameter Description:
+Displays the calendar for a specific month and a specific year.
+  - `--month`: The target month.
+  - `--year`: The target year.
+- Execution Context and Sample:
+1. Preparation:
+No specific script executed. No files mounted.
+2. Command:
+`shamsi-calendar --month 8 --year 1422`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                 Aban 1422\n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n                                      1    \n    2      3   4   5     6      7     8    \n    9     10   11  12    13     14    15   \n    16    17   18  19    20     21    22   \n    23    24   25  26    27     28    29   \n    30                                     \n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard environment.
+  - Command Behavior Analysis: The CLI calculates and prints the grid for the 8th month (Aban) of the year 1422.
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --three
+- Function and Parameter Description:
+Displays three consecutive months spanning the current date (previous, current, next).
+  - `--three` / `-3`: Flag to display three months.
+- Execution Context and Sample:
+1. Preparation:
+The system date is set to "1416-11-28 12:00:00". No files are mounted.
+2. Command:
+`shamsi-calendar --three`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                  Bahman                                       Esfand                                      Farvardin                 \n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n                         1      2     3                                            1          1      2   3   4     5      6     7    \n    4      5   6   7     8      9     10         2      3   4   5     6      7     8          8      9   10  11    12     13    14   \n    11    12   13  14    15     16    17         9     10   11  12    13     14    15         15    16   17  18    19     20    21   \n    18    19   20  21    22     23    24         16    17   18  19    20     21    22         22    23   24  25    26     27    28   \n    25    26   27  28    29     30               23    24   25  26    27     28    29         29    30   31                          \n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: System date is mocked.
+  - Command Behavior Analysis: The CLI determines the current Jalali month, then prints the previous, current, and next months side-by-side in a 1x3 grid. Note that it correctly handles year boundaries (Bahman, Esfand, Farvardin).
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --full-year
+- Function and Parameter Description:
+Displays the entire calendar for the current Jalali year.
+  - `--full-year` / `-Y`: Flag to display the entire year.
+- Execution Context and Sample:
+1. Preparation:
+The system date is set to "1411-01-27 12:00:00". No files are mounted.
+2. Command:
+`shamsi-calendar --full-year`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                                                                 1404\n\n                 Farvardin                                   Ordibehesht                                    Khordad                  \n... [omitted intermediate months grid for brevity] ...\n                    Dey                                        Bahman                                       Esfand                   \n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n               1   2     3      4     5                               1      2     3                                            1    \n    6      7   8   9     10     11    12         4      5   6   7     8      9     10         2      3   4   5     6      7     8    \n    13    14   15  16    17     18    19         11    12   13  14    15     16    17         9     10   11  12    13     14    15   \n    20    21   22  23    24     25    26         18    19   20  21    22     23    24         16    17   18  19    20     21    22   \n    27    28   29  30                            25    26   27  28    29     30               23    24   25  26    27     28    29   \n                                                                                                                                     \n\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: System date is mocked.
+  - Command Behavior Analysis: The CLI determines the current Jalali year and prints all 12 months in a 3x4 grid layout.
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --three --month <M> --year <Y>
+- Function and Parameter Description:
+Displays three consecutive months centered around a specific month and year.
+  - `--three`: Display three months.
+  - `--month`: The center month.
+  - `--year`: The year of the center month.
+- Execution Context and Sample:
+1. Preparation:
+No specific script executed. No files mounted.
+2. Command:
+`shamsi-calendar --month 6 --year 1375 --three`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                  Mordad                                      Shahrivar                                      Mehr                    \n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n               1   2     3      4     5                                      1     2                 1   2   3     4      5     6    \n    6      7   8   9     10     11    12         3      4   5   6     7      8     9          7      8   9   10    11     12    13   \n    13    14   15  16    17     18    19         10    11   12  13    14     15    16         14    15   16  17    18     19    20   \n    20    21   22  23    24     25    26         17    18   19  20    21     22    23         21    22   23  24    25     26    27   \n    27    28   29  30    31                      24    25   26  27    28     29    30         28    29   30                          \n                                                 31                                                                                  \n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard environment.
+  - Command Behavior Analysis: The CLI calculates the previous (5), current (6), and next (7) months for the year 1375 and prints them side-by-side.
+  - Final State Changes (fs_diff): No file system changes occur.
+##### Command Category: shamsi-calendar --full-year --year <Y>
+- Function and Parameter Description:
+Displays the entire calendar for a specific year.
+  - `--full-year`: Flag to display the entire year.
+  - `--year`: The target year.
+- Execution Context and Sample:
+1. Preparation:
+No specific script executed. No files mounted.
+2. Command:
+`shamsi-calendar --year 1426 --full-year`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "                                                                 1426\n\n                 Farvardin                                   Ordibehesht                                    Khordad                  \n... [omitted intermediate months grid for brevity] ...\n                    Dey                                        Bahman                                       Esfand                   \n  SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME      SHANBE  YEK  DO  SE  CHAHAR  PANJ  JOME  \n           1   2   3     4      5     6                         1     2      3     4                                      1     2    \n    7      8   9   10    11     12    13         5      6   7   8     9      10    11         3      4   5   6     7      8     9    \n    14    15   16  17    18     19    20         12    13   14  15    16     17    18         10    11   12  13    14     15    16   \n    21    22   23  24    25     26    27         19    20   21  22    23     24    25         17    18   19  20    21     22    23   \n    28    29   30                                26    27   28  29    30                      24    25   26  27    28     29         \n                                                                                                                                     \n\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard environment.
+  - Command Behavior Analysis: The CLI generates the full 12-month calendar grid for the explicitly provided year 1426.
+  - Final State Changes (fs_diff): No file system changes occur.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

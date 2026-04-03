@@ -1,0 +1,198 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gofmtsort
+**Repository Name**: gofmtsort
+**Core Functionality Description**:
+A command-line tool for Go that automatically sorts methods within types in a given Go source file. The sorting is based on an analysis of the call graph to improve code readability. The tool analyzes method visibility (public/private), call depth, and dependencies to determine the optimal order.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gofmtsort <path>`
+- **Function and Parameter Description**:
+  This is the default command. It sorts the methods within a specified Go source file and overwrites the file with the sorted content.
+  - `<path>`: A single argument specifying the path to the Go source file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `main.go` is created in the `/test_data` directory with the following content:
+  ```go
+  package main
+
+  import "fmt"
+
+  type Sorter struct{}
+  func (s *Sorter) PublicMethodB() { fmt.Println("B") }
+
+  func (s *Sorter) privateHelperB() { s.privateHelperA() }
+
+  func (s *Sorter) publicMethodC() { s.privateHelperA() }
+
+  func (s *Sorter) PublicMethodA() { s.privateHelperB() }
+
+  func (s *Sorter) privateHelperA() { fmt.Println("helper A") }
+  ```
+  **2. Command**:
+  `cd /test_data && gofmtsort main.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/main.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\ntype Sorter struct{}\n\nfunc (s *Sorter) PublicMethodB() { fmt.Println(\"B\") }\n\nfunc (s *Sorter) PublicMethodA() { s.privateHelperB() }\n\nfunc (s *Sorter) privateHelperA() { fmt.Println(\"helper A\") }\n\nfunc (s *Sorter) privateHelperB() { s.privateHelperA() }\n\nfunc (s *Sorter) publicMethodC() { s.privateHelperA() }\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/main.go` exists and contains a `Sorter` type with five methods in an unsorted order.
+  - Command Behavior Analysis: The tool is invoked on `main.go`. It parses the file, analyzes the methods of the `Sorter` type, determines a new, sorted order for them, and then overwrites the original file with the sorted version. On successful execution, it produces no output to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` shows that `/test_data/main.go` has been modified. The methods are now reordered. The new order places public methods (`PublicMethodB`, `PublicMethodA`) before private methods (`privateHelperA`, `privateHelperB`, `publicMethodC`). This reordering is based on the tool's internal sorting logic, which should analyze factors like method visibility and call dependencies.
+
+#### Command Category: `gofmtsort -n <path>`
+- **Function and Parameter Description**:
+  This command performs a "dry run" to show what changes would be made without actually modifying the file.
+  - `-n`: The dry run flag. It prevents the tool from writing any changes to disk.
+  - `<path>`: The path to the Go source file to be analyzed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `main.go` is created in the `/test_data` directory with the following content:
+  ```go
+  package main
+
+  import "fmt"
+
+  type Sorter struct{}
+  func (s *Sorter) PublicMethodA() { s.privateHelperB() }
+
+  func (s *Sorter) privateHelperB() { s.privateHelperA() }
+
+  func (s *Sorter) privateHelperA() { fmt.Println("helper A") }
+
+  func (s *Sorter) PublicMethodB() { fmt.Println("B") }
+
+  func (s *Sorter) publicMethodC() { s.privateHelperA() }
+  ```
+  **2. Command**:
+  `cd /test_data && gofmtsort -n main.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Would sort methods in: main.go\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/main.go` exists with unsorted methods.
+  - Command Behavior Analysis: The command is executed with the `-n` (dry run) flag. The tool analyzes the file and determines that the methods are not in the canonical sorted order. Instead of modifying the file, it prints a message to `stdout` indicating that the file would be sorted.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming that no files on the filesystem were modified. This is the correct and expected behavior for a dry run.
+
+#### Command Category: `gofmtsort -v <path>`
+- **Function and Parameter Description**:
+  This command sorts the methods in a file with verbose output, printing progress information to the console.
+  - `-v`: The verbose flag. Enables detailed logging of the tool's operations.
+  - `<path>`: The path to the Go source file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `main.go` is created in the `/test_data` directory with the following content:
+  ```go
+  package main
+
+  import "fmt"
+
+  type Sorter struct{}
+  func (s *Sorter) privateHelperA() { fmt.Println("helper A") }
+
+  func (s *Sorter) PublicMethodA() { s.privateHelperB() }
+
+  func (s *Sorter) PublicMethodB() { fmt.Println("B") }
+
+  func (s *Sorter) privateHelperB() { s.privateHelperA() }
+
+  func (s *Sorter) publicMethodC() { s.privateHelperA() }
+  ```
+  **2. Command**:
+  `cd /test_data && gofmtsort -v main.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Processing: main.go\n  Methods sorted\n",
+      "fs_diff": {
+          "/test_data/main.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\ntype Sorter struct{}\n\nfunc (s *Sorter) PublicMethodB() { fmt.Println(\"B\") }\n\nfunc (s *Sorter) PublicMethodA() { s.privateHelperB() }\n\nfunc (s *Sorter) privateHelperA() { fmt.Println(\"helper A\") }\n\nfunc (s *Sorter) privateHelperB() { s.privateHelperA() }\n\nfunc (s *Sorter) publicMethodC() { s.privateHelperA() }\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/main.go` exists with unsorted methods.
+  - Command Behavior Analysis: The command is executed with the `-v` (verbose) flag. The tool prints a message to `stdout` indicating it is processing the file (`Processing: main.go`). After successfully sorting the methods in memory, it prints a confirmation (`Methods sorted`). Finally, it writes the changes to the file.
+  - Final State Changes (fs_diff): The `fs_diff` shows that `/test_data/main.go` has been modified. The methods are now in the same sorted order as in the default execution, demonstrating that the `-v` flag only affects the console output, not the sorting logic itself.
+
+#### Command Category: `gofmtsort -n -v <path>`
+- **Function and Parameter Description**:
+  This command combines the dry run and verbose flags. It shows what changes would be made, with verbose logging, but without modifying the file.
+  - `-v`: The verbose flag.
+  - `-n`: The dry run flag.
+  - `<path>`: The path to the Go source file to be analyzed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `main.go` is created in the `/test_data` directory with the following content:
+  ```go
+  package main
+
+  import "fmt"
+
+  type Sorter struct{}
+  func (s *Sorter) PublicMethodA() { s.privateHelperB() }
+
+  func (s *Sorter) privateHelperB() { s.privateHelperA() }
+
+  func (s *Sorter) PublicMethodB() { fmt.Println("B") }
+
+  func (s *Sorter) privateHelperA() { fmt.Println("helper A") }
+
+  func (s *Sorter) publicMethodC() { s.privateHelperA() }
+  ```
+  **2. Command**:
+  `cd /test_data && gofmtsort -v -n main.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Processing: main.go\nWould sort methods in: main.go\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/main.go` exists with unsorted methods.
+  - Command Behavior Analysis: The command is run with both `-v` and `-n` flags. The tool first prints the verbose message `Processing: main.go`. Then, because of the `-n` (dry run) flag, it does not modify the file. Instead, it prints the standard dry run message `Would sort methods in: main.go`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming that the `-n` flag correctly prevents any file modifications, even when combined with the `-v` flag.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

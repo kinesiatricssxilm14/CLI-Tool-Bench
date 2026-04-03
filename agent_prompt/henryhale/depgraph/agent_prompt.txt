@@ -1,0 +1,269 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: depgraph
+**Repository Name**: depgraph
+**Core Functionality Description**:
+This is a CLI tool for visualizing a codebase's dependency graph to help developers understand its structure. The tool is language-agnostic, using regular expressions to match import and export statements. It analyzes a target directory, builds a dependency graph from the files and their imports, and then outputs the graph in a specified format.
+
+Supported features based on the requirements:
+- Analyzes a specified directory (defaults to the current directory).
+- Supports multiple languages by filtering files, including `js`, `ts`, `c`, and `cpp`.
+- Outputs dependency graphs in multiple formats: `mermaid` (default), `json`, and `jsoncanvas`.
+- Allows ignoring specified directories from the analysis.
+- Supports defining path aliases for import resolution.
+- Can write the output to a specified file or to standard output.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `depgraph -d <dir> -l <lang>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command to run the dependency analysis.
+  - `-d <directory>`: Specifies the target directory to analyze. In this case, `/test_data/project`.
+  - `-l <language>`: Specifies the programming language of the files to analyze. In this case, `ts`. The tool should be able to find relevant files (like `.js` files) based on this language flag.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.cpp`: `#include "utils/util.h"\nint main() { return 0; }\n// main file content`
+  - `/test_data/project/utils/util.h`: `// Utility header\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -d /test_data/project -l ts`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "graph LR\n  subgraph /test_data/project/src/demo.js\n  end\n  subgraph /test_data/project/ignored_dir/ignore.js\n  end\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a mix of C++ and JavaScript files in a directory structure.
+  - Command Behavior Analysis: The command is instructed to analyze the `/test_data/project` directory for TypeScript (`-l ts`) related files. The tool identifies `demo.js` and `ignore.js` as relevant files. It does not find any import/export relationships between them. It then generates a dependency graph in the default `mermaid` format and prints it to `stdout`. The C++ files are ignored because the language was specified as `ts`.
+  - Final State Changes (fs_diff): No files are created or modified. The result is printed to standard output.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -f <format>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command to run the dependency analysis.
+  - `-d <directory>`: Specifies the target directory to analyze: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `ts`.
+  - `-f <format>`: Specifies the output format. In this case, `jsoncanvas`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.js`: `import { util } from './utils/util.js';\nconsole.log(util());\n// main file content`
+  - `/test_data/project/utils/util.js`: `export const util = () => 'hello';\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -d /test_data/project -f jsoncanvas -l ts`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"nodes\": [\n    {\n      \"id\": \"/test_data/project/main.js\",\n      \"type\": \"group\",\n      \"x\": 50,\n      \"y\": 50,\n      \"width\": 100,\n      \"height\": 50,\n      \"label\": \"/test_data/project/main.js\"\n    },\n    {\n      \"id\": \"/test_data/project/src/demo.js\",\n      \"type\": \"group\",\n      \"x\": 200,\n      \"y\": 50,\n      \"width\": 100,\n      \"height\": 50,\n      \"label\": \"/test_data/project/src/demo.js\"\n    },\n    {\n      \"id\": \"/test_data/project/utils/util.js\",\n      \"type\": \"group\",\n      \"x\": 350,\n      \"y\": 150,\n      \"width\": 100,\n      \"height\": 50,\n      \"label\": \"/test_data/project/utils/util.js\"\n    },\n    {\n      \"id\": \"/test_data/project/utils/util.js_util\",\n      \"parent\": \"/test_data/project/utils/util.js\",\n      \"type\": \"text\",\n      \"x\": 50,\n      \"y\": 150,\n      \"width\": 100,\n      \"height\": 50,\n      \"text\": \"util\"\n    },\n    {\n      \"id\": \"/test_data/project/ignored_dir/ignore.js\",\n      \"type\": \"group\",\n      \"x\": 200,\n      \"y\": 250,\n      \"width\": 100,\n      \"height\": 50,\n      \"label\": \"/test_data/project/ignored_dir/ignore.js\"\n    }\n  ],\n  \"edges\": [\n    {\n      \"id\": \"0\",\n      \"label\": \"imports util\",\n      \"fromNode\": \"/test_data/project/main.js\",\n      \"fromEnd\": \"none\",\n      \"toNode\": \"/test_data/project/utils/util.js\",\n      \"toEnd\": \"arrow\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains several JavaScript files. `main.js` imports a function from `utils/util.js`.
+  - Command Behavior Analysis: The tool scans the `/test_data/project` directory. It identifies all `.js` files as relevant for the `-l ts` flag. It parses `main.js` and detects the `import` statement pointing to `./utils/util.js`. It also parses `utils/util.js` and finds the `export` statement for `util`. It then constructs a graph representing this dependency. Finally, it formats this graph as `jsoncanvas` and prints the resulting JSON string to `stdout`.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -i <dirs>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `ts`.
+  - `-i <directories>`: A comma-separated list of directories to ignore. Here, `'ignored_dir'`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.ts`: `import { util } from './utils/util.ts';\nconsole.log(util());\n// main file content`
+  - `/test_data/project/utils/util.ts`: `export const util = () => 'hello';\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -l ts -i 'ignored_dir' -d /test_data/project`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "graph LR\n  subgraph /test_data/project/main.ts\n  end\n  subgraph /test_data/project/src/demo.js\n  end\n  subgraph /test_data/project/utils/util.ts\n    /test_data/project/utils/util.ts_util[\"util\"]\n  end\n  /test_data/project/main.ts-->|imports|/test_data/project/utils/util.ts_util\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project contains TypeScript (`.ts`) and JavaScript (`.js`) files, including one in a directory named `ignored_dir`.
+  - Command Behavior Analysis: The tool is instructed to analyze the project for `ts` language files, but to ignore the `ignored_dir` directory. It correctly skips `ignored_dir/ignore.js`. It processes `main.ts`, `utils/util.ts`, and `src/demo.js`. It identifies the import from `main.ts` to `utils/util.ts`. The result is formatted as a `mermaid` graph and printed to `stdout`.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -r <paths>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `ts`.
+  - `-r <paths>`: A key:value comma-separated list of paths to replace, e.g., `'@:src,demo:src/demo'`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.ts`: `import { util } from './utils/util.ts';\nconsole.log(util());\n// main file content`
+  - `/test_data/project/utils/util.ts`: `export const util = () => 'hello';\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -r '@:src,demo:src/demo' -l ts -d /test_data/project`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "graph LR\n  subgraph /test_data/project/src/demo.js\n  end\n  subgraph /test_data/project/utils/util.ts\n    /test_data/project/utils/util.ts_util[\"util\"]\n  end\n  subgraph /test_data/project/ignored_dir/ignore.js\n  end\n  subgraph /test_data/project/main.ts\n  end\n  /test_data/project/main.ts-->|imports|/test_data/project/utils/util.ts_util\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project contains `.ts` and `.js` files. `main.ts` has a relative import.
+  - Command Behavior Analysis: The tool is run with the `-r` flag for path replacement, but the import statement in `main.ts` (`./utils/util.ts`) does not use an alias that would be replaced. The tool should correctly parse the `-r` argument but may not apply any changes in this specific case. It proceeds to analyze the files, finds the dependency between `main.ts` and `utils/util.ts`, and outputs the `mermaid` graph to `stdout`.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -o <file>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `cpp`.
+  - `-o <file>`: Writes output to the selected file. Here, `/test_data/output_0.txt`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.c`: `#include "utils/util.h"\nint main() { return 0; }\n// main file content`
+  - `/test_data/project/utils/util.h`: `// Utility header\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -o /test_data/output_0.txt -d /test_data/project -l cpp`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/output_0.txt": {
+              "type": "ADD",
+              "content": "graph LR\n  subgraph /test_data/project/main.c\n    /test_data/project/main.c_main[\"main\"]\n  end\n  subgraph /test_data/project/utils/util.h\n  end\n  /test_data/project/main.c-->|imports|/test_data/project/utils/util.h\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project contains C/C++ source files (`.c`, `.h`) and some unrelated `.js` files. `main.c` includes `utils/util.h`.
+  - Command Behavior Analysis: The tool is instructed to analyze for `cpp` language files. It correctly identifies `main.c` and `utils/util.h` as relevant. It parses `main.c` and finds the `#include "utils/util.h"` directive, establishing a dependency. It generates the graph in the default `mermaid` format. Because the `-o` flag is used, the output is written to the specified file `/test_data/output_0.txt` instead of `stdout`.
+  - Final State Changes (fs_diff): A new file, `/test_data/output_0.txt`, is created with the `mermaid` graph content. The standard output is empty.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -f <format> -i <dirs>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `cpp`.
+  - `-f <format>`: Specifies the output format: `json`.
+  - `-i <directories>`: Specifies directories to ignore: `'ignored_dir'`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.c`: `#include "utils/util.h"\nint main() { return 0; }\n// main file content`
+  - `/test_data/project/utils/util.h`: `// Utility header\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -l cpp -i 'ignored_dir' -d /test_data/project -f json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"nodes\": [\n    {\n      \"id\": \"/test_data/project/utils/util.h\",\n      \"label\": \"/test_data/project/utils/util.h\",\n      \"parent\": \"\",\n      \"type\": \"group\"\n    },\n    {\n      \"id\": \"/test_data/project/main.c\",\n      \"label\": \"/test_data/project/main.c\",\n      \"parent\": \"\",\n      \"type\": \"group\"\n    },\n    {\n      \"id\": \"/test_data/project/main.c_main\",\n      \"label\": \"main\",\n      \"parent\": \"/test_data/project/main.c\",\n      \"type\": \"text\"\n    }\n  ],\n  \"edges\": [\n    {\n      \"from\": \"/test_data/project/main.c\",\n      \"to\": \"/test_data/project/utils/util.h\",\n      \"label\": \"imports *\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project has C/C++ files and JS files. `main.c` includes `utils/util.h`.
+  - Command Behavior Analysis: The tool analyzes the project for `cpp` files, ignoring the `ignored_dir`. It finds the dependency from `main.c` to `utils/util.h`. It formats the resulting graph as a `json` object and prints it to `stdout`.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -i <dirs> -r <paths>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `js`.
+  - `-i <directories>`: Specifies directories to ignore: `'ignored_dir'`.
+  - `-r <paths>`: Specifies path replacements: `'@:src,demo:src/demo'`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.js`: `import { util } from './utils/util.js';\nconsole.log(util());\n// main file content`
+  - `/test_data/project/utils/util.js`: `export const util = () => 'hello';\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -r '@:src,demo:src/demo' -d /test_data/project -i 'ignored_dir' -l js`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "graph LR\n  subgraph /test_data/project/main.js\n  end\n  subgraph /test_data/project/src/demo.js\n  end\n  subgraph /test_data/project/utils/util.js\n    /test_data/project/utils/util.js_util[\"util\"]\n  end\n  /test_data/project/main.js-->|imports|/test_data/project/utils/util.js_util\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project has several `.js` files, with `main.js` importing from `utils/util.js`.
+  - Command Behavior Analysis: The tool is run with a combination of flags. It targets `js` files, ignores `ignored_dir`, and is provided with path replacement rules. It correctly ignores `ignored_dir/ignore.js`. It analyzes the remaining `.js` files, finds the import in `main.js`, and generates the `mermaid` graph to `stdout`. The `-r` flag is parsed but has no effect on this specific import.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `depgraph -d <dir> -l <lang> -f <format> -i <dirs> -r <paths>`
+- **Function and Parameter Description**:
+  - `depgraph`: The main command.
+  - `-d <directory>`: Specifies the target directory: `/test_data/project`.
+  - `-l <language>`: Specifies the language: `ts`.
+  - Note: This sample is categorized with all flags, but the command only uses `-l` and `-d`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/project` directory:
+  - `/test_data/project/main.js`: `import { util } from './utils/util.js';\nconsole.log(util());\n// main file content`
+  - `/test_data/project/utils/util.js`: `export const util = () => 'hello';\n// util file content`
+  - `/test_data/project/ignored_dir/ignore.js`: `console.log('should be ignored');`
+  - `/test_data/project/src/demo.js`: `console.log('demo');`
+  **2. Command**:
+  `depgraph -l ts -d /test_data/project`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "graph LR\n  subgraph /test_data/project/ignored_dir/ignore.js\n  end\n  subgraph /test_data/project/main.js\n  end\n  subgraph /test_data/project/src/demo.js\n  end\n  subgraph /test_data/project/utils/util.js\n    /test_data/project/utils/util.js_util[\"util\"]\n  end\n  /test_data/project/main.js-->|imports|/test_data/project/utils/util.js_util\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project contains several `.js` files.
+  - Command Behavior Analysis: The tool is asked to analyze the directory for `ts` language files. It processes all `.js` files, as they are considered relevant. It correctly identifies the import from `main.js` to `utils/util.js` and the exported `util` function. It generates a `mermaid` graph representing all files and the dependency link, then prints it to `stdout`.
+  - Final State Changes (fs_diff): No file system changes.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

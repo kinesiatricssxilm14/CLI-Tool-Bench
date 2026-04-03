@@ -1,0 +1,415 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: unfuck-ai-comments
+**Repository Name**: unfuck-ai-comments
+**Core Functionality Description**:
+The CLI tool is designed to process Go source files to normalize the capitalization of comments. Its primary function is to convert comments found inside function bodies and struct definitions to lowercase, enhancing code consistency.
+
+Key features include:
+- **Selective Processing**: It intelligently modifies only comments within function bodies and struct definitions, while preserving package-level comments and documentation comments for functions and types.
+- **Two Conversion Modes**:
+  1.  **Default Mode**: Converts only the first character of a comment to lowercase.
+  2.  **Full Mode (`--full`)**: Converts the entire comment string to lowercase.
+- **Preservation Rules**:
+  - Special indicator comments (e.g., `TODO:`, `FIXME:`) are left unchanged.
+  - `PascalCase` and `camelCase` identifiers within comments are preserved to maintain readability and references to code elements.
+- **Output Control**:
+  - `run`: Modifies files in-place.
+  - `diff`: Shows a diff of potential changes without altering files.
+  - `print`: Prints the modified content to standard output.
+- **Additional Options**:
+  - `--fmt`: Formats the processed Go code using `gofmt`.
+  - `--backup`: Creates a `.bak` backup of any file that is modified.
+  - `--skip`: Skips processing for files or directories that match a given pattern.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `unfuck-ai-comments run <path>`
+- **Function and Parameter Description**:
+  - `run`: This is the default subcommand for processing files. It modifies the target files in-place.
+  - `<path>`: Specifies the target Go file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_4.go` is created with various comment styles, including package/function documentation, in-function comments with uppercase, mixed case, and special markers like `TODO:` and `FIXME:`.
+  ```go
+  package main
+  
+  import "fmt"
+  
+  // This is a package-level comment, IT SHOULD BE PRESERVED.
+  
+  // MyFunction is a test function. IT SHOULD BE PRESERVED.
+  func MyFunction(arg int) {
+      // A comment with a directive // nolint:gosec
+      // PascalCaseIdentifier and camelCaseOne should be preserved.
+      // B9nor5co3fg
+      // A Multi Word Title To Be Fixed.
+      // FIXME: 8YC5fZfANnIrHClUTWrE
+      // NRHQYCI36MM
+      // TODO: OP76R2co4WfTj
+      
+      fmt.Println("Hello, World!")
+  }
+  
+  type MyStruct struct {
+      // A STRUCT FIELD COMMENT TO BE FIXED.
+      Field int
+  }
+  ```
+  **2. Command**:
+  `unfuck-ai-comments run /test_data/fuzz_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Updated: /test_data/fuzz_4.go\n\nSummary: 1 files analyzed, 1 files updated, 3 total changes\n",
+      "fs_diff": {
+          "/test_data/fuzz_4.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// A comment with a directive // nolint:gosec\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// b9nor5co3fg\n\t// a Multi Word Title To Be Fixed.\n\t// FIXME: 8YC5fZfANnIrHClUTWrE\n\t// NRHQYCI36MM\n\t// TODO: OP76R2co4WfTj\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a STRUCT FIELD COMMENT TO BE FIXED.\n\tField int\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_4.go` contains comments that should be preserved (package/function docs, `TODO`, `FIXME`) and comments that should be modified (e.g., `A Multi Word...`, `A STRUCT FIELD...`, `B9nor5co3fg`).
+  - Command Behavior Analysis: The `run` command processes the specified file. It analyzes the Go code's Abstract Syntax Tree (AST) to identify comments inside the function body and struct definition. For applicable comments, it converts only the first letter to lowercase. It then overwrites the original file with the modified content.
+  - Final State Changes (fs_diff): The file `/test_data/fuzz_4.go` is modified. Comments like `// A Multi Word Title To Be Fixed.` become `// a Multi Word Title To Be Fixed.`. Package/function comments and those starting with `TODO:`/`FIXME:` remain unchanged. The tool also formats the code (e.g., indentation changes to tabs), which implies a `gofmt` pass is part of the process. A summary of actions is printed to stdout.
+
+#### Command Category: `unfuck-ai-comments diff <path>`
+- **Function and Parameter Description**:
+  - `diff`: This subcommand shows what changes would be made without modifying any files.
+  - `<path>`: Specifies the target Go file to be analyzed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_1.go` is created with various comment styles.
+  **2. Command**:
+  `unfuck-ai-comments diff /test_data/fuzz_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- /test_data/fuzz_1.go (original)\n+++ /test_data/fuzz_1.go (modified)\n- \n+ package main\n- package main\n+ \n- \n+ import \"fmt\"\n- import \"fmt\"\n... [omitted 32 lines of similar diff content] ...\n-     // A Multi Word Title To Be Fixed.\n+ \t// a Multi Word Title To Be Fixed.\n... [omitted 10 lines of similar diff content] ...\n-     // A STRUCT FIELD COMMENT TO BE FIXED.\n+ \t// a STRUCT FIELD COMMENT TO BE FIXED.\n... [omitted 4 lines of similar diff content] ...\n\nSummary: 1 files analyzed, 1 files updated, 2 total changes\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_1.go` exists with comments needing modification.
+  - Command Behavior Analysis: The `diff` command analyzes the file and determines the necessary changes using the default title-case logic. Instead of writing to the file, it generates a diff-style output to stdout, showing lines to be removed (`-`) and lines to be added (`+`).
+  - Final State Changes (fs_diff): The file system is unchanged, as confirmed by the empty `fs_diff`. The `stdout` contains the full diff and a summary.
+
+#### Command Category: `unfuck-ai-comments print <path>`
+- **Function and Parameter Description**:
+  - `print`: This subcommand prints the fully processed content to standard output.
+  - `<path>`: Specifies the target Go file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_4.go` is created with various comment styles.
+  **2. Command**:
+  `unfuck-ai-comments print /test_data/fuzz_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// SS5HGPRG\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// FIXME: AreNNgmkCZ4tYXJjrUzb\n\t// TODO: x4ax0CakEKSHQmjL3C\n\t// A comment with a directive // nolint:gosec\n\t// jwg3zuzaud1yz6\n\t// a Multi Word Title To Be Fixed.\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a STRUCT FIELD COMMENT TO BE FIXED.\n\tField int\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_4.go` exists with comments needing modification.
+  - Command Behavior Analysis: The `print` command performs the same analysis and transformation as `run`. However, instead of modifying the file or showing a diff, it prints the entire content of the modified file to `stdout`.
+  - Final State Changes (fs_diff): The file system is unchanged. The `stdout` contains the complete, modified Go source code.
+
+#### Command Category: `unfuck-ai-comments --full run <path>`
+- **Function and Parameter Description**:
+  - `--full`: A flag that modifies the conversion logic to convert the *entire* comment to lowercase, not just the first letter.
+  - `run <path>`: Applies the changes in-place to the specified file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_2.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --full run /test_data/fuzz_2.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Updated: /test_data/fuzz_2.go\n\nSummary: 1 files analyzed, 1 files updated, 3 total changes\n",
+      "fs_diff": {
+          "/test_data/fuzz_2.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// A comment with a directive // nolint:gosec\n\t// a multi word title to be fixed.\n\t// igze442b7k1znk7\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// FIXME: RpcdE3fAGzNAB\n\t// TODO: 4CWjpPK7nxVoTIbfiN9\n\t// 89poo\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a struct field comment to be fixed.\n\tField int\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_2.go` contains comments like `// A Multi Word Title To Be Fixed.` and `// A STRUCT FIELD COMMENT TO BE FIXED.`.
+  - Command Behavior Analysis: The `--full` flag instructs the tool to apply full lowercase conversion. The `run` command applies these changes and overwrites the file.
+  - Final State Changes (fs_diff): The file is modified. `// A Multi Word Title To Be Fixed.` becomes `// a multi word title to be fixed.`, and `// A STRUCT FIELD COMMENT TO BE FIXED.` becomes `// a struct field comment to be fixed.`. `PascalCaseIdentifier` is correctly preserved.
+
+#### Command Category: `unfuck-ai-comments --full diff <path>`
+- **Function and Parameter Description**:
+  - `--full`: Use full lowercase conversion.
+  - `diff <path>`: Show a diff of the changes for the specified file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_4.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --full diff /test_data/fuzz_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- /test_data/fuzz_4.go (original)\n+++ /test_data/fuzz_4.go (modified)\n... [omitted 16 lines of similar diff content] ...\n-     // A Multi Word Title To Be Fixed.\n+ \t// a multi word title to be fixed.\n-     // ERQ7SAHH7\n+ \t// erq7sahh7\n-     // Zywom0dbonyham\n+ \t// zywom0dbonyham\n... [omitted 12 lines of similar diff content] ...\n-     // A STRUCT FIELD COMMENT TO BE FIXED.\n+ \t// a struct field comment to be fixed.\n... [omitted 4 lines of similar diff content] ...\n\nSummary: 1 files analyzed, 1 files updated, 4 total changes\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists with comments to be modified.
+  - Command Behavior Analysis: The tool calculates the changes based on the `--full` logic and outputs them as a diff to `stdout`.
+  - Final State Changes (fs_diff): No files are modified. The diff in `stdout` shows that entire comments like `A Multi Word...` and `ERQ7SAHH7` would be converted to full lowercase.
+
+#### Command Category: `unfuck-ai-comments --full print <path>`
+- **Function and Parameter Description**:
+  - `--full`: Use full lowercase conversion.
+  - `print <path>`: Print the modified content to stdout.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_1.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --full print /test_data/fuzz_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// a multi word title to be fixed.\n\t// TODO: ztt3KGFXYLsBqY9\n\t// A comment with a directive // nolint:gosec\n\t// FIXME: CaWk83FELiCRvP6kPyN\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// s7mfnfan82b\n\t// nactpt2k3vys5y\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a struct field comment to be fixed.\n\tField int\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists with comments to be modified.
+  - Command Behavior Analysis: The tool applies the `--full` conversion logic and prints the entire resulting Go source code to `stdout`.
+  - Final State Changes (fs_diff): No files are modified. The `stdout` shows the code with comments fully lowercased.
+
+#### Command Category: `unfuck-ai-comments --fmt run <path>`
+- **Function and Parameter Description**:
+  - `--fmt`: A flag that formats the code using `gofmt` after applying comment changes.
+  - `run <path>`: Applies the changes in-place to the specified file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_3.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --fmt run /test_data/fuzz_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Updated: /test_data/fuzz_3.go\n\nSummary: 1 files analyzed, 1 files updated, 3 total changes\n",
+      "fs_diff": {
+          "/test_data/fuzz_3.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// QO1MYL\n\t// A comment with a directive // nolint:gosec\n\t// FIXME: O3EWpeiyCiXzPVHKBJFC\n\t// TODO: txPPGPvPx5oyEapzU\n\t// a Multi Word Title To Be Fixed.\n\t// uddeqrei2uet7\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a STRUCT FIELD COMMENT TO BE FIXED.\n\tField int\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_3.go` exists, potentially with inconsistent formatting (e.g., spaces for indentation).
+  - Command Behavior Analysis: The tool first applies the default title-case comment conversion. Then, it formats the entire file's source code, equivalent to running `gofmt`. The result is written back to the file.
+  - Final State Changes (fs_diff): The file is modified. The changes include both the comment capitalization and code formatting (e.g., indentation changed to tabs `\t`).
+
+#### Command Category: `unfuck-ai-comments --fmt diff <path>`
+- **Function and Parameter Description**:
+  - `--fmt`: Format the code with `gofmt`.
+  - `diff <path>`: Show a diff of the changes.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_3.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --fmt diff /test_data/fuzz_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- /test_data/fuzz_3.go (original)\n+++ /test_data/fuzz_3.go (modified)\n- \t// P2VWR98VIW1OF\n+ \t// p2VWR98VIW1OF\n- \t// A Multi Word Title To Be Fixed.\n+ \t// a Multi Word Title To Be Fixed.\n- \t// Vt4htv\n+ \t// vt4htv\n- \t// A STRUCT FIELD COMMENT TO BE FIXED.\n+ \t// a STRUCT FIELD COMMENT TO BE FIXED.\n\nSummary: 1 files analyzed, 1 files updated, 4 total changes\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists.
+  - Command Behavior Analysis: The tool calculates the changes from both the default comment conversion and `gofmt` formatting. It then outputs a diff of only the changed lines to `stdout`.
+  - Final State Changes (fs_diff): No files are modified. The `stdout` shows the lines that would be altered.
+
+#### Command Category: `unfuck-ai-comments --fmt print <path>`
+- **Function and Parameter Description**:
+  - `--fmt`: Format the code with `gofmt`.
+  - `print <path>`: Print the modified and formatted content to stdout.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_1.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --fmt print /test_data/fuzz_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// OYIJ7TEEHHT3GE\n\t// a Multi Word Title To Be Fixed.\n\t// FIXME: eE2XVBrGKfiMET\n\t// A comment with a directive // nolint:gosec\n\t// TODO: dWSvPPBGoOuzfo1M3ky\n\t// kejhrern7thwmy\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a STRUCT FIELD COMMENT TO BE FIXED.\n\tField int\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists.
+  - Command Behavior Analysis: The tool applies default comment conversion, formats the code with `gofmt`, and prints the final, complete source code to `stdout`.
+  - Final State Changes (fs_diff): No files are modified.
+
+#### Command Category: `unfuck-ai-comments --full --fmt run <path>`
+- **Function and Parameter Description**:
+  - `--full`: Use full lowercase conversion.
+  - `--fmt`: Format the code with `gofmt`.
+  - `run <path>`: Apply all changes in-place.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_3.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --full --fmt run /test_data/fuzz_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Updated: /test_data/fuzz_3.go\n\nSummary: 1 files analyzed, 1 files updated, 4 total changes\n",
+      "fs_diff": {
+          "/test_data/fuzz_3.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// igpewbwcsum4\n\t// uf0vao\n\t// FIXME: AYp3Vy0DOvhc0nf5dQy\n\t// A comment with a directive // nolint:gosec\n\t// a multi word title to be fixed.\n\t// TODO: u48ph2DwR9w7NVFAXoBh\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a struct field comment to be fixed.\n\tField int\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists.
+  - Command Behavior Analysis: The tool applies the `--full` lowercase logic, then formats the code with `gofmt`, and finally writes the result back to the original file.
+  - Final State Changes (fs_diff): The file is modified to reflect both full lowercase comments and standard Go formatting.
+
+#### Command Category: `unfuck-ai-comments --full --fmt diff <path>`
+- **Function and Parameter Description**:
+  - `--full`: Use full lowercase conversion.
+  - `--fmt`: Format the code with `gofmt`.
+  - `diff <path>`: Show a diff of all changes.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_2.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --fmt --full diff /test_data/fuzz_2.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- /test_data/fuzz_2.go (original)\n+++ /test_data/fuzz_2.go (modified)\n- \t// LSAFJBMHOCSJN\n+ \t// lsafjbmhocsjn\n- \t// A Multi Word Title To Be Fixed.\n+ \t// a multi word title to be fixed.\n- \t// Jshuzpyxguphlhr\n+ \t// jshuzpyxguphlhr\n- \t// A STRUCT FIELD COMMENT TO BE FIXED.\n+ \t// a struct field comment to be fixed.\n\nSummary: 1 files analyzed, 1 files updated, 4 total changes\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists.
+  - Command Behavior Analysis: The tool calculates changes from both `--full` conversion and `--fmt` formatting and outputs a diff of the affected lines.
+  - Final State Changes (fs_diff): No files are modified.
+
+#### Command Category: `unfuck-ai-comments --full --fmt print <path>`
+- **Function and Parameter Description**:
+  - `--full`: Use full lowercase conversion.
+  - `--fmt`: Format the code with `gofmt`.
+  - `print <path>`: Print the final content to stdout.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_4.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --full --fmt print /test_data/fuzz_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// TODO: 73tG9UpLhFc8KEKKQ\n\t// a multi word title to be fixed.\n\t// A comment with a directive // nolint:gosec\n\t// yqaayy9ca9dau\n\t// FIXME: rN4k8MuWV6EOaOP1gS3\n\t// 41QJSOE4ZHP\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a struct field comment to be fixed.\n\tField int\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A Go file exists.
+  - Command Behavior Analysis: The tool applies `--full` conversion, formats with `gofmt`, and prints the complete, final source code to `stdout`.
+  - Final State Changes (fs_diff): No files are modified.
+
+#### Command Category: `unfuck-ai-comments --skip <pattern> diff <path>`
+- **Function and Parameter Description**:
+  - `--skip <pattern>`: A flag to exclude files or directories matching the given pattern from processing.
+  - `diff`: Show a diff of changes.
+  - `<path>`: Specifies the target path to process. The `...` suffix indicates recursive processing.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Two Go files are created: `/test_data/process_me.go` and `/test_data/skip_me.go`. Both contain comments that need fixing.
+  **2. Command**:
+  `unfuck-ai-comments --skip 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' diff /test_data/...`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- /test_data/process_me.go (original)\n+++ /test_data/process_me.go (modified)\n... [omitted 34 lines of diff content for process_me.go] ...\n--- /test_data/skip_me.go (original)\n+++ /test_data/skip_me.go (modified)\n... [omitted 32 lines of diff content for skip_me.go] ...\n\nSummary: 2 files analyzed, 2 files updated, 6 total changes\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two Go files exist in the `/test_data` directory.
+  - Command Behavior Analysis: The command targets all Go files recursively within `/test_data`. The `--skip` flag is provided with a long, nonsensical pattern that does not match any file names. Consequently, the tool processes *both* files it finds. It generates a diff for each file and prints them sequentially to `stdout`.
+  - Final State Changes (fs_diff): No files are modified. The output demonstrates that the tool processes multiple files and that the `--skip` flag only prevents processing when its pattern matches a file/directory name.
+
+#### Command Category: `unfuck-ai-comments --backup run <path>`
+- **Function and Parameter Description**:
+  - `--backup`: A flag that creates a backup of the original file (with a `.bak` extension) before modifying it.
+  - `run <path>`: Applies changes in-place.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A Go source file `/test_data/fuzz_3.go` is created.
+  **2. Command**:
+  `unfuck-ai-comments --backup run /test_data/fuzz_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Updated: /test_data/fuzz_3.go\n\nSummary: 1 files analyzed, 1 files updated, 3 total changes\n",
+      "fs_diff": {
+          "/test_data/fuzz_3.go.bak": {
+              "type": "ADD",
+              "content": "[UNABLE TO READ]"
+          },
+          "/test_data/fuzz_3.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport \"fmt\"\n\n// This is a package-level comment, IT SHOULD BE PRESERVED.\n\n// MyFunction is a test function. IT SHOULD BE PRESERVED.\nfunc MyFunction(arg int) {\n\t// KBBTB5AELOWXAXD\n\t// FIXME: yqCgR2wJsFXs2\n\t// A comment with a directive // nolint:gosec\n\t// PascalCaseIdentifier and camelCaseOne should be preserved.\n\t// ds8ksygqihmgifh\n\t// TODO: 8yK6tyaTtNE9zLXmX\n\t// a Multi Word Title To Be Fixed.\n\n\tfmt.Println(\"Hello, World!\")\n}\n\ntype MyStruct struct {\n\t// a STRUCT FIELD COMMENT TO BE FIXED.\n\tField int\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_3.go` exists.
+  - Command Behavior Analysis: The `--backup` flag instructs the tool to first create a copy of the target file. It then proceeds with the `run` command's normal operation, modifying the original file using the default title-case logic.
+  - Final State Changes (fs_diff): Two changes occur. A new file, `/test_data/fuzz_3.go.bak`, is created, containing the original content of `fuzz_3.go`. The original file, `/test_data/fuzz_3.go`, is then modified with the lowercase comment changes.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

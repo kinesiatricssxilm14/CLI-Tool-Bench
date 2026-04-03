@@ -1,0 +1,604 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: mkbrr
+**Repository Name**: mkbrr
+**Core Functionality Description**:
+This is a command-line tool for creating, inspecting, verifying, and modifying torrent files. It can generate torrents from local files or directories, view the metadata of existing torrents, check the integrity of local data against a torrent file, and update the metadata (like trackers, comments, or source) of existing torrents.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `mkbrr create <path> -t <url>`
+- **Function and Parameter Description**:
+  - `create`: This command creates a new torrent file from a specified source file or directory.
+  - `<path>`: The path to the source file to be included in the torrent.
+  - `-t <url>`: Specifies the tracker's announce URL.
+  - `-o <path>`: Sets the output path for the generated `.torrent` file.
+  - `--no-date`: Prevents writing the creation date into the torrent's metadata.
+  - `--no-creator`: Prevents writing the creator/tool name into the torrent's metadata.
+  - `--skip-prefix`: Prevents adding a tracker domain prefix to the output filename.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_3.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_3.dat -t ftp://jdc.rrrkz.iwop.llfpcn.org/xAEqsGdBTm -o /test_data/output_3.torrent --no-date --no-creator --skip-prefix`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_3.dat (440 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_3.torrent": {
+              "type": "ADD",
+              "content": "d8:announce42:ftp://jdc.rrrkz.iwop.llfpcn.org/xAEqsGdBTm4:infod6:lengthi440e4:name12:source_3.dat12:piece lengthi32768e6:pieces20:\ufffd\t\ufffdi:y.\ufffd+0\u0013\ufffd\ufffd,W6\ufffd7\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_3.dat` in the `/test_data` directory.
+  - Command Behavior Analysis: The command initiates the creation of a torrent. It identifies the source file, displays its path and size, and shows a progress bar for the hashing process. Finally, it confirms that the torrent file has been written.
+  - Final State Changes (fs_diff): A new file, `output_3.torrent`, is created in the `/test_data` directory. This file contains bencoded torrent data. The `announce` key is set to the URL provided with `-t`. The `info` dictionary contains the source file's name (`source_3.dat`), length (440 bytes), and piece hashes. By default, the torrent is created as private (`private:i1e`). The `--no-date` and `--no-creator` flags ensure those fields are omitted.
+
+#### Command Category: `mkbrr create <path> -t <url> --private <bool>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `--private=<bool>`: Explicitly sets the private flag in the torrent metadata. `true` marks it as private, `false` as public.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_10.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_10.dat -t https://hhaqio.vsq.com/jlEGg76 -o /test_data/output_10.torrent --no-date --no-creator --skip-prefix --private=true`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_10.dat (477 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_10.torrent": {
+              "type": "ADD",
+              "content": "d8:announce30:https://hhaqio.vsq.com/jlEGg764:infod6:lengthi477e4:name13:source_10.dat12:piece lengthi32768e6:pieces20:\ufffdB]\niJ\u001c\ufffdJ\u0012\ufffdc\ufffd\ufffd\ufffd\ufffd\ufffd\u010e\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_10.dat`.
+  - Command Behavior Analysis: The command creates a torrent from the source file. The `--private=true` flag is used, which is the default behavior.
+  - Final State Changes (fs_diff): A new torrent file `output_10.torrent` is created. The bencoded content confirms the torrent is marked as private (`private:i1e`).
+
+#### Command Category: `mkbrr create <path> -t <url> -c <string>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `-c <string>`: Adds a comment string to the torrent's metadata.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_14.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_14.dat -t ftp://pfyfvo.uilyvndv.okfzvc.io/STwug -o /test_data/output_14.torrent --no-date --no-creator --skip-prefix -c "3kO6ODtkoFofNsixRpRAWOlDmOzHHSTb8ylTDl3GrXakI77Wj9"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_14.dat (477 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_14.torrent": {
+              "type": "ADD",
+              "content": "d8:announce37:ftp://pfyfvo.uilyvndv.okfzvc.io/STwug7:comment50:3kO6ODtkoFofNsixRpRAWOlDmOzHHSTb8ylTDl3GrXakI77Wj94:infod6:lengthi477e4:name13:source_14.dat12:piece lengthi32768e6:pieces20:\"\u0003g\ufffd\ufffdpH!k\ufffdd\ufffd\ufffd\ufffd\u001e\ufffd\ufffd\u0006\ufffd\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_14.dat`.
+  - Command Behavior Analysis: The command creates a torrent, including a custom comment provided via the `-c` flag.
+  - Final State Changes (fs_diff): A new torrent file `output_14.torrent` is created. The bencoded data includes a `comment` key with the specified string value at the top level of the torrent dictionary.
+
+#### Command Category: `mkbrr create <path> -t <url> -s <string>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `-s <string>`: Adds a source string to the torrent's `info` dictionary. This is often used to identify the release group or origin.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_19.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_19.dat -t http://twvnsfsc.djxfh.sppaldg.lfxxmo.org/QkKSCK7Sm -o /test_data/output_19.torrent --no-date --no-creator --skip-prefix -s "xzXbXEn14"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_19.dat (470 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_19.torrent": {
+              "type": "ADD",
+              "content": "d8:announce50:http://twvnsfsc.djxfh.sppaldg.lfxxmo.org/QkKSCK7Sm4:infod6:lengthi470e4:name13:source_19.dat12:piece lengthi32768e6:pieces20:(w\ufffd\ufffd\ufffd\u007f\ufffd\ufffd\ufffd\u0018[0?\ufffd\ufffd\u001e\ufffd\u001d\ufffdd7:privatei1e6:source9:xzXbXEn14ee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_19.dat`.
+  - Command Behavior Analysis: The command creates a torrent, including a custom source tag provided via the `-s` flag.
+  - Final State Changes (fs_diff): A new torrent file `output_19.torrent` is created. The bencoded data shows that the `source` key and its value have been added inside the `info` dictionary.
+
+#### Command Category: `mkbrr create <path> -t <url> -e`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `-e`: Adds an "entropy" field with a random value to the `info` dictionary. This is used to generate a different info hash for the same content.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_22.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_22.dat -t http://rkaotuk.qxna.szmdcvge.net/PZdZZ -o /test_data/output_22.torrent --no-date --no-creator --skip-prefix -e`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_22.dat (477 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_22.torrent": {
+              "type": "ADD",
+              "content": "d8:announce38:http://rkaotuk.qxna.szmdcvge.net/PZdZZ4:infod7:entropy64:d35c832131630449d31b82598a7c9fbb50a9e9275aa109970b82e239d1ee91ca6:lengthi477e4:name13:source_22.dat12:piece lengthi32768e6:pieces20:}\ufffdC\ufffdU\ufffd\ufffd\ufffdN\t\ufffd]Y\ufffdY!J\ufffda\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_22.dat`.
+  - Command Behavior Analysis: The command creates a torrent, adding a random entropy field to the info dictionary as requested by the `-e` flag.
+  - Final State Changes (fs_diff): A new torrent file `output_22.torrent` is created. The bencoded data shows a new `entropy` key with a 64-character random string inside the `info` dictionary. This changes the resulting info hash.
+
+#### Command Category: `mkbrr create <path> -t <url> --workers <N>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `--workers <N>`: Specifies the number of worker goroutines to use for hashing.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_28.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_28.dat -t http://kdntglun.ceejrdx.ltnaydxp.zkl.com/YAQvKYFMom -o /test_data/output_28.torrent --no-date --no-creator --skip-prefix --workers 1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_28.dat (473 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_28.torrent": {
+              "type": "ADD",
+              "content": "d8:announce51:http://kdntglun.ceejrdx.ltnaydxp.zkl.com/YAQvKYFMom4:infod6:lengthi473e4:name13:source_28.dat12:piece lengthi32768e6:pieces20:\ufffd\ufffd!F\\^\ufffdtx^\u0001\ufffd\ufffd4\u0019\ufffdRi^\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_28.dat`.
+  - Command Behavior Analysis: The command creates a torrent, explicitly setting the number of hashing workers to 1. The `stdout` confirms this setting: `Concurrency: Using 1 worker(s)`.
+  - Final State Changes (fs_diff): A new torrent file `output_28.torrent` is created. The `--workers` flag affects the performance of the creation process but does not alter the content of the final torrent file itself.
+
+#### Command Category: `mkbrr create <path> -t <url> --exclude <patterns>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `--exclude <patterns>`: Excludes files matching the given glob patterns from the torrent. In this sample, the source is a single file that matches the pattern, but since it's the only file provided, the tool should still process it. The logic for include/exclude is more relevant for directories. For a single file input, it should be included regardless of the pattern.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_33.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_33.dat -t https://vda.ydigmd.vuhyn.mjcc.net/cEwAR5 -o /test_data/output_33.torrent --no-date --no-creator --skip-prefix --exclude "*.log,*.tmp"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_33.dat (435 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_33.torrent": {
+              "type": "ADD",
+              "content": "d8:announce40:https://vda.ydigmd.vuhyn.mjcc.net/cEwAR54:infod6:lengthi435e4:name13:source_33.dat12:piece lengthi32768e6:pieces20:F\u000b\tI\ufffdY\u0013eA;'#\u0505\ufffdfn\u0384\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_33.dat`.
+  - Command Behavior Analysis: The command is asked to create a torrent from a single file while also providing exclude patterns. Since the input is a specific file path and not a directory, the exclude patterns are effectively ignored, and the specified file is processed.
+  - Final State Changes (fs_diff): A new torrent file `output_33.torrent` is created for `source_33.dat`, demonstrating that the single file input takes precedence over exclude patterns.
+
+#### Command Category: `mkbrr create <path> -t <url> --include <patterns>`
+- **Function and Parameter Description**:
+  - `create`: Creates a new torrent file.
+  - `--include <patterns>`: Includes only files matching the given glob patterns.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_37.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_37.dat -t ftp://owtlbw.ujbqk.wcxgfrf.com/atfq7QEUwC -o /test_data/output_37.torrent --no-date --no-creator --skip-prefix --include "*.dat"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_37.dat (383 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_37.torrent": {
+              "type": "ADD",
+              "content": "d8:announce41:ftp://owtlbw.ujbqk.wcxgfrf.com/atfq7QEUwC4:infod6:lengthi383e4:name13:source_37.dat12:piece lengthi32768e6:pieces20:?f6%\ufffd\u001d\ufffdm\ufffd\ufffd\u0017\ufffd?\u0010\n\ufffd[!\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_37.dat`.
+  - Command Behavior Analysis: The command is asked to create a torrent from a single file that matches the `--include` pattern. The tool correctly identifies and processes the file.
+  - Final State Changes (fs_diff): A new torrent file `output_37.torrent` is created for `source_37.dat`, as the file matches the include pattern.
+
+#### Command Category: `mkbrr create <path> -t <url> -c <string> -s <string> --private <bool>`
+- **Function and Parameter Description**:
+  - This sample demonstrates the combined usage of multiple flags: `-c` (comment), `-s` (source), and `--private` (set to public).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is initialized with one file: `/test_data/source_43.dat`.
+  **2. Command**:
+  `mkbrr create /test_data/source_43.dat -t ftp://jdbuvc.cjf.haj.vyeiuxlp.io/HnhwwDGk -o /test_data/output_43.torrent --no-date --no-creator --skip-prefix -c "kL9fp8w3E98xL1bsGe8CH4FGOS8T1eZfiqpQf" -s "sv9wL8Jy" --private=false`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Concurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_43.dat (335 B)\nHashing pieces... 100% [========================================] \nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/output_43.torrent": {
+              "type": "ADD",
+              "content": "d8:announce41:ftp://jdbuvc.cjf.haj.vyeiuxlp.io/HnhwwDGk7:comment37:kL9fp8w3E98xL1bsGe8CH4FGOS8T1eZfiqpQf4:infod6:lengthi335e4:name13:source_43.dat12:piece lengthi32768e6:pieces20:_\ufffd\u0015\ufffd\ufffd_JE\u0019!``\ufffd+\ufffd\ufffd\ufffd\u000f\ufffd\ufffd7:privatei0e6:source8:sv9wL8Jyee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single data file `source_43.dat`.
+  - Command Behavior Analysis: The command creates a torrent using several metadata flags simultaneously.
+  - Final State Changes (fs_diff): A new torrent file `output_43.torrent` is created. The bencoded data reflects all specified options: a `comment` key at the top level, a `source` key inside the `info` dictionary, and the `private` flag set to 0 (`private:i0e`), indicating a public torrent.
+
+#### Command Category: `mkbrr inspect <torrent_file>`
+- **Function and Parameter Description**:
+  - `inspect`: This command reads a `.torrent` file and displays its key metadata in a human-readable format.
+  - `<torrent_file>`: The path to the torrent file to inspect.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_49.dat -t http://tracker.test/ann -o /test_data/test_49.torrent --no-date --no-creator --skip-prefix`. The file system is also initialized with `source_49.dat`.
+  **2. Command**:
+  `mkbrr inspect /test_data/test_49.torrent`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Torrent info:\n  Name:         source_49.dat\n  Hash:         405bdb227ffe72110f8073342317c9185d9b20f1\n  Size:         468 B\n  Piece length: 32 KiB\n  Pieces:       1\n  Magnet:       magnet:?xt=urn:btih:405bdb227ffe72110f8073342317c9185d9b20f1&dn=source_49.dat&tr=http%3A%2F%2Ftracker.test%2Fann\n  Tracker:      http://tracker.test/ann\n  Private:      yes",
+      "fs_diff": {
+          "/test_data/test_49.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi468e4:name13:source_49.dat12:piece lengthi32768e6:pieces20:\ufffdS\ufffd\ufffd\ufffd`G\u001f\ufffd!W\ufffd\ufffdZ\ufffd9\u00c2\u024a7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The preparation script creates `test_49.torrent` from `source_49.dat`. The file system contains both files before the `inspect` command runs.
+  - Command Behavior Analysis: The `inspect` command reads the metadata from `/test_data/test_49.torrent`. It then prints a formatted summary to `stdout`, including the torrent's name, info hash, size, piece information, magnet link, tracker URL, and private status.
+  - Final State Changes (fs_diff): The `inspect` command is read-only and does not modify the file system. The `fs_diff` shows the torrent file that was created during the preparation phase.
+
+#### Command Category: `mkbrr inspect <torrent_file> -v`
+- **Function and Parameter Description**:
+  - `inspect`: Inspects a torrent file.
+  - `-v` or `--verbose`: Shows all metadata fields, providing a more detailed view than the default.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_54.dat -t http://tracker.test/ann -o /test_data/test_54.torrent --no-date --no-creator --skip-prefix`. The file system is also initialized with `source_54.dat`.
+  **2. Command**:
+  `mkbrr inspect /test_data/test_54.torrent -v`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Torrent info:\n  Name:         source_54.dat\n  Hash:         eef147dbf32d2120bec66323ebbf3013714c18fc\n  Size:         459 B\n  Piece length: 32 KiB\n  Pieces:       1\n  Magnet:       magnet:?xt=urn:btih:eef147dbf32d2120bec66323ebbf3013714c18fc&dn=source_54.dat&tr=http%3A%2F%2Ftracker.test%2Fann\n  Tracker:      http://tracker.test/ann\n  Private:      yes\nAdditional metadata:",
+      "fs_diff": {
+          "/test_data/test_54.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi459e4:name13:source_54.dat12:piece lengthi32768e6:pieces20:\ufffd\u001aUL\ufffd%\u0011I|V\u0018\ufffd\ufffd\u0015I\u000e\u0004\u001cF\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The preparation script creates `test_54.torrent`.
+  - Command Behavior Analysis: The `inspect` command is run with the `-v` (verbose) flag. The output is similar to the standard inspect but includes an "Additional metadata:" section, which would list extra fields if they existed. In this case, since the torrent is minimal, the section is empty, but the header is still present.
+  - Final State Changes (fs_diff): The command is read-only. The `fs_diff` shows the file created by the preparation script.
+
+#### Command Category: `mkbrr check <torrent_file> <content_path>`
+- **Function and Parameter Description**:
+  - `check`: Verifies the integrity of local content against the piece hashes in a torrent file.
+  - `<torrent_file>`: The path to the `.torrent` file to check against.
+  - `<content_path>`: The path to the local file or directory to verify.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_57.dat -t http://tracker.test/ann -o /test_data/test_57.torrent --no-date --no-creator --skip-prefix`. The file system is also initialized with `source_57.dat`.
+  **2. Command**:
+  `mkbrr check /test_data/test_57.torrent /test_data/source_57.dat`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Verifying:\n  Torrent file: /test_data/test_57.torrent\n  Content: /test_data/source_57.dat\nConcurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_57.dat (437 B)\nHashing pieces... 100% [========================================] \nVerification results:\n  Completion:     100.00% (1/1 pieces)\n  Check time:     0ms",
+      "fs_diff": {
+          "/test_data/test_57.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi437e4:name13:source_57.dat12:piece lengthi32768e6:pieces20:\ufffd\ufffd\ufffd\ufffd\u04c7\b\ufffd\ufffd\u001e\ufffd\u0012\ufffd\n/\ufffd\ufffd^\u00117:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The preparation script creates `test_57.torrent` from the existing `source_57.dat`. Both files are present.
+  - Command Behavior Analysis: The `check` command is executed. It reads the piece hashes from `test_57.torrent` and re-hashes the local file `source_57.dat`. It shows progress and then prints a summary confirming that 100% of the pieces are correct.
+  - Final State Changes (fs_diff): The `check` command is read-only. The `fs_diff` shows the torrent file created during preparation.
+
+#### Command Category: `mkbrr check <torrent_file> <content_path> --workers <N>`
+- **Function and Parameter Description**:
+  - `check`: Verifies local content.
+  - `--workers <N>`: Specifies the number of worker goroutines for verification. A value of -1 or 0 should trigger automatic detection.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_61.dat -t http://tracker.test/ann -o /test_data/test_61.torrent --no-date --no-creator --skip-prefix`. The file system is also initialized with `source_61.dat`.
+  **2. Command**:
+  `mkbrr check /test_data/test_61.torrent /test_data/source_61.dat --workers -1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Verifying:\n  Torrent file: /test_data/test_61.torrent\n  Content: /test_data/source_61.dat\nConcurrency: Using 1 worker(s)\nFiles being hashed:\n\u2514\u2500 test_data\n  \u2514\u2500 source_61.dat (478 B)\nHashing pieces... 100% [========================================] \nVerification results:\n  Completion:     100.00% (1/1 pieces)\n  Check time:     0ms",
+      "fs_diff": {
+          "/test_data/test_61.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi478e4:name13:source_61.dat12:piece lengthi32768e6:pieces20:\\\u0014\ufffd\ufffd*L\ufffd\ufffdF\ufffd\u0012\ufffd\u0226\\\u000f\u07d77:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The preparation script creates `test_61.torrent`.
+  - Command Behavior Analysis: The `check` command is run with `--workers -1`. The tool interprets this as a request for automatic worker detection and proceeds with the verification, in this case using 1 worker. The output confirms the data is 100% valid.
+  - Final State Changes (fs_diff): The command is read-only. The `fs_diff` shows the file created during preparation.
+
+#### Command Category: `mkbrr modify <torrent_file> -t <url>`
+- **Function and Parameter Description**:
+  - `modify`: Modifies the metadata of an existing torrent file, creating a new file with the changes.
+  - `<torrent_file>`: The path to the original torrent file.
+  - `--output-dir <path>`: Specifies the directory where the modified torrent file will be saved.
+  - `-o <name>`: Sets the base name for the output file.
+  - `-t <url>`: Sets a new tracker URL. This will replace existing trackers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_69.dat -t http://tracker.test/ann -o /test_data/test_69.torrent --no-date --no-creator --skip-prefix`. The file system is also initialized with `source_69.dat`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_69.torrent --output-dir /test_data -o modified_69 --no-date --no-creator --skip-prefix -t http://rvoibqh.chpopnt.ywwl.com/W26u0`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/test_69.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi371e4:name13:source_69.dat12:piece lengthi32768e6:pieces20:\u0098\ufffd\ufffd\u0001\ufffda,\ufffd>0\ufffdxY\u001f!\ufffd\ufffdC\ufffd7:privatei1eee"
+          },
+          "/test_data/modified_69.torrent": {
+              "type": "ADD",
+              "content": "d8:announce37:http://rvoibqh.chpopnt.ywwl.com/W26u013:announce-listll37:http://rvoibqh.chpopnt.ywwl.com/W26u0ee4:infod6:lengthi371e4:name13:source_69.dat12:piece lengthi32768e6:pieces20:\u0098\ufffd\ufffd\u0001\ufffda,\ufffd>0\ufffdxY\u001f!\ufffd\ufffdC\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `source_69.dat` and the corresponding `test_69.torrent` created by the preparation script.
+  - Command Behavior Analysis: The `modify` command reads `test_69.torrent`, applies the new tracker URL, and writes the result to a new file.
+  - Final State Changes (fs_diff): A new file, `modified_69.torrent`, is created. It preserves the original `info` dictionary (and thus the info hash) but has an updated `announce` URL. It also adds an `announce-list` field containing the new tracker URL in a nested list, which is standard practice for multi-tracker support. The original `test_69.torrent` remains unchanged.
+
+#### Command Category: `mkbrr modify <torrent_file> -t <url1> -t <url2>`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `-t <url>`: This flag can be specified multiple times to create a multi-tracker torrent.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_75.dat -t http://tracker.test/ann -o /test_data/test_75.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_75.torrent --output-dir /test_data -o modified_75 --no-date --no-creator --skip-prefix -t http://nnsvlph.snurlwaa.tkomrq.czoordx.net/1vmcA49k -t https://fbebdmx.puk.gjbsuyi.rmisk.com/RTooy5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/test_75.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi496e4:name13:source_75.dat12:piece lengthi32768e6:pieces20:H\ufffd\ufffd\ufffdp\ufffd\u000f \ufffd\u0005\ufffd\u0007t\ufffd\ufffd\nc\ufffdV\ufffd7:privatei1eee"
+          },
+          "/test_data/modified_75.torrent": {
+              "type": "ADD",
+              "content": "d8:announce51:http://nnsvlph.snurlwaa.tkomrq.czoordx.net/1vmcA49k13:announce-listll51:http://nnsvlph.snurlwaa.tkomrq.czoordx.net/1vmcA49kel44:https://fbebdmx.puk.gjbsuyi.rmisk.com/RTooy5ee4:infod6:lengthi496e4:name13:source_75.dat12:piece lengthi32768e6:pieces20:H\ufffd\ufffd\ufffdp\ufffd\u000f \ufffd\u0005\ufffd\u0007t\ufffd\ufffd\nc\ufffdV\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the original `test_75.torrent`.
+  - Command Behavior Analysis: The `modify` command is used with two `-t` flags to set multiple tracker URLs.
+  - Final State Changes (fs_diff): A new file `modified_75.torrent` is created. The `announce` key is set to the first tracker URL provided. A new `announce-list` key is added, containing a list of lists, where each inner list contains one of the provided tracker URLs. This is the standard format for multi-tracker torrents.
+
+#### Command Category: `mkbrr modify <torrent_file> --private <bool>`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `--private=<bool>`: Sets or unsets the private flag on an existing torrent.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_77.dat -t http://tracker.test/ann -o /test_data/test_77.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_77.torrent --output-dir /test_data -o modified_77 --no-date --no-creator --skip-prefix --private=true`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/modified_77.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi408e4:name13:source_77.dat12:piece lengthi32768e6:pieces20:~\ufffdx\ufffdW\ufffd\ufffd\ufffdwS&\ufffdY\ufffd\ufffd\ufffd\t\u0013\ufffd7:privatei1eee"
+          },
+          "/test_data/test_77.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi408e4:name13:source_77.dat12:piece lengthi32768e6:pieces20:~\ufffdx\ufffdW\ufffd\ufffd\ufffdwS&\ufffdY\ufffd\ufffd\ufffd\t\u0013\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The original `test_77.torrent` is created as private by default.
+  - Command Behavior Analysis: The `modify` command is run with `--private=true`, which re-affirms the private status.
+  - Final State Changes (fs_diff): A new file `modified_77.torrent` is created. Its content is identical to the original because the private flag was already set to true. The `private:i1e` field is present in the `info` dictionary.
+
+#### Command Category: `mkbrr modify <torrent_file> -c <string>`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `-c <string>`: Adds or replaces the comment in the torrent's metadata.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_85.dat -t http://tracker.test/ann -o /test_data/test_85.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_85.torrent --output-dir /test_data -o modified_85 --no-date --no-creator --skip-prefix -c "beXw6UuEKTG"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/modified_85.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann7:comment11:beXw6UuEKTG4:infod6:lengthi497e4:name13:source_85.dat12:piece lengthi32768e6:pieces20:1\ufffd\ufffd\ufffd\ufffd^\u0003\ufffdM\ufffd!?\u072d\\\u0006VU\b\ufffd7:privatei1eee"
+          },
+          "/test_data/test_85.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi497e4:name13:source_85.dat12:piece lengthi32768e6:pieces20:1\ufffd\ufffd\ufffd\ufffd^\u0003\ufffdM\ufffd!?\u072d\\\u0006VU\b\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The original `test_85.torrent` is created without a comment.
+  - Command Behavior Analysis: The `modify` command is used to add a comment to the torrent.
+  - Final State Changes (fs_diff): A new file `modified_85.torrent` is created. Its bencoded data now includes the `comment` key with the specified string at the top level.
+
+#### Command Category: `mkbrr modify <torrent_file> -s <string>`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `-s <string>`: Adds or replaces the source string in the torrent's `info` dictionary. This modifies the info hash.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_90.dat -t http://tracker.test/ann -o /test_data/test_90.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_90.torrent --output-dir /test_data -o modified_90 --no-date --no-creator --skip-prefix -s "1wihWa5u83aP"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/test_90.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi436e4:name13:source_90.dat12:piece lengthi32768e6:pieces20:g\ufffdh\ufffd\ufffd\ufffdl9\ufffd\ufffd)+1\ufffd\u000eYnv\ufffdX7:privatei1eee"
+          },
+          "/test_data/modified_90.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi436e4:name13:source_90.dat12:piece lengthi32768e6:pieces20:g\ufffdh\ufffd\ufffd\ufffdl9\ufffd\ufffd)+1\ufffd\u000eYnv\ufffdX7:privatei1e6:source12:1wihWa5u83aPee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The original `test_90.torrent` is created without a source tag.
+  - Command Behavior Analysis: The `modify` command is used to add a source tag. Since the source tag is part of the `info` dictionary, this will change the info hash of the torrent.
+  - Final State Changes (fs_diff): A new file `modified_90.torrent` is created. Its `info` dictionary now contains the `source` key with the specified value. The piece data remains the same, but the overall info hash will be different from the original.
+
+#### Command Category: `mkbrr modify <torrent_file> -e`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `-e`: Adds or replaces an "entropy" field in the `info` dictionary to randomize the info hash.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_92.dat -t http://tracker.test/ann -o /test_data/test_92.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_92.torrent --output-dir /test_data -o modified_92 --no-date --no-creator --skip-prefix -e`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nWrote <sanitized>.torrent",
+      "fs_diff": {
+          "/test_data/test_92.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi360e4:name13:source_92.dat12:piece lengthi32768e6:pieces20:\ufffdj\ufffd\b|\ufffd\ufffdC\ufffdO$\ufffd<\ufffd_\ufffdL\b\ufffd7:privatei1eee"
+          },
+          "/test_data/modified_92.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod7:entropy64:fb508fca8345f0aa5ac02da6f3d5e0ef8aacb7c04b2a7986d87a6577d4a0ed316:lengthi360e4:name13:source_92.dat12:piece lengthi32768e6:pieces20:\ufffdj\ufffd\b|\ufffd\ufffdC\ufffdO$\ufffd<\ufffd_\ufffdL\b\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The original `test_92.torrent` is created.
+  - Command Behavior Analysis: The `modify` command is used with the `-e` flag to add an entropy field. This will change the info hash.
+  - Final State Changes (fs_diff): A new file `modified_92.torrent` is created. Its `info` dictionary now contains a new `entropy` key with a random string value, which alters the info hash.
+
+#### Command Category: `mkbrr modify <torrent_file> -t <url> -n`
+- **Function and Parameter Description**:
+  - `modify`: Modifies an existing torrent file.
+  - `-n` or `--dry-run`: Shows what would be modified without actually writing any files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to first create a torrent file: `mkbrr create /test_data/source_99.dat -t http://tracker.test/ann -o /test_data/test_99.torrent --no-date --no-creator --skip-prefix`.
+  **2. Command**:
+  `mkbrr modify /test_data/test_99.torrent --output-dir /test_data -o modified_99 --no-date --no-creator --skip-prefix -t http://xjlnqvo.xsqgjeg.jnpst.net/9LnCHhqMaH -n`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Info: Modifying 1 torrent files...\nInfo: Would modify /test_data/test_99.torrent",
+      "fs_diff": {
+          "/test_data/test_99.torrent": {
+              "type": "ADD",
+              "content": "d8:announce23:http://tracker.test/ann4:infod6:lengthi458e4:name13:source_99.dat12:piece lengthi32768e6:pieces20:\ufffd\u001f\ufffd\u0004\ufffd\ufffd\ufffd\ufffdlJ\u06d2\ufffd\n\ufffdZF<\ufffd\ufffd7:privatei1eee"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the original `test_99.torrent`.
+  - Command Behavior Analysis: The `modify` command is run with the `-n` (dry-run) flag. The tool processes the request but, instead of writing a new file, it prints an informational message to `stdout` indicating which file *would* have been modified.
+  - Final State Changes (fs_diff): No new files are created, and no existing files are changed. The `fs_diff` only shows the torrent file created during preparation, confirming that the dry-run command had no effect on the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

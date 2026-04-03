@@ -1,0 +1,384 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: nix-converter
+**Repository Name**: nix-converter
+**Core Functionality Description**:
+This CLI tool allows you to convert data formats, such as JSON, YAML, and TOML, into Nix, and vice versa. The tool supports converting from JSON/YAML/TOML to Nix, and from Nix back to JSON/YAML/TOML. It can handle YAML anchors by translating them into Nix `let` bindings. It also provides options to generate Nix with unquoted keys for hashmaps and to sort iterators (hashmap keys).
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `nix-converter -filename <file> -language json`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from JSON format to Nix format.
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file to be read.
+    - `-language json`: Specifies that the input file's format is JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_json_to_nix_4.json` with the following content:
+    ```json
+    {"b8vVO9ch": "WRR2QWJksr9ZrTj", "3gg5hwsCHP": "6Ni7JMZ7xVtP8PVq3", "fFtjgB2r1": "TJIu2xvmR9nw4R3DY", "id": 649, "active": false}
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_json_to_nix_4.json -language json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"b8vVO9ch\" = \"WRR2QWJksr9ZrTj\";\n  \"3gg5hwsCHP\" = \"6Ni7JMZ7xVtP8PVq3\";\n  \"fFtjgB2r1\" = \"TJIu2xvmR9nw4R3DY\";\n  \"id\" = 649;\n  \"active\" = false;\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single JSON file at `/test_data/fuzz_json_to_nix_4.json`.
+  - Command Behavior Analysis: The tool reads the content of the specified JSON file. It parses the JSON object and converts it into a Nix attribute set. Each key-value pair in the JSON object is translated into a key-value pair in the Nix set. JSON strings, numbers, and booleans are converted to their corresponding Nix equivalents. All keys in the resulting Nix expression are enclosed in double quotes. The final Nix expression is printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -filename <file> -language yaml`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from YAML format to Nix format, with support for YAML anchors.
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file.
+    - `-language yaml`: Specifies that the input file's format is YAML.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_yaml_to_nix_2.yaml` with the following content:
+    ```yaml
+
+        definitions:
+          steps:
+            - step: &build-test
+                name: diQI8AsSp7eK
+                script:
+                  - mvn package
+        pipelines:
+          branches:
+            t4dzefziag:
+              - step: *build-test
+        
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_yaml_to_nix_2.yaml -language yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "let\n  build-test = {\n    \"name\" = \"diQI8AsSp7eK\";\n    \"script\" = [\n      \"mvn package\"\n    ];\n  };\nin\n{\n  \"definitions\" = {\n    \"steps\" = [\n      {\n        \"step\" = build-test;\n      }\n    ];\n  };\n  \"pipelines\" = {\n    \"branches\" = {\n      \"t4dzefziag\" = [\n        {\n          \"step\" = build-test;\n        }\n      ];\n    };\n  };\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a YAML file that uses an anchor (`&build-test`) to define a reusable block and an alias (`*build-test`) to reference it.
+  - Command Behavior Analysis: The tool parses the input YAML. It must correctly interpret the anchor and alias. The anchored content is defined once and reused. This is translated into a Nix `let...in` expression. The content of the anchor `&build-test` is assigned to a variable `build-test` in the `let` block. In the main body of the expression (the `in` block), the alias `*build-test` is replaced with a reference to the `build-test` variable. This preserves the "Don't Repeat Yourself" principle in the output Nix code.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -filename <file> -language toml`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from TOML format to Nix format.
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file.
+    - `-language toml`: Specifies that the input file's format is TOML.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_toml_to_nix_4.toml` with the following content:
+    ```toml
+
+        title = "P3eUF2ipnrzjgC"
+        [owner]
+        name = "fXdfDmlUj7oFEKcdod"
+
+        [database]
+        server = "253.120.58.124"
+        ports = [ 1675, 2001 ]
+        enabled = false
+        
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_toml_to_nix_4.toml -language toml`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"database\" = {\n    \"enabled\" = false;\n    \"server\" = \"253.120.58.124\";\n    \"ports\" = [\n      1675\n      2001\n    ];\n  };\n  \"title\" = \"P3eUF2ipnrzjgC\";\n  \"owner\" = {\n    \"name\" = \"fXdfDmlUj7oFEKcdod\";\n  };\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a TOML file with top-level key-value pairs and nested tables (`[owner]`, `[database]`).
+  - Command Behavior Analysis: The tool reads and parses the TOML file. It converts the TOML structure into a nested Nix attribute set. Top-level keys and tables are converted into attributes of the root Nix set. TOML data types (string, integer array, boolean) are mapped to their corresponding Nix types. All keys in the output Nix attribute set are quoted strings.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -filename <file> -language json -unsafe-keys`
+- **Function and Parameter Description**:
+  - **Function**: Converts a JSON file to Nix format, attempting to use unquoted keys for valid identifiers.
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file.
+    - `-language json`: Specifies the input format is JSON.
+    - `-unsafe-keys`: A boolean flag that, when present, enables the generation of unquoted keys in the output Nix expression.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_json_to_nix_unsafe_1.json` with the following content:
+    ```json
+    {"Ic61Vzzik": "YlwKXmjVBDG9N6", "9fAnLNwzJd": "nhb5Be5JPtPvlJQn0w", "uU5akRTF": "UD5B9tClSC2TIkwAj", "sjgjws17w": "ZZunD55ETgQpZ6bNItkq", "D5oUiBlwT": "KHJdoVjb2jcUcmsa1R", "id": 446, "active": false}
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_json_to_nix_unsafe_1.json -language json -unsafe-keys`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  Ic61Vzzik = \"YlwKXmjVBDG9N6\";\n  \"9fAnLNwzJd\" = \"nhb5Be5JPtPvlJQn0w\";\n  uU5akRTF = \"UD5B9tClSC2TIkwAj\";\n  sjgjws17w = \"ZZunD55ETgQpZ6bNItkq\";\n  D5oUiBlwT = \"KHJdoVjb2jcUcmsa1R\";\n  id = 446;\n  active = false;\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file is present on the file system.
+  - Command Behavior Analysis: The tool converts the JSON object to a Nix attribute set. Because the `-unsafe-keys` flag is active, it checks each key to see if it's a valid Nix identifier (e.g., starts with a letter, contains only alphanumeric characters). If it is a valid identifier (like `id`, `active`, `Ic61Vzzik`), the key is written without double quotes. If it is not (like `9fAnLNwzJd`, which starts with a number), it remains enclosed in double quotes.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -filename <file> -language yaml -sort-iterators <type>`
+- **Function and Parameter Description**:
+  - **Function**: Converts a YAML file to Nix format, sorting the keys of hashmaps (attribute sets).
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file.
+    - `-language yaml`: Specifies the input format is YAML.
+    - `-sort-iterators hashmap`: Specifies that keys within hashmaps should be sorted alphabetically in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_yaml_to_nix_sort_4.yaml` with the following content:
+    ```yaml
+
+        definitions:
+          steps:
+            - step: &build-test
+                name: qLIO6JIJKUtSdxIRtj
+                script:
+                  - mvn package
+        pipelines:
+          branches:
+            Xf8w1Bal6:
+              - step: *build-test
+        
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_yaml_to_nix_sort_4.yaml -language yaml -sort-iterators hashmap`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "let\n  build-test = {\n    \"name\" = \"qLIO6JIJKUtSdxIRtj\";\n    \"script\" = [\n      \"mvn package\"\n    ];\n  };\nin\n{\n  \"definitions\" = {\n    \"steps\" = [\n      {\n        \"step\" = build-test;\n      }\n    ];\n  };\n  \"pipelines\" = {\n    \"branches\" = {\n      \"Xf8w1Bal6\" = [\n        {\n          \"step\" = build-test;\n        }\n      ];\n    };\n  };\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A YAML file using anchors and aliases is present.
+  - Command Behavior Analysis: The tool parses the YAML and converts it to a Nix `let...in` expression. The `-sort-iterators hashmap` flag requires that before printing the Nix output, the keys of every attribute set must be sorted alphabetically. For example, within the `build-test` variable, the keys `name` and `script` must be sorted. Similarly, the keys of the main attribute set (`definitions`, `pipelines`) and any nested sets must also be sorted.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -filename <file> -language toml -unsafe-keys -sort-iterators <type>`
+- **Function and Parameter Description**:
+  - **Function**: Converts a TOML file to Nix, applying both unquoted keys and key sorting.
+  - **Parameters**:
+    - `-filename <file>`: Specifies the path to the input file.
+    - `-language toml`: Specifies the input format is TOML.
+    - `-unsafe-keys`: Enables unquoted keys for valid Nix identifiers.
+    - `-sort-iterators list,hashmap`: Enables sorting for hashmaps (and lists, though not demonstrated for lists here).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_toml_to_nix_unsafe_sort_4.toml` with the following content:
+    ```toml
+
+        title = "AbYOKYi4gnGuXo"
+        [owner]
+        name = "hLtcEJuTzjGvMWLTg"
+
+        [database]
+        server = "227.106.49.14"
+        ports = [ 1782, 2582 ]
+        enabled = false
+        
+    ```
+  **2. Command**:
+  `nix-converter -filename /test_data/fuzz_toml_to_nix_unsafe_sort_4.toml -language toml -unsafe-keys -sort-iterators list,hashmap`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  database = {\n    enabled = false;\n    ports = [\n      1782\n      2582\n    ];\n    server = \"227.106.49.14\";\n  };\n  owner = {\n    name = \"hLtcEJuTzjGvMWLTg\";\n  };\n  title = \"AbYOKYi4gnGuXo\";\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard TOML file is present.
+  - Command Behavior Analysis: The tool performs a conversion from TOML to Nix, combining two features. First, due to `-sort-iterators`, the keys of all attribute sets are sorted alphabetically. This is clearly visible in the output: the top-level keys are `database`, `owner`, `title` (sorted `d`, `o`, `t`), and the keys within `database` are `enabled`, `ports`, `server` (sorted `e`, `p`, `s`). Second, due to `-unsafe-keys`, all keys that are valid Nix identifiers are rendered without quotes.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -from-nix -filename <file> -language json`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from Nix format to JSON format.
+  - **Parameters**:
+    - `-from-nix`: A boolean flag indicating the conversion direction is from Nix to another format.
+    - `-filename <file>`: Specifies the path to the input Nix file.
+    - `-language json`: Specifies the desired output format is JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_nix_to_json_3.nix` with the following content:
+    ```nix
+
+        {
+          id = "8KLRN2h98E";
+          users = [
+            {
+              name = "YqFEDHdgkPEEBD";
+              age = 61;
+              "pets" = [ { type = "cat"; name = "Luna"; } ];
+            }
+          ];
+          settings = {
+            theme = "dark";
+            notifications = true;
+          };
+          meta = {
+            created = "OXDcpv0V01";
+          };
+        }
+        
+    ```
+  **2. Command**:
+  `nix-converter -from-nix -filename /test_data/fuzz_nix_to_json_3.nix -language json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "{\n  \"id\": \"8KLRN2h98E\",\n  \"users\": [\n    {\n      \"name\": \"YqFEDHdgkPEEBD\",\n      \"age\": 61,\n      \"pets\": [\n        {\n          \"type\": \"cat\",\n          \"name\": \"Luna\"\n        }\n      ]\n    }\n  ],\n  \"settings\": {\n    \"theme\": \"dark\",\n    \"notifications\": true\n  },\n  \"meta\": {\n    \"created\": \"OXDcpv0V01\"\n  }\n}\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a file with content in Nix expression language, specifically an attribute set.
+  - Command Behavior Analysis: The tool reads the Nix file. It parses the Nix attribute set, including nested sets and lists. It then converts this structure into a corresponding JSON object. Nix attributes become JSON object keys (which are always quoted). Nix values (strings, numbers, booleans, lists, attribute sets) are converted to their JSON equivalents (strings, numbers, booleans, arrays, objects). The final JSON is pretty-printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -from-nix -filename <file> -language yaml`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from Nix format to YAML format.
+  - **Parameters**:
+    - `-from-nix`: Indicates the conversion is from Nix.
+    - `-filename <file>`: Specifies the path to the input Nix file.
+    - `-language yaml`: Specifies the desired output format is YAML.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_nix_to_yaml_1.nix` with the following content:
+    ```nix
+
+        {
+          id = "fnZWnV7zv3z";
+          users = [
+            {
+              name = "pMTiIx1aj3UY";
+              age = 57;
+              "pets" = [ { type = "cat"; name = "Luna"; } ];
+            }
+          ];
+          settings = {
+            theme = "dark";
+            notifications = true;
+          };
+          meta = {
+            created = "eodDsFKwy6";
+          };
+        }
+        
+    ```
+  **2. Command**:
+  `nix-converter -from-nix -filename /test_data/fuzz_nix_to_yaml_1.nix -language yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\"id\": \"fnZWnV7zv3z\"\n\"users\":\n  - \"name\": \"pMTiIx1aj3UY\"\n    \"age\": 57\n    \"pets\":\n      - \"type\": \"cat\"\n        \"name\": \"Luna\"\n\"settings\":\n  \"theme\": \"dark\"\n  \"notifications\": true\n\"meta\":\n  \"created\": \"eodDsFKwy6\"\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file containing a Nix attribute set is present.
+  - Command Behavior Analysis: The tool reads and parses the Nix expression from the file. It then converts the Nix data structure into a YAML representation. Nix attribute sets become YAML mappings, and Nix lists become YAML sequences. All keys in the output YAML are represented as quoted strings. The resulting YAML string is printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `nix-converter -from-nix -filename <file> -language toml`
+- **Function and Parameter Description**:
+  - **Function**: Converts a file from Nix format to TOML format.
+  - **Parameters**:
+    - `-from-nix`: Indicates the conversion is from Nix.
+    - `-filename <file>`: Specifies the path to the input Nix file.
+    - `-language toml`: Specifies the desired output format is TOML.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_nix_to_toml_1.nix` with the following content:
+    ```nix
+
+        {
+          id = "eQnAxuuX4M3D";
+          users = [
+            {
+              name = "iYGMmldoEi";
+              age = 58;
+              "pets" = [ { type = "cat"; name = "Luna"; } ];
+            }
+          ];
+          settings = {
+            theme = "dark";
+            notifications = false;
+          };
+          meta = {
+            created = "LrJIW7Q7If";
+          };
+        }
+        
+    ```
+  **2. Command**:
+  `nix-converter -from-nix -filename /test_data/fuzz_nix_to_toml_1.nix -language toml`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "id = \"eQnAxuuX4M3D\"\n\n[meta]\n  created = \"LrJIW7Q7If\"\n\n[settings]\n  notifications = \"false\"\n  theme = \"dark\"\n\n[[users]]\n  age = 58\n  name = \"iYGMmldoEi\"\n\n  [[users.pets]]\n    name = \"Luna\"\n    type = \"cat\"\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file containing a Nix attribute set is present.
+  - Command Behavior Analysis: The tool reads and parses the Nix expression. It converts the structure to TOML format. Nested attribute sets like `meta` and `settings` become TOML tables (`[meta]`). A list of attribute sets like `users` becomes a TOML array of tables (`[[users]]`). A list of attribute sets nested within another, like `pets`, becomes a nested array of tables (`[[users.pets]]`). Note the specific behavior that the Nix boolean `false` is converted to the TOML string `"false"`. The resulting TOML is printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

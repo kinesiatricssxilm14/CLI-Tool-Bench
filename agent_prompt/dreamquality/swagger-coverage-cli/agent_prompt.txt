@@ -1,0 +1,385 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: swagger-coverage-cli
+**Repository Name**: swagger-coverage-cli
+**Core Functionality Description**:
+This is a command-line utility to analyze API test coverage. It compares API specification files (supporting various formats like protocol buffers, GraphQL schemas, and REST API specs) with test collections or test execution reports. The tool calculates the coverage percentage by matching defined API operations against executed or defined tests. It supports processing single or multiple API specification files in one run. Key features include strict validation modes for query parameters and request bodies, the ability to process pre-existing test run reports, and bypassing specification validation for malformed spec files. The final output is a summary printed to the console and a detailed, interactive HTML report.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile>`
+- **Function and Parameter Description**:
+  This command calculates test coverage by comparing a single API specification file against a test collection file.
+  - `apiFiles`: A positional argument for the path to the API specification file (e.g., a `.proto` file).
+  - `postmanCollectionOrNewmanReport`: A positional argument for the path to the test collection JSON file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created before the command is run:
+  - `/test_data/api.proto`: A protocol buffer definition for a service named `FuzzService` with one RPC `DoThing`.
+    ```
+    
+    syntax = "proto3";
+    package fuzz_service;
+    service FuzzService { rpc DoThing (ThingRequest) returns (ThingReply); }
+    message ThingRequest { string data = 1; }
+    message ThingReply { string result = 1; }
+    
+    ```
+  - `/test_data/collection.json`: A test collection file containing one request that targets the `DoThing` RPC and includes a test script to check for a 200 status code.
+    ```json
+    {"info": {"name": "Fuzz Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item": [
+                {"name": "DoThing (gRPC)","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/grpc"}],"body": {"mode": "raw", "raw": "{\"data\": \"fuzz\"}"},"url": {"raw": "http://localhost/fuzz_service.FuzzService/DoThing"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]}]}
+    ```
+  **2. Command**:
+  `swagger-coverage-cli /test_data/api.proto /test_data/collection.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n\n  <!-- Basic Material-like style + dark theme classes -->\n  <style>\n    :root {\n      --md-bg-color: #fafafa;\n      --md-text-color: #212121;\n      --md-surface-color: #ffffff;\n      --md-table-header-bg: #f5f5f5;\n      --md-table-hover: #eee;\n      --md-subtable-bg: #e0f2e9; /* soft green for sub-tables */\n      --md-primary-color: #6200ee; /* example, can adapt */\n      --md-border-color: #ccc;\n    }\n    .dark-theme {\n      --md-bg-color: #121212;\n      --md-text-color: #eeeeee;\n      --md-surface-color: #1e1e1e;\n      --md-table-header-bg: #2a2a2a;\n      --md-table-hover: #333333;\n      --md-subtable-bg: #224f3b; /* darker green for sub-table in dark theme */\n      --md-border-color: #666;\n    }\n...[omitted ~100 lines of CSS and HTML structure]...\n      letter-spacing: 0.5p\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a `.proto` API specification and a corresponding test collection JSON file.
+  - Command Behavior Analysis: The CLI tool is invoked with paths to both files. It parses the `.proto` file to extract the defined gRPC operation (`/fuzz_service.FuzzService/DoThing`). It then parses the collection file, finds a request that matches this operation's path and method (`POST`), and confirms that the test script asserts a status code (`200`) that is considered a valid match.
+  - Final State Changes (fs_diff): The command prints a summary of the coverage analysis to `stdout`, including total operations, matched operations, and the final coverage percentage. It also generates a new HTML file named `coverage-report.html` in the current directory, which contains a detailed breakdown of the results.
+
+#### Command Category: `swagger-coverage-cli "<apiFile1>,<apiFile2>" <collectionFile>`
+- **Function and Parameter Description**:
+  This command calculates test coverage by comparing multiple API specification files against a single test collection file.
+  - `apiFiles`: A positional argument containing a comma-separated string of paths to multiple API specification files (e.g., `.proto`, `.graphql`).
+  - `postmanCollectionOrNewmanReport`: A positional argument for the path to the test collection JSON file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created before the command is run:
+  - `/test_data/api.proto`: A protocol buffer definition for a gRPC service.
+    ```
+    
+    syntax = "proto3";
+    package fuzz_service;
+    service FuzzService { rpc DoThing (ThingRequest) returns (ThingReply); }
+    message ThingRequest { string data = 1; }
+    message ThingReply { string result = 1; }
+    
+    ```
+  - `/test_data/api.graphql`: A GraphQL schema defining a single query.
+    ```
+    
+    type Query { fuzzQuery(id: ID!): String }
+    
+    ```
+  - `/test_data/collection.json`: A test collection with two requests, one for the gRPC service and one for the GraphQL query, each with a test for a 200 status code.
+    ```json
+    {"info": {"name": "Fuzz Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item": [
+                {"name": "DoThing (gRPC)","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/grpc"}],"body": {"mode": "raw", "raw": "{\"data\": \"fuzz\"}"},"url": {"raw": "http://localhost/fuzz_service.FuzzService/DoThing"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]},
+                {"name": "FuzzQuery (GraphQL)","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw", "raw": "{\"query\": \"query { fuzzQuery(id: \\\"1\\\") }\"}"},"url": {"raw": "http://localhost/graphql"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]}]}
+    ```
+  **2. Command**:
+  `swagger-coverage-cli "/test_data/api.proto,/test_data/api.graphql" /test_data/collection.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nAPIs analyzed: [API_LIST]\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n\n  <!-- Basic Material-like style + dark theme classes -->\n  <style>\n    :root {\n      --md-bg-color: #fafafa;\n      --md-text-color: #212121;\n      --md-surface-color: #ffffff;\n      --md-table-header-bg: #f5f5f5;\n      --md-table-hover: #eee;\n      --md-subtable-bg: #e0f2e9; /* soft green for sub-tables */\n      --md-primary-color: #6200ee; /* example, can adapt */\n      --md-border-color: #ccc;\n    }\n    .dark-theme {\n      --md-bg-color: #121212;\n      --md-text-color: #eeeeee;\n      --md-surface-color: #1e1e1e;\n      --md-table-header-bg: #2a2a2a;\n      --md-table-hover: #333333;\n      --md-subtable-bg: #224f3b; /* darker green for sub-table in dark theme */\n      --md-border-color: #666;\n    }\n...[omitted ~100 lines of CSS and HTML structure]...\n      letter-spacing: 0.5p\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains two different types of API specifications (`.proto` and `.graphql`) and a single test collection that includes tests for both APIs.
+  - Command Behavior Analysis: The tool is invoked with a comma-separated list of API spec files. It must parse this string and load each file. It then extracts operations from both the gRPC and GraphQL specs. It compares these combined operations against the requests in the collection file, matching each one.
+  - Final State Changes (fs_diff): The `stdout` shows a consolidated report, including a list of all APIs analyzed. A single `coverage-report.html` is generated, containing the unified coverage results for all provided specifications.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile> --strict-query`
+- **Function and Parameter Description**:
+  This command calculates coverage with strict validation of query parameters.
+  - `apiFiles`: Path to the API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test collection file.
+  - `--strict-query`: An option to enable strict validation of query parameters. A test request will only match an operation if it includes all required query parameters defined in the spec.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created:
+  - `/test_data/strict_api.yaml`: A REST API spec with two endpoints. The `GET /search` endpoint has a required query parameter `q`.
+    ```yaml
+    
+    openapi: 3.0.0
+    info:
+      title: Strict API
+      version: 1.0.0
+    paths:
+      /search:
+        get:
+          parameters:
+          - name: q
+            in: query
+            required: true
+            schema: {type: string}
+          responses: {'200': {description: OK}}
+      /submit:
+        post:
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties: {id: {type: integer}}
+                  required: [id]
+          responses: {'200': {description: OK}}
+    
+    ```
+  - `/test_data/strict_collection.json`: A test collection with requests for both endpoints. The request for `/search` does not include the required `q` parameter.
+    ```json
+    
+    {
+      "info": {"name": "Strict Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+      "item": [
+        {"name": "Strict Search","request": {"method": "GET", "url": {"raw": "http://localhost/search"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]},
+        {"name": "Strict Submit","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw", "raw": "{\"id\": \"not-an-int\"}"},"url": {"raw": "http://localhost/submit"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]}
+      ]
+    }
+    
+    ```
+  **2. Command**:
+  `swagger-coverage-cli /test_data/strict_api.yaml /test_data/strict_collection.json --strict-query`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nUnmatched Spec operations:\n - [GET] /search (statusCode=200)\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The spec file defines a `GET /search` operation that requires a query parameter `q`. The collection file has a test for `GET /search` but omits this parameter.
+  - Command Behavior Analysis: The `--strict-query` flag is active. When the tool attempts to match the `GET /search` operation, it finds a corresponding request in the collection by path and method. However, because the strict check is enabled, it also verifies query parameters. Since the required `q` parameter is missing from the test request, the match fails.
+  - Final State Changes (fs_diff): The `stdout` reflects this failure by listing `[GET] /search (statusCode=200)` under "Unmatched Spec operations". The overall coverage is calculated accordingly, and the HTML report is generated.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile> --strict-body`
+- **Function and Parameter Description**:
+  This command calculates coverage with strict validation of the request body.
+  - `apiFiles`: Path to the API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test collection file.
+  - `--strict-body`: An option to enable strict validation of the request body. The sample indicates this may primarily check if the body is valid JSON when the spec expects `application/json`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The same files from the `--strict-query` example are used: `/test_data/strict_api.yaml` and `/test_data/strict_collection.json`. The `POST /submit` operation in the spec requires a JSON body with an integer `id`. The collection's request for `/submit` provides a JSON body with a string `id`.
+  **2. Command**:
+  `swagger-coverage-cli /test_data/strict_api.yaml /test_data/strict_collection.json --strict-body`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `POST /submit` operation in the spec requires a JSON body. The test collection provides a request with a valid JSON body for this endpoint.
+  - Command Behavior Analysis: The `--strict-body` flag is active. The tool checks the `POST /submit` request. Since the request body `{"id": "not-an-int"}` is a valid, parsable JSON string, the check passes, and the operation is considered matched. Note that this flag does not appear to enforce a deep schema validation (e.g., checking if `id` is an integer), only that the body is valid JSON. The `GET /search` operation is also matched because `--strict-query` is not active.
+  - Final State Changes (fs_diff): The `stdout` shows no unmatched operations, and the coverage reflects that both operations were matched. An HTML report is generated.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile> --strict-query --strict-body`
+- **Function and Parameter Description**:
+  This command calculates coverage with strict validation of both query parameters and the request body.
+  - `apiFiles`: Path to the API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test collection file.
+  - `--strict-query`: Enables strict query parameter validation.
+  - `--strict-body`: Enables strict request body validation.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The same files are used: `/test_data/strict_api.yaml` and `/test_data/strict_collection.json`.
+  **2. Command**:
+  `swagger-coverage-cli /test_data/strict_api.yaml /test_data/strict_collection.json --strict-query --strict-body`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nUnmatched Spec operations:\n - [GET] /search (statusCode=200)\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the previous strict examples.
+  - Command Behavior Analysis: Both `--strict-query` and `--strict-body` flags are active. The `POST /submit` operation is matched because its body is valid JSON. The `GET /search` operation is *not* matched because the required query parameter `q` is missing, and the `--strict-query` check fails. The result is identical to using only `--strict-query` in this specific case.
+  - Final State Changes (fs_diff): The `stdout` correctly identifies the `GET /search` operation as unmatched due to the failed query parameter check. An HTML report is generated reflecting this result.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <reportFile> --newman`
+- **Function and Parameter Description**:
+  This command calculates coverage using a test execution report file instead of a test collection file.
+  - `apiFiles`: Path to the API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test execution report JSON file.
+  - `--newman`: A flag to indicate that the second argument is a test execution report, not a collection file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created:
+  - `/test_data/api.proto`: A protocol buffer definition for a gRPC service.
+    ```
+    
+    syntax = "proto3";
+    package fuzz_service;
+    service FuzzService { rpc DoThing (ThingRequest) returns (ThingReply); }
+    message ThingRequest { string data = 1; }
+    message ThingReply { string result = 1; }
+    
+    ```
+  - `/test_data/newman.json`: A test execution report showing one request was executed against a path that does not perfectly match the gRPC path format.
+    ```json
+    {"collection": {"info": {"name": "Fuzz Collection"}},"run": {"stats": {"requests": {"total": 1}, "assertions": {"total": 1}},"executions": [{"item": {"name": "DoThing"},"request": {"method": "POST", "url": {"path": ["fuzz_service.FuzzService", "DoThing"]}},"response": {"code": 200, "status": "OK"}}]}}
+    ```
+  **2. Command**:
+  `swagger-coverage-cli /test_data/api.proto /test_data/newman.json --newman`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nUnmatched Spec operations:\n - [POST] /fuzz_service.FuzzService/DoThing (statusCode=200)\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system has a `.proto` spec and a test execution report.
+  - Command Behavior Analysis: The `--newman` flag tells the tool to parse the second file as an execution report. The tool extracts the executed request details from the report. The spec defines the path as `/fuzz_service.FuzzService/DoThing`. The report's URL path is an array `["fuzz_service.FuzzService", "DoThing"]`. The tool's matching logic for report files seems to fail to reconcile this path format, resulting in the operation being considered unmatched. The implementation must correctly parse paths from execution reports.
+  - Final State Changes (fs_diff): The `stdout` shows the operation as unmatched, leading to 0% coverage. An HTML report is generated.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile> --disable-spec-validation`
+- **Function and Parameter Description**:
+  This command calculates coverage while skipping the validation of the API specification file.
+  - `apiFiles`: Path to a potentially malformed API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test collection file.
+  - `--disable-spec-validation`: A flag to bypass the spec validation step, allowing the tool to run even if the spec has errors (like broken references).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created:
+  - `/test_data/broken.yaml`: A spec file with a broken internal reference (`$ref` points to a non-existent schema).
+    ```json
+    {"openapi": "3.0.0", "info": {"title": "Broken Spec"}, "paths": {}, "components": {"schemas": {"User": {"$ref": "#/components/schemas/NonExistent"}}}}
+    ```
+  - `/test_data/collection.json`: A standard test collection file.
+    ```json
+    {"info": {"name": "Fuzz Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item": [
+                {"name": "Get Items (REST)","request": {"method": "GET", "url": {"raw": "http://localhost/items"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]}]}
+    ```
+  **2. Command**:
+  `swagger-coverage-cli /test_data/broken.yaml /test_data/collection.json --disable-spec-validation`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/coverage-report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a spec file that would fail standard validation and a test collection.
+  - Command Behavior Analysis: The `--disable-spec-validation` flag is used. This instructs the tool to load the spec file but skip the validation process that would normally throw an error due to the broken reference. Since the broken spec has no defined paths (`"paths": {}`), the tool finds 0 total operations.
+  - Final State Changes (fs_diff): The tool runs successfully without error. It reports 0 total operations and 0 matched operations, resulting in a coverage percentage (likely 0% or NaN, which should be handled gracefully). An HTML report is generated.
+
+#### Command Category: `swagger-coverage-cli <apiFile> <collectionFile> --output <file>`
+- **Function and Parameter Description**:
+  This command allows specifying a custom output file name for the HTML report.
+  - `apiFiles`: Path to the API specification file.
+  - `postmanCollectionOrNewmanReport`: Path to the test collection file.
+  - `--output <file>`: An option to specify the name of the generated HTML report file. The value can include spaces if quoted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created:
+  - `/test_data/api.yaml`: A simple REST API spec.
+    ```yaml
+    
+    openapi: 3.0.0
+    info:
+      title: Fuzz REST API
+      version: 1.0.0
+    paths:
+      /items:
+        get:
+          summary: Get all items
+          responses:
+            '200':
+              description: A list of items.
+    
+    ```
+  - `/test_data/collection.json`: A test collection with a matching request.
+    ```json
+    {"info": {"name": "Fuzz Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item": [
+                {"name": "Get Items (REST)","request": {"method": "GET", "url": {"raw": "http://localhost/items"}},"event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);"]}}]}]}
+    ```
+  **2. Command**:
+  `swagger-coverage-cli /test_data/api.yaml /test_data/collection.json --output 'my custom report.html'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "=== Swagger Coverage Report ===\nTotal operations in spec(s): [COUNT]\nMatched operations in Postman/Newman: [COUNT]\nCoverage: [COVERAGE]%\n\nHTML report saved to: [REPORT_FILE]\n",
+      "fs_diff": {
+          "/my custom report.html": {
+              "type": "ADD",
+              "content": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Enhanced Swagger Coverage Report</title>\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A valid spec and collection are provided.
+  - Command Behavior Analysis: The tool performs the standard coverage analysis. The `--output` option is parsed, and its value, `'my custom report.html'`, is used as the file name for the generated report instead of the default `coverage-report.html`.
+  - Final State Changes (fs_diff): The `stdout` confirms that the report was saved to the custom path. The `fs_diff` shows that a file named `my custom report.html` was created in the current directory.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

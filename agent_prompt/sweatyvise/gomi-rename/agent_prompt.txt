@@ -1,0 +1,284 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gomi-rename
+**Repository Name**: gomi-rename
+**Core Functionality Description**:
+This is a CLI tool for renaming files into "hellish" or "junk" file names. It takes one or more file paths as input and renames them by adding a series of decorative and often confusing prefixes and suffixes (e.g., `【重要】`, `_Copy`, `_Backup`, `_Final`). The number of decorations can be controlled via a flag. The tool also supports a dry-run mode to preview the generated filenames without actually modifying the file system.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gomi-rename <filepath>`
+- **Function and Parameter Description**:
+  - This command renames a single specified file to a "hellish" name.
+  - `<filepath>`: The path to the file that needs to be renamed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created at `/test_data/test_file_3_0.txt` with the content "This is a test file.".
+  **2. Command**:
+  `gomi-rename '/test_data/test_file_3_0.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【重要】test_file_3_0_Copy_ver1_Backup(9)_最新版_確認終了版(3).txt\n  -> [RENAMED]",
+      "fs_diff": {
+          "/test_data/【重要】test_file_3_0_Copy_ver1_Backup(9)_最新版_確認終了版(3).txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/test_file_3_0.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system starts with one file: `/test_data/test_file_3_0.txt`.
+  - Command Behavior Analysis: The command takes the file path as an argument. It generates a new, complex filename by adding a default number of decorative strings (e.g., `【重要】`, `_Copy`, `_最新版`) to the original filename. It then performs the rename operation on the file system.
+  - Final State Changes (fs_diff): The `fs_diff` confirms that the original file `/test_data/test_file_3_0.txt` was deleted (`DEL`), and a new file with the generated "hellish" name was created (`ADD`) with the identical content. The `stdout` reports the new filename and confirms the action with `-> [RENAMED]`.
+
+#### Command Category: `gomi-rename <filepath...>`
+- **Function and Parameter Description**:
+  - This command renames multiple specified files, each to a unique "hellish" name.
+  - `<filepath...>`: A list of space-separated paths to the files that need to be renamed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Three files are created: `/test_data/test_file_0_0.txt`, `/test_data/test_file_0_1.txt`, and `/test_data/test_file_0_2.txt`, all with the content "This is a test file.".
+  **2. Command**:
+  `gomi-rename '/test_data/test_file_0_0.txt' '/test_data/test_file_0_1.txt' '/test_data/test_file_0_2.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【絶対消すな】test_file_0_0_確認終了版_Fix_完成(4)_最新版_Final-Final.txt\n  -> [RENAMED]\n/test_data/【社外秘】test_file_0_1_没_原本(1)_コピー_訂正済(10)_最新版.txt\n  -> [RENAMED]\n/test_data/【削除厳禁】test_file_0_2_3月16日確認済_確定_バックアップ_Copy(9)_最終版.txt\n  -> [RENAMED]",
+      "fs_diff": {
+          "/test_data/【絶対消すな】test_file_0_0_確認終了版_Fix_完成(4)_最新版_Final-Final.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/【削除厳禁】test_file_0_2_3月16日確認済_確定_バックアップ_Copy(9)_最終版.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/【社外秘】test_file_0_1_没_原本(1)_コピー_訂正済(10)_最新版.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/test_file_0_0.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          },
+          "/test_data/test_file_0_1.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          },
+          "/test_data/test_file_0_2.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains three distinct files.
+  - Command Behavior Analysis: The tool accepts multiple file paths as arguments. For each file, it independently generates a new "hellish" name and renames the file.
+  - Final State Changes (fs_diff): The `fs_diff` shows that all three original files were deleted (`DEL`), and three new files with generated names were created (`ADD`). The `stdout` lists each successful rename operation on a new line, followed by `-> [RENAMED]`.
+
+#### Command Category: `gomi-rename --number <N> <filepath>`
+- **Function and Parameter Description**:
+  - This command renames a single file, allowing customization of the number of decorations added to the filename.
+  - `--number <N>` (or `-n`): An integer specifying the number of decorations to add.
+  - `<filepath>`: The path to the file to be renamed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created at `/test_data/test_file_2_0.txt` with the content "This is a test file.".
+  **2. Command**:
+  `gomi-rename --number 9 '/test_data/test_file_2_0.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【重要】test_file_2_0_コピー_修正版の修正版_バックアップ_確認終了版(5)_ver1(8)_確定(1)_修正版(1)_未記入アリ_最終版.txt\n  -> [RENAMED]",
+      "fs_diff": {
+          "/test_data/【重要】test_file_2_0_コピー_修正版の修正版_バックアップ_確認終了版(5)_ver1(8)_確定(1)_修正版(1)_未記入アリ_最終版.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/test_file_2_0.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains one file: `/test_data/test_file_2_0.txt`.
+  - Command Behavior Analysis: The `--number 9` flag instructs the tool to add exactly 9 decorative elements to the filename. The tool generates a new name with this specific number of decorations and renames the file.
+  - Final State Changes (fs_diff): The original file is deleted, and a new file with the highly decorated name is created. The `stdout` confirms the successful rename.
+
+#### Command Category: `gomi-rename --number <N> <filepath...>`
+- **Function and Parameter Description**:
+  - This command renames multiple files, applying a specified number of decorations to each new filename.
+  - `--number <N>`: An integer specifying the number of decorations for each file.
+  - `<filepath...>`: A list of space-separated paths to the files to be renamed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Three files are created: `/test_data/test_file_3_0.txt`, `/test_data/test_file_3_1.txt`, and `/test_data/test_file_3_2.txt`.
+  **2. Command**:
+  `gomi-rename --number 9 '/test_data/test_file_3_0.txt' '/test_data/test_file_3_1.txt' '/test_data/test_file_3_2.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【未完成】test_file_3_0_最終版_反映済_調整済_確定(7)_修正版_Fix_修正版の修正版_バックアップ_ver1.txt\n  -> [RENAMED]\n/test_data/【社外秘】test_file_3_1_Final_コピー_修正済(4)_最終確認版_仮(2)_Fix_3月16日変更済_未記入アリ_Backup.txt\n  -> [RENAMED]\n/test_data/【上書き保存禁止】test_file_3_2_最終版(4)_ver1_没_最終確認終了版_3月16日変更済(5)_コピー_バックアップ_原本(10)_Fix(9).txt\n  -> [RENAMED]",
+      "fs_diff": {
+          "/test_data/【社外秘】test_file_3_1_Final_コピー_修正済(4)_最終確認版_仮(2)_Fix_3月16日変更済_未記入アリ_Backup.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/【未完成】test_file_3_0_最終版_反映済_調整済_確定(7)_修正版_Fix_修正版の修正版_バックアップ_ver1.txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/【上書き保存禁止】test_file_3_2_最終版(4)_ver1_没_最終確認終了版_3月16日変更済(5)_コピー_バックアップ_原本(10)_Fix(9).txt": {
+              "type": "ADD",
+              "content": "This is a test file."
+          },
+          "/test_data/test_file_3_0.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          },
+          "/test_data/test_file_3_1.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          },
+          "/test_data/test_file_3_2.txt": {
+              "type": "DEL",
+              "content": "N/A"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains three source files.
+  - Command Behavior Analysis: The tool processes each file path. For each one, it generates a new name with exactly 9 decorations as specified by `--number 9` and performs the rename.
+  - Final State Changes (fs_diff): All three original files are deleted, and three new files with the generated, heavily decorated names are created. `stdout` reports each successful operation.
+
+#### Command Category: `gomi-rename --dryrun <filepath>`
+- **Function and Parameter Description**:
+  - This command simulates the renaming of a single file, printing the potential new name without changing the file system.
+  - `--dryrun` (or `-d`): Enables dry-run mode.
+  - `<filepath>`: The path to the target file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created at `/test_data/test_file_3_0.txt`.
+  **2. Command**:
+  `gomi-rename --dryrun '/test_data/test_file_3_0.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【社外持ち出し厳禁】test_file_3_0_確定_原本_修正済(6)_調整済(10)_260316_1734.txt",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file `/test_data/test_file_3_0.txt` exists.
+  - Command Behavior Analysis: The `--dryrun` flag prevents any file system modifications. The tool generates a potential "hellish" filename for the input file and prints it to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty (`{}`), which is the critical part of this test. It proves that no files were added, deleted, or modified. The `stdout` only contains the generated filename, without the `-> [RENAMED]` confirmation.
+
+#### Command Category: `gomi-rename --dryrun <filepath...>`
+- **Function and Parameter Description**:
+  - Simulates the renaming of multiple files, printing the potential new names for each.
+  - `--dryrun`: Enables dry-run mode.
+  - `<filepath...>`: A list of target file paths.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Three files are created: `/test_data/test_file_0_0.txt`, `/test_data/test_file_0_1.txt`, and `/test_data/test_file_0_2.txt`.
+  **2. Command**:
+  `gomi-rename --dryrun '/test_data/test_file_0_0.txt' '/test_data/test_file_0_1.txt' '/test_data/test_file_0_2.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【社外秘】test_file_0_0_修正版_最終確認版_仮(10)_Final(3)_調整済.txt\n/test_data/【変更禁止】test_file_0_1_確定_Final-Final(1)_仮_2026年03月16日_完成.txt\n/test_data/【重要】test_file_0_2_A案(9)_仮_原本_反映済(7)_ver1.txt",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Three files exist on the file system.
+  - Command Behavior Analysis: Due to `--dryrun`, the tool iterates through the provided file paths, generates a potential new name for each, and prints each generated name to `stdout` on a new line.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming that the file system remains unchanged.
+
+#### Command Category: `gomi-rename --dryrun --number <N> <filepath>`
+- **Function and Parameter Description**:
+  - Simulates renaming a single file with a specified number of decorations.
+  - `--dryrun`: Enables dry-run mode.
+  - `--number <N>`: Specifies the number of decorations.
+  - `<filepath>`: The path to the target file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created at `/test_data/test_file_2_0.txt`.
+  **2. Command**:
+  `gomi-rename --dryrun --number 9 '/test_data/test_file_2_0.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【優先度高】test_file_2_0_最終確認版_没_バックアップ(10)_最終ver_訂正版_Final-Final_原本_反映済_確認終了版(6).txt",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file `/test_data/test_file_2_0.txt` exists.
+  - Command Behavior Analysis: The tool combines the logic of `--dryrun` and `--number`. It generates a potential filename with exactly 9 decorations but does not perform any file operations. The generated name is printed to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating no changes were made to the file system.
+
+#### Command Category: `gomi-rename --dryrun --number <N> <filepath...>`
+- **Function and Parameter Description**:
+  - Simulates renaming multiple files, applying a specified number of decorations to each potential new filename.
+  - `--number <N>`: Specifies the number of decorations for each file.
+  - `--dryrun`: Enables dry-run mode.
+  - `<filepath...>`: A list of target file paths.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Three files are created: `/test_data/test_file_3_0.txt`, `/test_data/test_file_3_1.txt`, and `/test_data/test_file_3_2.txt`.
+  **2. Command**:
+  `gomi-rename --number 4 --dryrun '/test_data/test_file_3_0.txt' '/test_data/test_file_3_1.txt' '/test_data/test_file_3_2.txt'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/【社外秘】test_file_3_0_訂正済_Copy_Backup(5)_コピー.txt\n/test_data/【未完成】test_file_3_1_問い合わせ中_仮(5)_修正版の修正版(4)_確認終了版.txt\n/test_data/【未完成】test_file_3_2_反映済_最終版(5)_仮(6)_最新版(8).txt",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Three files exist on the file system.
+  - Command Behavior Analysis: The tool is invoked with both `--number 4` and `--dryrun` flags, along with multiple file paths. For each file, it generates a potential new name containing exactly 4 decorations and prints it to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming that this is purely a simulation and the file system is not altered.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,129 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: sql-mongo-converter
+**Repository Name**: sql-mongo-converter
+**Core Functionality Description**:
+This is a command-line utility for bidirectional conversion between SQL queries and MongoDB query objects. It provides two main functions:
+1.  `sql2mongo`: Converts SQL statements into their equivalent MongoDB JSON representation. It can handle `CREATE TABLE` statements by converting them to `createCollection` operations with schema validation, and `SELECT` statements with `LIKE` clauses by converting them to `find` operations using `$regex`.
+2.  `mongo2sql`: Converts MongoDB JSON query objects into their equivalent SQL statements. It can handle `find` operations with logical operators like `$or` and comparison operators like `$lt`, and `updateMany` operations with `$set` by converting them to SQL `UPDATE` statements.
+
+The tool supports providing the input query/object directly as a command-line argument or by reading it from a specified file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `sql-mongo-converter sql2mongo --query "<SQL>"`
+- **Function and Parameter Description**:
+  - **`sql2mongo`**: This subcommand converts a given SQL query string into its equivalent MongoDB query JSON format.
+  - **`--query <SQL_STRING>`**: This parameter takes a string containing the SQL query to be converted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No file system preparations are needed. The tool operates directly on the command-line argument.
+  **2. Command**:
+  `sql-mongo-converter sql2mongo --query "CREATE TABLE DtDIaqS_epHl (OXefgzrAygh_ VARCHAR(255), yTPnZoBL INT)"`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Converting SQL to MongoDB...\n\nMongoDB Query:\n{\n  \"operation\": \"createCollection\",\n  \"collection\": \"DtDIaqS_epHl\",\n  \"schema\": {\n    \"OXefgzrAygh_\": \"VARCHAR(255)\",\n    \"yTPnZoBL\": \"INT\"\n  },\n  \"validator\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"required\": [],\n      \"properties\": {\n        \"OXefgzrAygh_\": {\n          \"bsonType\": \"string\"\n        },\n        \"yTPnZoBL\": {\n          \"bsonType\": \"int\"\n        }\n      }\n    }\n  }\n}\n\u2713 Conversion completed successfully\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool receives a `CREATE TABLE` SQL statement via the `--query` argument. It parses this statement to extract the table name (`DtDIaqS_epHl`) and the column definitions (`OXefgzrAygh_ VARCHAR(255)`, `yTPnZoBL INT`). It then constructs a JSON object representing the equivalent MongoDB operation. This object specifies the operation as `createCollection`, sets the collection name, includes the original schema types, and generates a MongoDB `$jsonSchema` validator. The validator maps SQL types to BSON types (e.g., `VARCHAR` to `string`, `INT` to `int`). The final JSON is printed to standard output, framed by informational messages.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `sql-mongo-converter sql2mongo --file <file>`
+- **Function and Parameter Description**:
+  - **`sql2mongo`**: This subcommand converts an SQL query from a file into its equivalent MongoDB query JSON format.
+  - **`--file <FILE_PATH>`**: This parameter takes a path to a file containing the SQL query to be converted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/fuzz_input_1.txt` with the following content:
+  ```
+  SELECT * FROM UAvexsoqwgxSAYW WHERE OhzRy_sjObnhI LIKE '%T2fo1lW0%'
+  ```
+  **2. Command**:
+  `sql-mongo-converter sql2mongo --file /test_data/fuzz_input_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Converting SQL to MongoDB...\n\nMongoDB Query:\n{\n  \"collection\": \"UAvexsoqwgxSAYW\",\n  \"find\": {\n    \"OhzRy_sjObnhI\": {\n      \"$regex\": \".*T2fo1lW0.*\",\n      \"$options\": \"i\"\n    }\n  },\n  \"projection\": null\n}\n\u2713 Conversion completed successfully\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists at `/test_data/fuzz_input_1.txt` containing a single SQL `SELECT` statement.
+  - Command Behavior Analysis: The tool reads the content of the file specified by the `--file` argument. It parses the SQL `SELECT` statement. It identifies the table name (`UAvexsoqwgxSAYW`) as the collection. The `WHERE` clause `OhzRy_sjObnhI LIKE '%T2fo1lW0%'` is converted into a MongoDB `find` filter. The `LIKE` operator with wildcards (`%`) is translated into a regular expression (`$regex`) with the pattern `.*T2fo1lW0.*` and case-insensitivity (`$options: "i"`). Since `SELECT *` is used, the projection is `null`. The resulting JSON is printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `sql-mongo-converter mongo2sql --query '<MONGO_JSON>'`
+- **Function and Parameter Description**:
+  - **`mongo2sql`**: This subcommand converts a given MongoDB query JSON string into its equivalent SQL query.
+  - **`--query <MONGO_JSON_STRING>`**: This parameter takes a string containing the MongoDB query object to be converted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No file system preparations are needed.
+  **2. Command**:
+  `sql-mongo-converter mongo2sql --query '{"collection": "EKIja", "find": {"$or": [{"AMAzPDhxr": {"$lt": 20}}, {"PbLyRfxqIcf": "active"}]}, "sort": [["AMAzPDhxr", -1]], "limit": 10}'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Converting MongoDB to SQL...\n\nSQL Query:\nSELECT * FROM EKIja WHERE (AMAzPDhxr < 20) OR (PbLyRfxqIcf = 'active') LIMIT 10;\n\u2713 Conversion completed successfully\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool parses the JSON string provided via the `--query` argument. It extracts the `collection` name (`EKIja`) to use as the table name. It processes the `find` object: the `$or` array is converted to a SQL `OR` condition, the `$lt` operator is converted to `<`, and the simple key-value pair is converted to an equality check. It processes the `limit` key and appends a `LIMIT 10` clause to the SQL query. **Crucially, based on the sample output, the `sort` key in the input JSON is ignored**, and no `ORDER BY` clause is generated. The final constructed SQL query is printed to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `sql-mongo-converter mongo2sql --file <file>`
+- **Function and Parameter Description**:
+  - **`mongo2sql`**: This subcommand converts a MongoDB query object from a file into its equivalent SQL query.
+  - **`--file <FILE_PATH>`**: This parameter takes a path to a file containing the MongoDB query object to be converted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/fuzz_input_4.txt` with the following content:
+  ```
+  {"collection": "JNNOvfXzCj", "operation": "updateMany", "filter": {"EceWkaG": "HJvQ2av"}, "update": {"$set": {"AjFOSQAvKZBZz": 460}}}
+  ```
+  **2. Command**:
+  `sql-mongo-converter mongo2sql --file /test_data/fuzz_input_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Converting MongoDB to SQL...\n\nSQL Query:\nUPDATE JNNOvfXzCj SET AjFOSQAvKZBZz = 460 WHERE EceWkaG = 'HJvQ2av';\n\u2713 Conversion completed successfully\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists at `/test_data/fuzz_input_4.txt` containing a single MongoDB `updateMany` JSON object.
+  - Command Behavior Analysis: The tool reads and parses the JSON content from the specified file. It identifies the operation as `updateMany`. It extracts the `collection` name (`JNNOvfXzCj`) for the `UPDATE` table clause. The `filter` object is converted into the SQL `WHERE` clause (`WHERE EceWkaG = 'HJvQ2av'`). The `update` object, specifically the `$set` part, is converted into the SQL `SET` clause (`SET AjFOSQAvKZBZz = 460`). The tool then assembles these parts into a complete SQL `UPDATE` statement and prints it to standard output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

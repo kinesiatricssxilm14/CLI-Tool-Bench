@@ -1,0 +1,211 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: cli
+**Repository Name**: cli
+**Core Functionality Description**:
+This project is a command-line utility for managing code ownership within a repository. It uses `.codeowners` files to define which users or teams own specific files or directories. The tool can parse these files to perform several key functions:
+
+1.  **Validate Configuration**: It can check `.codeowners` files for syntactical correctness.
+2.  **Identify Unowned Files**: It can scan the repository to find any files that are not covered by any ownership rule.
+3.  **Determine File Owners**: Given one or more file paths, it can identify and display the designated owner(s).
+
+The `.codeowners` file format supports:
+-   Glob-based patterns for matching files (e.g., `*.go`, `**/*.js`).
+-   Directory-based ownership (e.g., `docs/`).
+-   Fallback owners for any file (`*`).
+-   Comments starting with `#`.
+-   "OR" ownership rules, where any one of the specified owners can provide a review (e.g., `pattern @owner1 @owner2`).
+-   Rules are relative to the directory containing the `.codeowners` file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `cli unowned`
+- **Function and Parameter Description**:
+  The `unowned` subcommand scans the current repository and checks for any files that do not have an owner assigned according to the `.codeowners` files. It takes no parameters.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new git repository is initialized. The following files are created in the repository root:
+  - `/test_data/test_repo/.codeowners`:
+    ```
+    # Default owner
+    * @default-owner
+    *.go @go-team
+    **/*.js @js-team @another-js-dev
+    docs/ @docs-team
+    & **/config.json @security-auditor
+    ```
+  - `/test_data/test_repo/src/main.go`: `package main\nfunc main() {}`
+  - `/test_data/test_repo/src/utils/helpers.js`: `function hello() { return 'world'; }`
+  - `/test_data/test_repo/docs/guide.md`: `# Guide`
+  - `/test_data/test_repo/config.json`: `{ "key": "value" }`
+  - `/test_data/test_repo/unowned.txt`: `This file should be unowned.`
+  **2. Command**:
+  `cd /test_data/test_repo && cli unowned`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/test_repo/.git/HEAD": {
+              "type": "ADD",
+              "content": "ref: refs/heads/master\n"
+          },
+          "...": "[omitted 20+ files related to git repository initialization]"
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a set of source files and a `.codeowners` file. Crucially, the `.codeowners` file includes a fallback rule `* @default-owner`.
+  - Command Behavior Analysis: The `unowned` command is executed. It should scan all files within the current directory (`/test_data/test_repo`). For each file, it checks for a matching rule in the `.codeowners` file. Because of the fallback rule `* @default-owner`, every single file, including `unowned.txt`, has an owner. Therefore, the command finds no unowned files and correctly produces no output to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` shows files being added inside a `.git` directory. This is a side effect of the `git init` command in the preparation script and is not a direct result of the `cli unowned` command's execution. The CLI tool itself does not modify any files.
+
+#### Command Category: `cli validate`
+- **Function and Parameter Description**:
+  The `validate` subcommand parses and validates the syntax of a `.codeowners` file. If no file path is provided, it defaults to validating the `.codeowners` file in the current directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new git repository is initialized. The following files are created in the repository root:
+  - `/test_data/test_repo/.codeowners`:
+    ```
+    # Default owner
+    * @default-owner
+    *.go @go-team
+    **/*.js @js-team @another-js-dev
+    docs/ @docs-team
+    & **/config.json @security-auditor
+    ```
+  - `/test_data/test_repo/src/main.go`: `package main\nfunc main() {}`
+  - `/test_data/test_repo/src/utils/helpers.js`: `function hello() { return 'world'; }`
+  - `/test_data/test_repo/docs/guide.md`: `# Guide`
+  - `/test_data/test_repo/config.json`: `{ "key": "value" }`
+  - `/test_data/test_repo/unowned.txt`: `This file should be unowned.`
+  **2. Command**:
+  `cd /test_data/test_repo && cli validate`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "No target provided, validating root .codeowners\n",
+      "fs_diff": {
+          "/test_data/test_repo/.git/HEAD": {
+              "type": "ADD",
+              "content": "ref: refs/heads/master\n"
+          },
+          "...": "[omitted 20+ files related to git repository initialization]"
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is set up with a valid `.codeowners` file in the root of the test repository.
+  - Command Behavior Analysis: The `validate` command is run without any arguments. The tool correctly identifies that no target file was specified and defaults to checking `.codeowners` in the current directory. It parses the file, finds no syntax errors, and prints a confirmation message to `stdout`. The program then exits with a success code.
+  - Final State Changes (fs_diff): Similar to the previous sample, the file system changes are due to `git init` and not the `cli` tool itself.
+
+#### Command Category: `cli owner <file>`
+- **Function and Parameter Description**:
+  The `owner` subcommand identifies and prints the owner(s) for one or more specified file paths.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new git repository is initialized. The following files are created in the repository root:
+  - `/test_data/test_repo/.codeowners`:
+    ```
+    # Default owner
+    * @default-owner
+    *.go @go-team
+    **/*.js @js-team @another-js-dev
+    docs/ @docs-team
+    & **/config.json @security-auditor
+    ```
+  - `/test_data/test_repo/src/main.go`: `package main\nfunc main() {}`
+  - `/test_data/test_repo/src/utils/helpers.js`: `function hello() { return 'world'; }`
+  - `/test_data/test_repo/docs/guide.md`: `# Guide`
+  - `/test_data/test_repo/config.json`: `{ "key": "value" }`
+  - `/test_data/test_repo/unowned.txt`: `This file should be unowned.`
+  **2. Command**:
+  `cd /test_data/test_repo && cli owner src/main.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@default-owner\n",
+      "fs_diff": {
+          "/test_data/test_repo/.git/HEAD": {
+              "type": "ADD",
+              "content": "ref: refs/heads/master\n"
+          },
+          "...": "[omitted 20+ files related to git repository initialization]"
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `.codeowners` file exists in the repository root with several rules.
+  - Command Behavior Analysis: The command `cli owner src/main.go` is executed. The tool must parse the `.codeowners` file and determine the owner for `src/main.go`. The rule `*.go @go-team` is relative to the directory of the `.codeowners` file (the root), so it does not match a file in the `src/` subdirectory. The next applicable rule is the fallback `* @default-owner`. The tool correctly identifies this as the owner and prints `@default-owner` to `stdout`.
+  - Final State Changes (fs_diff): No file system changes are made by the `cli` tool.
+
+#### Command Category: `cli owner <file1> <file2> ...`
+- **Function and Parameter Description**:
+  The `owner` subcommand can accept multiple file paths as arguments and will display the owners for each file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new git repository is initialized. The following files are created in the repository root:
+  - `/test_data/test_repo/.codeowners`:
+    ```
+    # Default owner
+    * @default-owner
+    *.go @go-team
+    **/*.js @js-team @another-js-dev
+    docs/ @docs-team
+    & **/config.json @security-auditor
+    ```
+  - `/test_data/test_repo/src/main.go`: `package main\nfunc main() {}`
+  - `/test_data/test_repo/src/utils/helpers.js`: `function hello() { return 'world'; }`
+  - `/test_data/test_repo/docs/guide.md`: `# Guide`
+  - `/test_data/test_repo/config.json`: `{ "key": "value" }`
+  - `/test_data/test_repo/unowned.txt`: `This file should be unowned.`
+  **2. Command**:
+  `cd /test_data/test_repo && cli owner src/main.go src/utils/helpers.js docs/guide.md`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "src/main.go: \n@default-owner\n\nsrc/utils/helpers.js: \n@js-team or @another-js-dev\n\ndocs/guide.md: \n@docs-team\n",
+      "fs_diff": {
+          "/test_data/test_repo/.git/HEAD": {
+              "type": "ADD",
+              "content": "ref: refs/heads/master\n"
+          },
+          "...": "[omitted 20+ files related to git repository initialization]"
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The repository is set up with the same `.codeowners` file and source files.
+  - Command Behavior Analysis: The `owner` command is given three file paths. The tool should process each one and print the results in a specific format.
+    1.  For `src/main.go`, it finds the fallback owner `@default-owner`, as in the previous sample.
+    2.  For `src/utils/helpers.js`, it matches the globstar pattern `**/*.js @js-team @another-js-dev`. Since two owners are listed on the same line, this is an "OR" rule. The output must be formatted as `@js-team or @another-js-dev`.
+    3.  For `docs/guide.md`, it matches the directory rule `docs/ @docs-team`. The trailing slash implies matching all files within that directory (`docs/**`). The owner is `@docs-team`.
+  - The final output must be formatted exactly as shown in `stdout`, with each file path on its own line followed by a colon, a newline, the owner(s), and two newlines to separate entries.
+  - Final State Changes (fs_diff): No file system changes are made by the `cli` tool.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

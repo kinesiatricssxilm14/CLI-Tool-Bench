@@ -1,0 +1,167 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: jsonata
+**Repository Name**: jsonata
+**Core Functionality Description**:
+This is a command-line tool for processing JSON data using JSONata expressions. The tool reads a JSONata expression and a JSON input, evaluates the expression against the data, and outputs the result. It supports reading the expression and input from files, providing variable bindings from a separate file, and controlling output formatting (e.g., compact vs. pretty-printed) and character encoding.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `jsonata -e <expr_file> -i <input_file>`
+- **Function and Parameter Description**:
+  - This command evaluates a JSONata expression against a JSON input file.
+  - `-e <file>` or `--expression <file>`: Specifies a file containing the JSONata expression to evaluate.
+  - `-i <arg>` or `--input <arg>`: Specifies the JSON input file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/input_BASE_0.json` with content: `{"fx7ZJr8": "zb1o0uWwcrIlRVP17A", "d8GuylL73": "WFbiGOPp4oP", "veln6": "bhfGXhHemf6", "sKXJuwS": "MF1PfxXB1JIc", "id": 280, "active": false}`
+  - `/test_data/expr_BASE_0.jsonata` with content: `$keys($)`
+  **2. Command**:
+  `jsonata -e /test_data/expr_BASE_0.jsonata -i /test_data/input_BASE_0.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "[\n  \"fx7ZJr8\",\n  \"d8GuylL73\",\n  \"veln6\",\n  \"sKXJuwS\",\n  \"id\",\n  \"active\"\n]\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two files exist: an input JSON file and a file containing a JSONata expression.
+  - Command Behavior Analysis: The tool reads the JSONata expression `$keys($)` from the file specified by `-e`. It then reads the JSON data from the file specified by `-i`. It evaluates the expression, which extracts all the keys from the root of the input JSON object. The resulting array of keys is then printed to `stdout` in a pretty-printed JSON format.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jsonata -e <expr_file> -i <input_file> -c`
+- **Function and Parameter Description**:
+  - This command evaluates a JSONata expression against a JSON input, with compact output.
+  - `-e <file>`: Specifies a file containing the JSONata expression.
+  - `-i <arg>`: Specifies the JSON input file.
+  - `-c` or `--compact`: Specifies that the JSON output should be compact (not pretty-printed).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/input_WITH_COMPACT_2.json` with content: `{"IdrFEmVZpD": "cWw46kL8Vkh", "zb35DLDvUC": "cTNM8TWuak2El1XiFo", "9kw4dM": "dzohM32v1E5Mru", "Dbvn1KthkZ": "HNEubujBAzzT", "WH9geEV": "QxkmWt9LEp6eb2ohI3", "id": 959, "active": true}`
+  - `/test_data/expr_WITH_COMPACT_2.jsonata` with content: `**.value`
+  **2. Command**:
+  `jsonata -e /test_data/expr_WITH_COMPACT_2.jsonata -i /test_data/input_WITH_COMPACT_2.json -c`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "None\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON file and an expression file are present.
+  - Command Behavior Analysis: The tool evaluates the expression `**.value` against the input JSON. This expression searches for any key named "value" at any depth. Since the input JSON does not contain such a key, the expression evaluates to an undefined result. The tool represents this undefined result by printing the string "None" followed by a newline to `stdout`. The `-c` flag is present, but its effect is not visible as the output is not JSON.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jsonata -e <expr_file> -i <input_file> -bf <bindings_file>`
+- **Function and Parameter Description**:
+  - This command evaluates a JSONata expression with external variable bindings.
+  - `-e <file>`: Specifies a file containing the JSONata expression.
+  - `-i <arg>`: Specifies the JSON input file.
+  - `-bf <file>` or `--bindings-file <file>`: Specifies a JSON file containing variable bindings.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/input_WITH_BINDINGS_FILE_3.json` with content: `{"WXRfofg": "1W3aldRZ7ZSiKTOFsX", "XhLZE": "EK2MjionXym7lGTqzBU", "vejjj": "br7iZJa5qPAMb0", "id": 404, "active": true}`
+  - `/test_data/expr_WITH_BINDINGS_FILE_3.jsonata` with content: `$myvar`
+  - `/test_data/bindings_WITH_BINDINGS_FILE_3.json` with content: `{"myvar": "hello from binding", "num": 42}`
+  **2. Command**:
+  `jsonata -e /test_data/expr_WITH_BINDINGS_FILE_3.jsonata -i /test_data/input_WITH_BINDINGS_FILE_3.json -bf /test_data/bindings_WITH_BINDINGS_FILE_3.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "hello from binding\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Three files are present: an input JSON, an expression file, and a bindings JSON file.
+  - Command Behavior Analysis: The tool reads the expression `$myvar` from the expression file. It also loads the bindings from the file specified by `-bf`. The expression refers to a variable `$myvar`. The tool resolves this variable using the loaded bindings, which define `"myvar": "hello from binding"`. The value of this variable, the string "hello from binding", is printed to `stdout`. The input file is loaded but not used by this particular expression.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jsonata -e <expr_file> -i <input_file> -f <format>`
+- **Function and Parameter Description**:
+  - This command evaluates a JSONata expression, specifying the input format.
+  - `-e <file>`: Specifies a file containing the JSONata expression.
+  - `-i <arg>`: Specifies the JSON input file.
+  - `-f {auto,json,string}` or `--format {auto,json,string}`: Specifies the input format. The sample uses `auto`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/input_WITH_INPUT_FORMAT_2.json` with content: `{"ThACgdec": "D37JAIm3nzUBfDQv9ULL", "taUipl": "H0cjczl1p1", "XHiaMUy": "yki1z7GQWGjJvqlT2", "UZZcET": "QPFuXBrnhq6pMzXPA4d", "5suLb": "wVzUWy8VuVQHdkkxGIQY", "id": 607, "active": true}`
+  - `/test_data/expr_WITH_INPUT_FORMAT_2.jsonata` with content: `**.value`
+  **2. Command**:
+  `jsonata -e /test_data/expr_WITH_INPUT_FORMAT_2.jsonata -i /test_data/input_WITH_INPUT_FORMAT_2.json -f auto`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "None\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON file and an expression file are present.
+  - Command Behavior Analysis: The tool is instructed to automatically detect the input format via `-f auto`. It correctly identifies the input file as JSON. It then evaluates the expression `**.value`. As in a previous example, this expression finds no matching keys and results in an undefined value. The tool prints "None" to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jsonata -e <expr_file> -i <input_file> -ic <charset> -oc <charset>`
+- **Function and Parameter Description**:
+  - This command evaluates a JSONata expression, specifying input and output character sets.
+  - `-e <file>`: Specifies a file containing the JSONata expression.
+  - `-i <arg>`: Specifies the JSON input file.
+  - `-ic <arg>` or `--icharset <arg>`: Specifies the input character set.
+  - `-oc <arg>` or `--ocharset <arg>`: Specifies the output character set.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/input_WITH_CHARSET_3.json` with content: `{"8Bbo4xP": "FzeY60iYDjgMiypE", "QvoXOIe": "TeQVubOlJRLucgpT1", "1A3styZZyZ": "kF9whkkO49", "GD8XI6cH": "w9d1Nbx7kfa", "NIKLNl": "QRln6aCEd8eoTP9", "id": 107, "active": false}`
+  - `/test_data/expr_WITH_CHARSET_3.jsonata` with content: `$`
+  **2. Command**:
+  `jsonata -e /test_data/expr_WITH_CHARSET_3.jsonata -i /test_data/input_WITH_CHARSET_3.json -ic latin-1 -oc latin-1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"8Bbo4xP\": \"FzeY60iYDjgMiypE\",\n  \"QvoXOIe\": \"TeQVubOlJRLucgpT1\",\n  \"1A3styZZyZ\": \"kF9whkkO49\",\n  \"GD8XI6cH\": \"w9d1Nbx7kfa\",\n  \"NIKLNl\": \"QRln6aCEd8eoTP9\",\n  \"id\": 107,\n  \"active\": false\n}\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON file and an expression file are present.
+  - Command Behavior Analysis: The tool is instructed to read the input file using the `latin-1` character set via `-ic`. It evaluates the expression `$`, which simply returns the entire input JSON object as is. The tool then writes this resulting JSON object to `stdout` using the `latin-1` character set, as specified by `-oc`. The output is pretty-printed by default.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

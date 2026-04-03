@@ -1,0 +1,321 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: postwright
+Repository Name: postwright
+Core Functionality Description:
+Converts Postman collections into Playwright test scripts. It creates a `variables.js` (or `variables.ts`) and `variables.json` file to manage saved variables. It offers basic post-response assertions (status code and response time) and extracts the titles of tests. It supports outputting to a specific directory and choosing between JavaScript (default) and TypeScript formats.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in javascript.
+  - The code must run flawlessly in the official `node:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`npm install && npm install -g .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: postwright --convert <file>
+- Function and Parameter Description:
+Converts a Postman collection to Playwright scripts in the default JavaScript format in the current directory.
+  - `--convert <postmanCollectionPath>`: Specifies the path to the Postman collection JSON file to convert.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/collection_convert_default_3.json`: A Postman collection JSON file containing 3 requests (POST, PUT, POST).
+2. Command:
+`postwright --convert /test_data/collection_convert_default_3.json`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/001_m83lr1nozartbcbuc.spec.js": { "type": "ADD", "content": "... [Playwright test script for PUT request] ..." },
+    "/package.json": { "type": "ADD", "content": "... [package.json with playwright dependencies] ..." },
+    "/000_rsxr9zx3lbbvj.spec.js": { "type": "ADD", "content": "... [Playwright test script for POST request] ..." },
+    "/variables.json": { "type": "ADD", "content": "{}" },
+    "/variables.js": { "type": "ADD", "content": "export const Variables = {\nundefined\n};\n" },
+    "/002_wrszwiahhxy.spec.js": { "type": "ADD", "content": "... [Playwright test script for POST request] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Postman collection JSON file.
+  - Command Behavior Analysis: The CLI reads the input JSON file, parses the requests, and generates corresponding Playwright test scripts (`.spec.js`), a `package.json` file, and variable files (`variables.js`, `variables.json`) in the default output directory (`/`).
+  - Final State Changes (fs_diff): The CLI creates sequentially numbered test files (e.g., `000_name.spec.js`) based on the items in the collection, a `package.json` for the generated project, and empty variable files.
+##### Command Category: postwright --convert <file> --output <dir>
+- Function and Parameter Description:
+Converts a Postman collection and saves the output to a specified directory.
+  - `--convert <postmanCollectionPath>`: The input collection file.
+  - `--output <outputDir>`: The directory where the generated scripts will be saved.
+- Execution Context and Sample:
+1. Preparation:
+Script: `mkdir -p /test_data/output_convert_with_output_3`
+Mounted files:
+  - `/test_data/collection_convert_with_output_3.json`: A Postman collection with 2 requests.
+2. Command:
+`postwright --convert /test_data/collection_convert_with_output_3.json --output /test_data/output_convert_with_output_3`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /test_data/output_convert_with_output_3\npackage.json created.\nConversion complete. Playwright scripts have been generated in /test_data/output_convert_with_output_3\n",
+  "stderr": "",
+  "fs_diff": {
+    "/test_data/output_convert_with_output_3/variables.js": { "type": "ADD", "content": "... [variables.js content] ..." },
+    "/test_data/output_convert_with_output_3/variables.json": { "type": "ADD", "content": "{}" },
+    "/test_data/output_convert_with_output_3/001_6q75jp1hccao9.spec.js": { "type": "ADD", "content": "... [test script] ..." },
+    "/test_data/output_convert_with_output_3/000_oeyb0xez1j.spec.js": { "type": "ADD", "content": "... [test script] ..." },
+    "/test_data/output_convert_with_output_3/package.json": { "type": "ADD", "content": "... [package.json content] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The output directory is created, and the input collection is present.
+  - Command Behavior Analysis: The CLI processes the collection and directs all generated files to the specified `--output` directory.
+  - Final State Changes (fs_diff): All generated files (`.spec.js`, `variables.js`, `variables.json`, `package.json`) are created inside the specified output directory.
+##### Command Category: postwright --convert <file> --format ts
+- Function and Parameter Description:
+Converts a Postman collection to TypeScript format.
+  - `--convert <postmanCollectionPath>`: The input collection file.
+  - `--format <format>`: Specifies the output format (`ts` for TypeScript).
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/collection_convert_with_format_ts_3.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright --convert /test_data/collection_convert_with_format_ts_3.json --format ts`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\ntsconfig.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/001_rovqeqpfpwigke2ytv.spec.ts": { "type": "ADD", "content": "... [TypeScript test script] ..." },
+    "/package.json": { "type": "ADD", "content": "... [package.json content] ..." },
+    "/tsconfig.json": { "type": "ADD", "content": "... [tsconfig.json content] ..." },
+    "/000_hjuhx5nplhx8o5jb.spec.ts": { "type": "ADD", "content": "... [TypeScript test script] ..." },
+    "/002_bg8x09gtfmsyeex.spec.ts": { "type": "ADD", "content": "... [TypeScript test script] ..." },
+    "/variables.json": { "type": "ADD", "content": "{}" },
+    "/variables.ts": { "type": "ADD", "content": "export const Variables = {\nundefined\n};\n" }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Postman collection.
+  - Command Behavior Analysis: The CLI detects the `--format ts` flag and generates `.ts` files instead of `.js` files. It also generates a `tsconfig.json` file.
+  - Final State Changes (fs_diff): Test files are created with `.spec.ts` extensions. `variables.ts` is created instead of `variables.js`. A `tsconfig.json` file is added to the output directory.
+##### Command Category: postwright --convert <file> --output <dir> --format ts
+- Function and Parameter Description:
+Converts a collection to TypeScript format and saves it to a specified directory.
+  - `--convert <file>`: Input file.
+  - `--output <dir>`: Output directory.
+  - `--format ts`: TypeScript format.
+- Execution Context and Sample:
+1. Preparation:
+Script: `mkdir -p /test_data/output_convert_with_output_and_format_ts_3`
+Mounted files:
+  - `/test_data/collection_convert_with_output_and_format_ts_3.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright --convert /test_data/collection_convert_with_output_and_format_ts_3.json --output /test_data/output_convert_with_output_and_format_ts_3 --format ts`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /test_data/output_convert_with_output_and_format_ts_3\npackage.json created.\ntsconfig.json created.\nConversion complete. Playwright scripts have been generated in /test_data/output_convert_with_output_and_format_ts_3\n",
+  "stderr": "",
+  "fs_diff": {
+    "/test_data/output_convert_with_output_and_format_ts_3/tsconfig.json": { "type": "ADD", "content": "... [tsconfig.json] ..." },
+    "/test_data/output_convert_with_output_and_format_ts_3/variables.json": { "type": "ADD", "content": "{}" },
+    "/test_data/output_convert_with_output_and_format_ts_3/variables.ts": { "type": "ADD", "content": "... [variables.ts] ..." },
+    "/test_data/output_convert_with_output_and_format_ts_3/001_9cftrjbmq6bgxsl.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." },
+    "/test_data/output_convert_with_output_and_format_ts_3/package.json": { "type": "ADD", "content": "... [package.json] ..." },
+    "/test_data/output_convert_with_output_and_format_ts_3/000_qme9v6fiuflyoxn8hnyk.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." },
+    "/test_data/output_convert_with_output_and_format_ts_3/002_9jxg4pn3cecdayqbz.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Output directory exists, input file is present.
+  - Command Behavior Analysis: Combines output directory routing and TypeScript formatting logic.
+  - Final State Changes (fs_diff): All TypeScript-specific files (`.ts`, `tsconfig.json`) and common files are generated in the specified output directory.
+##### Command Category: postwright convert <file>
+- Function and Parameter Description:
+Uses the `convert` subcommand to process the collection (default JS format, current directory).
+  - `convert <postmanCollectionPath>`: The subcommand and input file.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/collection_subcommand_convert_default_3.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright convert /test_data/collection_subcommand_convert_default_3.json`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/package.json": { "type": "ADD", "content": "... [package.json] ..." },
+    "/002_6q6ekg.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/variables.json": { "type": "ADD", "content": "{}" },
+    "/001_bdk8e9scvsumkbhnpr.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/000_j4hchmv.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/variables.js": { "type": "ADD", "content": "... [variables.js] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input file is present.
+  - Command Behavior Analysis: The CLI processes the `convert` subcommand identically to the `--convert` flag.
+  - Final State Changes (fs_diff): Generates JS test scripts and config files in the current directory.
+##### Command Category: postwright convert <file> --output <dir>
+- Function and Parameter Description:
+Uses the `convert` subcommand with an output directory.
+  - `convert <file>`: Subcommand and input file.
+  - `--output <dir>`: Output directory.
+- Execution Context and Sample:
+1. Preparation:
+Script: `mkdir -p /test_data/output_subcommand_convert_with_output_2`
+Mounted files:
+  - `/test_data/collection_subcommand_convert_with_output_2.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright convert /test_data/collection_subcommand_convert_with_output_2.json --output /test_data/output_subcommand_convert_with_output_2`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/000_zt3kawph9teqqzxei.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/package.json": { "type": "ADD", "content": "... [package.json] ..." },
+    "/002_ulkbcdyqaei3tqf79.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/variables.js": { "type": "ADD", "content": "... [variables.js] ..." },
+    "/001_vjhqc5jrou.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/variables.json": { "type": "ADD", "content": "{}" }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Output directory created, input file present.
+  - Command Behavior Analysis: Processes the subcommand and routes output. Note: The stdout in the sample shows `Output directory: /` and files are generated in `/` despite the `--output` flag being provided. The implementation should follow the fs_diff which shows files generated in `/`.
+  - Final State Changes (fs_diff): Files are generated in `/`.
+##### Command Category: postwright convert <file> --format ts
+- Function and Parameter Description:
+Uses the `convert` subcommand with TypeScript format.
+  - `convert <file>`: Subcommand and input file.
+  - `--format ts`: TypeScript format.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/collection_subcommand_convert_with_format_ts_2.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright convert /test_data/collection_subcommand_convert_with_format_ts_2.json --format ts`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/package.json": { "type": "ADD", "content": "... [package.json] ..." },
+    "/001_7xtrcnl.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/000_jnioahcolwqocu.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/002_12ritq.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/variables.json": { "type": "ADD", "content": "{}" },
+    "/variables.js": { "type": "ADD", "content": "... [variables.js] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input file present.
+  - Command Behavior Analysis: Note: The sample shows that despite `--format ts`, JS files (`.spec.js`, `variables.js`) are generated and no `tsconfig.json` is created. The implementation must strictly follow this sample behavior for this specific command combination.
+  - Final State Changes (fs_diff): JS files are generated in `/`.
+##### Command Category: postwright -c <file>
+- Function and Parameter Description:
+Uses the short flag `-c` for conversion.
+  - `-c <file>`: Short flag for `--convert`.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/collection_short_flags_default_0.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright -c /test_data/collection_short_flags_default_0.json`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /\npackage.json created.\nConversion complete. Playwright scripts have been generated in /\n",
+  "stderr": "",
+  "fs_diff": {
+    "/variables.json": { "type": "ADD", "content": "{}" },
+    "/variables.js": { "type": "ADD", "content": "... [variables.js] ..." },
+    "/001_adjixnar5zjlm9r.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/package.json": { "type": "ADD", "content": "... [package.json] ..." },
+    "/000_5ljnu8bkmm.spec.js": { "type": "ADD", "content": "... [JS test script] ..." },
+    "/002_m7tql8ashn7vrnodeqpx.spec.js": { "type": "ADD", "content": "... [JS test script] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input file present.
+  - Command Behavior Analysis: The `-c` flag behaves identically to `--convert`.
+  - Final State Changes (fs_diff): JS files generated in `/`.
+##### Command Category: postwright -c <file> -o <dir> -f ts
+- Function and Parameter Description:
+Uses short flags for conversion, output directory, and format.
+  - `-c <file>`: Input file.
+  - `-o <dir>`: Output directory.
+  - `-f ts`: TypeScript format.
+- Execution Context and Sample:
+1. Preparation:
+Script: `mkdir -p /test_data/output_short_flags_output_format_ts_2`
+Mounted files:
+  - `/test_data/collection_short_flags_output_format_ts_2.json`: A Postman collection with 3 requests.
+2. Command:
+`postwright -c /test_data/collection_short_flags_output_format_ts_2.json -o /test_data/output_short_flags_output_format_ts_2 -f ts`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Processing collection. Output directory: /test_data/output_short_flags_output_format_ts_2\npackage.json created.\ntsconfig.json created.\nConversion complete. Playwright scripts have been generated in /test_data/output_short_flags_output_format_ts_2\n",
+  "stderr": "",
+  "fs_diff": {
+    "/test_data/output_short_flags_output_format_ts_2/tsconfig.json": { "type": "ADD", "content": "... [tsconfig.json] ..." },
+    "/test_data/output_short_flags_output_format_ts_2/variables.json": { "type": "ADD", "content": "{}" },
+    "/test_data/output_short_flags_output_format_ts_2/000_kmrety3p4plyp3vwazs.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." },
+    "/test_data/output_short_flags_output_format_ts_2/002_smhiiironnpcchqc1rth.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." },
+    "/test_data/output_short_flags_output_format_ts_2/001_ujekq0qggvbulazaf.spec.ts": { "type": "ADD", "content": "... [TS test script] ..." },
+    "/test_data/output_short_flags_output_format_ts_2/variables.ts": { "type": "ADD", "content": "... [variables.ts] ..." },
+    "/test_data/output_short_flags_output_format_ts_2/package.json": { "type": "ADD", "content": "... [package.json] ..." }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Output directory created, input file present.
+  - Command Behavior Analysis: Short flags `-c`, `-o`, and `-f` are parsed correctly and trigger the TS generation logic in the specified directory.
+  - Final State Changes (fs_diff): TS files and config files are generated in the specified output directory.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

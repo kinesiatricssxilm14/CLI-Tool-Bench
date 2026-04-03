@@ -1,0 +1,392 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gt
+**Repository Name**: gt
+**Core Functionality Description**:
+This is a command-line tool for analyzing and displaying folder structures. Its primary function is to generate a tree-like representation of a directory. The tool provides various options to customize the output:
+- Control the traversal depth of the directory tree.
+- Limit the number of items displayed per directory.
+- Include hidden files and display file sizes.
+- Sort items by listing files before directories.
+- Filter the output to show only directories or only files classified as "code".
+- Enhance visual output with emojis.
+
+Additionally, the tool can export the project's structure and file contents into structured formats like JSON or Markdown. It also has the capability to create a compressed ZIP archive of the project, with an option to respect the rules defined in a `.gitignore` file to exclude specific files and directories from the archive.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gt <path>`
+- **Function and Parameter Description**:
+  - `gt [PATH]`: When run without any flags, the tool displays the directory structure of the specified `PATH` (or the current directory if `.` is used).
+  - By default, it shows only the top-level files and directories (depth 1) and does not display hidden files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created containing various files and subdirectories: `/test_data/main.py`, `/test_data/src/component.js`, `/test_data/src/styles.css`, `/test_data/data/input.csv`, `/test_data/data/config.json`, `/test_data/.hidden_file`, `/test_data/docs/README.md`, `/test_data/empty_dir/`, and `/test_data/evil'file.txt`.
+  **2. Command**:
+  `cd /test_data && gt .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u251c\u2500 evil'file.txt\n\u2514\u2500 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is populated with a directory structure at `/test_data`. This includes several subdirectories (`data`, `docs`, `empty_dir`, `src`) and top-level files (`main.py`, `evil'file.txt`, and a hidden file `.hidden_file`).
+  - Command Behavior Analysis: The command `gt .` is executed within `/test_data`. The tool scans the current directory. It identifies all non-hidden files and directories at the top level. It then formats this list into a tree structure and prints it to `stdout`. The output correctly lists the subdirectories and regular files, but omits the hidden file `.hidden_file`. The tree is only one level deep.
+  - Final State Changes (fs_diff): There are no changes to the file system, as this is a read-only listing operation.
+
+#### Command Category: `gt --full <path>`
+- **Function and Parameter Description**:
+  - `--full` (or `-f`): A flag that acts as a shortcut to display the full directory tree. Based on the README, this is equivalent to `--max-depth 5`, but for this implementation, it should simply traverse and display all nested files and directories found in the sample.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure, including files within `src`, `data`, and `docs`.
+  **2. Command**:
+  `cd /test_data && gt --full .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u2502  \u251c\u2500 config.json\n\u2502  \u2514\u2500 input.csv\n\u251c\u2500 docs\n\u2502  \u2514\u2500 README.md\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u2502  \u251c\u2500 component.js\n\u2502  \u2514\u2500 styles.css\n\u251c\u2500 evil'file.txt\n\u2514\u2500 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `/test_data` directory has a multi-level structure.
+  - Command Behavior Analysis: The `--full` flag instructs the tool to perform a deep traversal of the directory structure. Unlike the default behavior, it recursively lists the contents of subdirectories like `data`, `docs`, and `src`, showing the files within them. The `empty_dir` is shown as empty.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt --emoji <path>`
+- **Function and Parameter Description**:
+  - `--emoji` (or `-e`): A flag to add emoji icons in front of file and directory names for better visual distinction.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with various files and subdirectories.
+  **2. Command**:
+  `cd /test_data && gt --emoji .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\n\ud83d\udcc2 test_data\n\u251c\u2500 \ud83d\udcc1 data\n\u251c\u2500 \ud83d\udcc1 docs\n\u251c\u2500 \ud83d\udcc1 empty_dir\n\u251c\u2500 \ud83d\udcc1 src\n\u251c\u2500 \ud83d\udcc4 evil'file.txt\n\u2514\u2500 \ud83d\udcc4 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard directory structure exists at `/test_data`.
+  - Command Behavior Analysis: The `--emoji` flag is used. The tool performs the default depth-1 listing but prefixes each item with an emoji. Directories (`data`, `docs`, etc.) get a folder emoji (e.g., 📁), and files (`evil'file.txt`, `main.py`) get a file emoji (e.g., 📄). The root directory also gets an emoji.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt -fe <path>`
+- **Function and Parameter Description**:
+  - `-f`: Alias for `--full`.
+  - `-e`: Alias for `--emoji`.
+  - This command combines both flags to produce a deep, recursive tree listing with emoji icons.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure. The file `/test_data/evil'file.txt` is created with `\r\n` line endings.
+  **2. Command**:
+  `cd /test_data && gt -fe .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\n\ud83d\udcc2 test_data\n\u251c\u2500 \ud83d\udcc2 data\n\u2502  \u251c\u2500 \ud83d\udcc4 config.json\n\u2502  \u2514\u2500 \ud83d\udcc4 input.csv\n\u251c\u2500 \ud83d\udcc2 docs\n\u2502  \u2514\u2500 \ud83d\udcc4 README.md\n\u251c\u2500 \ud83d\udcc1 empty_dir\n\u251c\u2500 \ud83d\udcc2 src\n\u2502  \u251c\u2500 \ud83d\udcc4 component.js\n\u2502  \u2514\u2500 \ud83d\udcc4 styles.css\n\u251c\u2500 \ud83d\udcc4 evil'file.txt\n\u2514\u2500 \ud83d\udcc4 main.py\n\n",
+    "fs_diff": {
+      "/test_data/evil'file.txt": {
+        "type": "MOD",
+        "content": "\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A nested directory structure is present. `evil'file.txt` has Windows-style line endings.
+  - Command Behavior Analysis: The `-f` and `-e` flags are combined. The tool performs a recursive traversal (`--full`) and adds emojis to each entry (`--emoji`). The output is a fully expanded tree where each file and directory is prefixed with an appropriate icon.
+  - Final State Changes (fs_diff): A minor modification is observed. The file `evil'file.txt` has its line endings changed from `\r\n` to `\n`. This suggests that some file processing operation within the tool might be normalizing line endings, even on a listing command. This behavior should be replicated.
+
+#### Command Category: `gt --max-depth <N> <path>`
+- **Function and Parameter Description**:
+  - `--max-depth <N>`: Specifies the maximum depth of the directory tree to display. A depth of 1 shows top-level items, a depth of 2 shows their children, and so on.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure.
+  **2. Command**:
+  `cd /test_data && gt --max-depth 4 .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u2502  \u251c\u2500 config.json\n\u2502  \u2514\u2500 input.csv\n\u251c\u2500 docs\n\u2502  \u2514\u2500 README.md\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u2502  \u251c\u2500 component.js\n\u2502  \u2514\u2500 styles.css\n\u2514\u2500 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A multi-level directory structure exists.
+  - Command Behavior Analysis: The command `gt --max-depth 4 .` instructs the tool to display the directory tree up to a depth of 4. The output shows the full tree as it exists in the sample, because its maximum depth is less than 4. This confirms the tool correctly processes the depth limit.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt --max-items <N> <path>`
+- **Function and Parameter Description**:
+  - `--max-items <N>`: Limits the number of files/directories shown at each level of the tree to `<N>`. If more items exist, a summary line is displayed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with more than 4 top-level non-hidden items.
+  **2. Command**:
+  `cd /test_data && gt --max-items 4 .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u251c\u2500 main.py\n\u2514\u2500 ... and 2 more items\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `/test_data` directory contains 6 top-level items eligible for display (`data`, `docs`, `empty_dir`, `src`, `evil'file.txt`, `main.py`).
+  - Command Behavior Analysis: The command `gt --max-items 4 .` is executed. The tool lists the first 4 items it encounters (`data`, `docs`, `empty_dir`, `main.py` - note the alphabetical sorting). Since there are 2 more items (`src` and `evil'file.txt`), it stops listing them and instead prints a summary line: `... and 2 more items`.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt -a <path>`
+- **Function and Parameter Description**:
+  - `-a` (alias for `--all` or `--hidden-items`): A flag to include hidden files and directories (those starting with a `.`) in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created, which includes a hidden file `/test_data/.hidden_file`.
+  **2. Command**:
+  `cd /test_data && gt -a .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u251c\u2500 .hidden_file\n\u251c\u2500 evil'file.txt\n\u2514\u2500 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The directory contains a hidden file `.hidden_file`.
+  - Command Behavior Analysis: The `-a` flag is used. The tool scans the directory and, unlike the default behavior, includes the hidden file `.hidden_file` in the resulting tree output.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt -s <path>`
+- **Function and Parameter Description**:
+  - `-s` (alias for `--size`): A flag to display the size of each file in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with files of varying content sizes. `main.py` has content `print('hello world')` (20 bytes). `evil'file.txt` has content `\r\n` (2 bytes).
+  **2. Command**:
+  `cd /test_data && gt -s .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u251c\u2500 evil'file.txt                          (2B)\n\u2514\u2500 main.py                               (20B)\n\n",
+    "fs_diff": {
+      "/test_data/evil'file.txt": {
+        "type": "MOD",
+        "content": "\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Files with specific content and sizes exist.
+  - Command Behavior Analysis: The `-s` flag is used. The tool lists the top-level items. For files, it calculates their size and appends it to the line, formatted like `(XB)`. The output shows the correct sizes for `evil'file.txt` (2B) and `main.py` (20B). The sizes are right-aligned with padding for a clean layout. Directory sizes are not displayed.
+  - Final State Changes (fs_diff): Similar to the `-fe` sample, a line ending normalization occurs on `evil'file.txt`. This should be replicated.
+
+#### Command Category: `gt --files-first <path>`
+- **Function and Parameter Description**:
+  - `--files-first`: A flag that changes the sort order to list all files before all directories at the same tree level.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a mix of files and subdirectories at the top level.
+  **2. Command**:
+  `cd /test_data && gt --files-first .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 evil'file.txt\n\u251c\u2500 main.py\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u2514\u2500 src\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A mix of files and directories exists.
+  - Command Behavior Analysis: The `--files-first` flag alters the default sorting. Instead of a simple alphabetical sort of all items, the tool first lists all files (`evil'file.txt`, `main.py`) alphabetically, and then lists all directories (`data`, `docs`, `empty_dir`, `src`) alphabetically.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt --no-files <path>`
+- **Function and Parameter Description**:
+  - `--no-files`: A flag to exclude all files from the output, showing only the directory structure.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a mix of files and subdirectories.
+  **2. Command**:
+  `cd /test_data && gt --no-files .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u2514\u2500 src\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A mix of files and directories exists.
+  - Command Behavior Analysis: The `--no-files` flag filters the output to show only directories. The resulting tree correctly displays `data`, `docs`, `empty_dir`, and `src`, while omitting all files like `main.py` and `evil'file.txt`.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt --code <path>`
+- **Function and Parameter Description**:
+  - `--code`: A flag to filter the tree to include only "code" files. Based on the sample, this means non-code files are omitted from the listing, but directories are still shown.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with various file types, including `.py`, `.js`, `.css`, `.csv`, `.json`, `.md`, and a file with a `.txt` extension.
+  **2. Command**:
+  `cd /test_data && gt --code .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n    Root: /test_data\n\ntest_data\n\u251c\u2500 data\n\u251c\u2500 docs\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u2514\u2500 main.py\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The directory contains a mix of files, including `main.py` and `evil'file.txt` at the root.
+  - Command Behavior Analysis: The `--code` flag is used. The tool performs a default depth-1 scan. It lists all directories (`data`, `docs`, etc.). For files, it applies a filter. `main.py` is considered a code file and is included. `evil'file.txt` is not, and is excluded. The tool needs an internal definition of what constitutes a "code" file extension.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `gt -x <basename> --format json <path>`
+- **Function and Parameter Description**:
+  - `-x <basename>`: Specifies that the output should be exported to a file. The filename will be `<basename>` plus an extension determined by the format.
+  - `--format json`: Sets the export format to JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure. One file contains a null byte.
+  **2. Command**:
+  `cd /test_data && gt -x output_0 --format json . && cat output_0.json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Output saved to /test_data/output_0.json\n{\n  \"structure\": [\n    \"    Root: /test_data\\n\",\n    \"{\\n  \\\"self\\\": \\\"/test_data\\\",\\n  \\\"children\\\": [\\n    \\\"/test_data/evil'file.txt\\\",\\n    \\\"/test_data/main.py\\\",\\n    {\\n      \\\"self\\\": \\\"/test_data/data\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/data/config.json\\\",\\n        \\\"/test_data/data/input.csv\\\"\\n      ]\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/docs\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/docs/README.md\\\"\\n      ]\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/empty_dir\\\",\\n      \\\"children\\\": []\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/src\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/src/component.js\\\",\\n        \\\"/test_data/src/styles.css\\\"\\n      ]\\n    }\\n  ]\\n}\"\n  ],\n  \"files\": [\n    {\n      \"path\": \"/test_data/evil'file.txt\",\n      \"content\": \"[binary file]\"\n    },\n    {\n      \"path\": \"/test_data/main.py\",\n      \"content\": \"print('hello world')\"\n    },\n    {\n      \"path\": \"/test_data/data/config.json\",\n      \"content\": \"{\\\"wmDUABF\\\": \\\"vfB6WK1pQuIZDvNbu33B\\\", \\\"Ign2zcY1d\\\": \\\"PiFjt4LHvN\\\", \\\"guGnOJ\\\": \\\"LtUXTL5scmZZ\\\", \\\"id\\\": 384, \\\"active\\\": true}\"\n    },\n    {\n      \"path\": \"/test_data/data/input.csv\",\n      \"content\": \"hp2WwQZ,HE9E,OSCGfNB\\naTXfgUBQVYuZ,EHwJcH,Behlg\\n5QSNlyBYghH,AJFoNImBuh,AmLNLuQg5OK\\nxfUiWDY8t,aWe16T5N,DxuAuDt2nOzG\\n43XwM,EyOlGvoyP,XIZrLxQ\\n3TZeb8jQDys,3LdMo02,C6pzxbxWbg\"\n    },\n    {\n      \"path\": \"/test_data/docs/README.md\",\n      \"content\": \"# Docs\"\n    },\n    {\n      \"path\": \"/test_data/src/component.js\",\n      \"content\": \"export default () => {};\"\n    },\n    {\n      \"path\": \"/test_data/src/styles.css\",\n      \"content\": \"body { color: blue; }\"\n    }\n  ]\n}",
+    "fs_diff": {
+      "/test_data/output_0.json": {
+        "type": "ADD",
+        "content": "{\n  \"structure\": [\n    \"    Root: /test_data\\n\",\n    \"{\\n  \\\"self\\\": \\\"/test_data\\\",\\n  \\\"children\\\": [\\n    \\\"/test_data/evil'file.txt\\\",\\n    \\\"/test_data/main.py\\\",\\n    {\\n      \\\"self\\\": \\\"/test_data/data\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/data/config.json\\\",\\n        \\\"/test_data/data/input.csv\\\"\\n      ]\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/docs\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/docs/README.md\\\"\\n      ]\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/empty_dir\\\",\\n      \\\"children\\\": []\\n    },\\n    {\\n      \\\"self\\\": \\\"/test_data/src\\\",\\n      \\\"children\\\": [\\n        \\\"/test_data/src/component.js\\\",\\n        \\\"/test_data/src/styles.css\\\"\\n      ]\\n    }\\n  ]\\n}\"\n  ],\n  \"files\": [\n    {\n      \"path\": \"/test_data/evil'file.txt\",\n      \"content\": \"[binary file]\"\n    },\n    {\n      \"path\": \"/test_data/main.py\",\n      \"content\": \"print('hello world')\"\n    },\n    {\n      \"path\": \"/test_data/data/config.json\",\n      \"content\": \"{\\\"wmDUABF\\\": \\\"vfB6WK1pQuIZDvNbu33B\\\", \\\"Ign2zcY1d\\\": \\\"PiFjt4LHvN\\\", \\\"guGnOJ\\\": \\\"LtUXTL5scmZZ\\\", \\\"id\\\": 384, \\\"active\\\": true}\"\n    },\n    {\n      \"path\": \"/test_data/data/input.csv\",\n      \"content\": \"hp2WwQZ,HE9E,OSCGfNB\\naTXfgUBQVYuZ,EHwJcH,Behlg\\n5QSNlyBYghH,AJFoNImBuh,AmLNLuQg5OK\\nxfUiWDY8t,aWe16T5N,DxuAuDt2nOzG\\n43XwM,EyOlGvoyP,XIZrLxQ\\n3TZeb8jQDys,3LdMo02,C6pzxbxWbg\"\n    },\n    {\n      \"path\": \"/test_data/docs/README.md\",\n      \"content\": \"# Docs\"\n    },\n    {\n      \"path\": \"/test_data/src/component.js\",\n      \"content\": \"export default () => {};\"\n    },\n    {\n      \"path\": \"/test_data/src/styles.css\",\n      \"content\": \"body { color: blue; }\"\n    }\n  ]\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard nested directory is set up.
+  - Command Behavior Analysis: The command instructs the tool to export the structure of the current directory (`.`) to a file named `output_0.json`. The tool first prints a confirmation message `Output saved to /test_data/output_0.json`. Then, it generates the JSON content. The JSON has a specific, somewhat unusual structure: a top-level object with `structure` and `files` keys. The `files` key contains an array of objects, each with a file's `path` and `content`. Binary files (like the one with a null byte) are represented with the content `[binary file]`. The `structure` key contains an array of strings, where the second string is itself a JSON string representing the tree. This exact structure must be replicated.
+  - Final State Changes (fs_diff): A new file, `output_0.json`, is created in the current directory with the generated JSON content.
+
+#### Command Category: `gt -x <basename> --format md <path>`
+- **Function and Parameter Description**:
+  - `-x <basename>`: Specifies exporting the output to a file.
+  - `--format md`: Sets the export format to Markdown.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure.
+  **2. Command**:
+  `cd /test_data && gt -x output_0 --format md . && cat output_0.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Output saved to /test_data/output_0.md\n## Project Structure\n    Root: /test_data\n\n```text\ntest_data\n\u251c\u2500 data\n\u2502  \u251c\u2500 config.json\n\u2502  \u2514\u2500 input.csv\n\u251c\u2500 docs\n\u2502  \u2514\u2500 README.md\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u2502  \u251c\u2500 component.js\n\u2502  \u2514\u2500 styles.css\n\u251c\u2500 evil'file.txt\n\u2514\u2500 main.py\n```\n## Files\n\n### File: /test_data/evil'file.txt\n\n```text\n9999999999999999999999999999\n```\n\n### File: /test_data/main.py\n\n```text\nprint('hello world')\n```\n\n### File: /test_data/data/config.json\n\n```text\n{\\\"ww07Vgc\\\": \\\"HzKyCRL7F9wZhP90hZB\\\", \\\"mIS1SYK\\\": \\\"TgxCBybMGuCNS1qoRS8W\\\", \\\"I3gJZD7i4\\\": \\\"DPZ3GLvUDyowXq\\\", \\\"id\\\": 763, \\\"active\\\": false}\n```\n\n### File: /test_data/data/input.csv\n\n```text\nTmyj0,X7t7iF7h,qLPZoUVE\ndZwIy7M,UEFXLK8j,94xD18EXI\nl7eZsnLD,MON5DI16RMmQ9,0gAvqJVaj2qhXAp\njeNtv7tu,w5rbluaM5f,iLaEaPkr1\n5nHMa9,355vlAsdvo7QTe,hyytxsufwsXT\nC15E0,Trxy02aJXB,kBLKc69gCeN\n```\n\n### File: /test_data/docs/README.md\n\n```text\n# Docs\n```\n\n### File: /test_data/src/component.js\n\n```text\nexport default () => {};\n```\n\n### File: /test_data/src/styles.css\n\n```text\nbody { color: blue; }\n```\n",
+    "fs_diff": {
+      "/test_data/output_0.md": {
+        "type": "ADD",
+        "content": "## Project Structure\n    Root: /test_data\n\n```text\ntest_data\n\u251c\u2500 data\n\u2502  \u251c\u2500 config.json\n\u2502  \u2514\u2500 input.csv\n\u251c\u2500 docs\n\u2502  \u2514\u2500 README.md\n\u251c\u2500 empty_dir\n\u251c\u2500 src\n\u2502  \u251c\u2500 component.js\n\u2502  \u2514\u2500 styles.css\n\u251c\u2500 evil'file.txt\n\u2514\u2500 main.py\n```\n## Files\n\n### File: /test_data/evil'file.txt\n\n```text\n9999999999999999999999999999\n```\n\n### File: /test_data/main.py\n\n```text\nprint('hello world')\n```\n\n### File: /test_data/data/config.json\n\n```text\n{\\\"ww07Vgc\\\": \\\"HzKyCRL7F9wZhP90hZB\\\", \\\"mIS1SYK\\\": \\\"TgxCBybMGuCNS1qoRS8W\\\", \\\"I3gJZD7i4\\\": \\\"DPZ3GLvUDyowXq\\\", \\\"id\\\": 763, \\\"active\\\": false}\n```\n\n### File: /test_data/data/input.csv\n\n```text\nTmyj0,X7t7iF7h,qLPZoUVE\ndZwIy7M,UEFXLK8j,94xD18EXI\nl7eZsnLD,MON5DI16RMmQ9,0gAvqJVaj2qhXAp\njeNtv7tu,w5rbluaM5f,iLaEaPkr1\n5nHMa9,355vlAsdvo7QTe,hyytxsufwsXT\nC15E0,Trxy02aJXB,kBLKc69gCeN\n```\n\n### File: /test_data/docs/README.md\n\n```text\n# Docs\n```\n\n### File: /test_data/src/component.js\n\n```text\nexport default () => {};\n```\n\n### File: /test_data/src/styles.css\n\n```text\nbody { color: blue; }\n```\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard nested directory is set up.
+  - Command Behavior Analysis: The command exports the project structure and contents to `output_0.md`. The tool first prints a confirmation message. The generated Markdown file has a clear structure: a `## Project Structure` section with the directory tree in a `text` code block, followed by a `## Files` section. Under "Files", each file is listed with a `### File: <path>` heading and its content inside a `text` code block.
+  - Final State Changes (fs_diff): A new file, `output_0.md`, is created with the generated Markdown content.
+
+#### Command Category: `gt -z <basename> <path>`
+- **Function and Parameter Description**:
+  - `-z <basename>`: Creates a ZIP archive of the specified path, naming the file `<basename>.zip`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure.
+  **2. Command**:
+  `cd /test_data && gt -z archive_0 .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Output saved to /test_data/archive_0.zip\n\n    Root: /test_data\n\n\n",
+    "fs_diff": {
+      "/test_data/archive_0.zip": {
+        "type": "ADD",
+        "content": "... [omitted binary content of the zip file] ..."
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard nested directory structure exists.
+  - Command Behavior Analysis: The command `gt -z archive_0 .` instructs the tool to create a zip file named `archive_0.zip` containing all files and directories within the current path (`.`). The tool processes all items, including hidden files, and packages them. It prints a confirmation message to stdout, followed by the root path info.
+  - Final State Changes (fs_diff): A new binary file, `archive_0.zip`, is created in the `/test_data` directory. This file is a standard zip archive containing the entire directory structure and file contents from `/test_data`.
+
+#### Command Category: `gt -gz <basename> <path>`
+- **Function and Parameter Description**:
+  - `-g`: A flag that enables respecting `.gitignore` rules.
+  - `-z <basename>`: Creates a ZIP archive.
+  - This combination creates a zip archive that excludes files and directories matching patterns in the `.gitignore` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A directory `/test_data` is created with a nested structure. A `.gitignore` file is also created at `/test_data/.gitignore` with the content: `*.csv\ndocs/\nempty_dir/`.
+  **2. Command**:
+  `cd /test_data && gt -gz archive_0 .`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Output saved to /test_data/archive_0.zip\n\n    Root: /test_data\n\n\n",
+    "fs_diff": {
+      "/test_data/archive_0.zip": {
+        "type": "ADD",
+        "content": "... [omitted binary content of the filtered zip file] ..."
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The directory contains a `.gitignore` file specifying that all `.csv` files, the `docs/` directory, and the `empty_dir/` directory should be ignored.
+  - Command Behavior Analysis: The command `gt -gz archive_0 .` is executed. The `-g` flag is key here. The tool reads the `.gitignore` file and builds a list of exclusion patterns. When creating the `archive_0.zip`, it includes all files and directories *except* those that match the ignore patterns. Therefore, `data/input.csv`, the entire `docs` directory, and the `empty_dir` directory will be excluded from the final zip archive. The `.gitignore` file itself is typically included in the archive.
+  - Final State Changes (fs_diff): A new file, `archive_0.zip`, is created. Its contents are the filtered set of project files, respecting the `.gitignore` rules.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

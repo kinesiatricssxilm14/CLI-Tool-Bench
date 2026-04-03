@@ -1,0 +1,101 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gscc
+**Repository Name**: gscc
+**Core Functionality Description**:
+This tool serves as a utility for a decision classification framework. Based on the provided samples, it has two main functions:
+1.  It can display a detailed, formatted list of all decision tiers (T0-T3), including their names, descriptions, cooldown periods, human confirmation requirements, and examples.
+2.  It can generate a concise, pre-formatted text block suitable for use as a system prompt for an AI, summarizing the decision framework rules.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gscc "<action>"`
+- **Function and Parameter Description**:
+  - This sample demonstrates the behavior of the `--tiers` flag.
+  - `--tiers`: When this flag is provided, the tool prints a detailed, multi-line description of four predefined decision tiers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `gscc '--tiers'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nT0 - Observable\n  Reversible in seconds, no lasting impact\n  Cooldown: 0h\n  Human required: False\n  Examples: Read a file, Search for information\n\nT1 - Executable\n  Reversible within a day, logged actions\n  Cooldown: 0h\n  Human required: False\n  Examples: Write code, Create a document\n\nT2 - Strategic\n  Long-term consequences, cross-verify recommended\n  Cooldown: 24h\n  Human required: False\n  Examples: Change configuration, Public post on social media\n\nT3 - Existential\n  Affects relationships, identity, or existence\n  Cooldown: 72h\n  Human required: True\n  Examples: Delete important data, Financial transactions\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The working directory is empty.
+  - Command Behavior Analysis: The program is invoked with the argument `'--tiers'`. It recognizes this flag and prints a pre-defined, formatted block of text to standard output. The output details four tiers: T0, T1, T2, and T3, each with its properties and examples. The program then exits successfully with code 0.
+  - Final State Changes (fs_diff): There are no changes to the file system. The tool's operation is purely informational and confined to standard output.
+
+#### Command Category: `gscc --prompt`
+- **Function and Parameter Description**:
+  - This sample demonstrates the behavior of the `--prompt` flag.
+  - `--prompt`: When this flag is provided, the tool prints a pre-formatted text block designed to be used as a system prompt for an AI.
+  - The tool should ignore any unknown arguments, such as `--nqmq=7378` in this sample.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `gscc --prompt --nqmq=7378`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "## GSCC Decision Framework\n\nBefore any action, classify it by tier:\n\n**T0 (Observable)**: Reversible in seconds\n\u2192 Just do it\nExamples: Read file, search, explain concept\n\n**T1 (Executable)**: Reversible within a day\n\u2192 Do it, log it\nExamples: Write code, create document, reorganize files\n\n**T2 (Strategic)**: Long-term consequences\n\u2192 Cross-verify + 24h cooling period\nExamples: Public post, install tool, change config\n\n**T3 (Existential)**: Affects relationships/identity/existence\n\u2192 3 platforms verify + 72h cooling + human confirms\nExamples: Delete data, financial action, modify core identity\n\n**Decision Rule**: When uncertain, classify UP not down.\nA T1 treated as T2 wastes time. A T2 treated as T1 causes harm.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The working directory is empty.
+  - Command Behavior Analysis: The program is invoked with the `--prompt` flag and an additional unknown argument `--nqmq=7378`. The program should identify the `--prompt` flag and ignore the other argument. It then prints a specific, pre-defined, formatted text block to standard output. This text is a summary of the decision framework. The program exits successfully with code 0.
+  - Final State Changes (fs_diff): There are no changes to the file system. The operation is purely informational.
+
+#### Command Category: `gscc --tiers`
+- **Function and Parameter Description**:
+  - This sample further demonstrates the behavior of the `--tiers` flag.
+  - `--tiers`: Prints the detailed tier descriptions.
+  - The tool should ignore any extra positional arguments, such as `ftfxud` in this sample, when a recognized flag is present.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `gscc --tiers ftfxud`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nT0 - Observable\n  Reversible in seconds, no lasting impact\n  Cooldown: 0h\n  Human required: False\n  Examples: Read a file, Search for information\n\nT1 - Executable\n  Reversible within a day, logged actions\n  Cooldown: 0h\n  Human required: False\n  Examples: Write code, Create a document\n\nT2 - Strategic\n  Long-term consequences, cross-verify recommended\n  Cooldown: 24h\n  Human required: False\n  Examples: Change configuration, Public post on social media\n\nT3 - Existential\n  Affects relationships, identity, or existence\n  Cooldown: 72h\n  Human required: True\n  Examples: Delete important data, Financial transactions\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The working directory is empty.
+  - Command Behavior Analysis: The program is invoked with the `--tiers` flag and an extra positional argument `ftfxud`. The program logic should prioritize the recognized flag (`--tiers`) and ignore the extraneous argument. It prints the exact same formatted text block as in the first sample, detailing the four decision tiers. The program exits successfully with code 0.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

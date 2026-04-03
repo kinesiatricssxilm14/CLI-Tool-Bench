@@ -1,0 +1,287 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: source-to-llm
+**Repository Name**: source-to-llm
+**Core Functionality Description**:
+The CLI tool extracts source code from project files and formats it for use in prompts. It recursively scans a specified directory for files matching given glob patterns. It can also exclude files based on ignore patterns. The tool then concatenates the content of the matched files and prints the result to standard output. Each file's content is clearly demarcated with a header indicating its relative path and surrounded by separator lines. This is useful for preparing a codebase for AI analysis, code review, or documentation tasks.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `source-to-llm -d <dir>`
+- **Function and Parameter Description**:
+  - This command scans a specified directory for source files and prints their content.
+  - `-d <path>`: Specifies the target directory to scan. If not provided, it defaults to the current working directory.
+  - **Default Behavior**: When no `--pattern` or `--ignore` flags are provided, the tool uses default settings:
+    - **Default Patterns**: `["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"]`
+    - **Default Ignores**: `["**/node_modules/**", "**/dist/**", "**/build/**"]`
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/main.js`: `console.log('hello world');`
+  - `/test_data/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/docs/guide.md`: `# Guide`
+  - `/test_data/data.py`: `print('hello from python')`
+  - `/test_data/src/test/main.test.js`: `assert(true);`
+  - `/test_data/node_modules/some_lib/index.js`: `// lib code`
+  - `/test_data/empty.js`: (empty content)
+  - `/test_data/evil.ts`: `` `reboot` ``
+  - `/test_data/._bcb cca.js`: `file with a tricky name`
+  **2. Command**:
+  `source-to-llm -d /test_data`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: main.js\n--------------------------------------------------------------------------------\nconsole.log('hello world');\n--------------------------------------------------------------------------------\n\nFile: evil.ts\n--------------------------------------------------------------------------------\n`reboot`\n--------------------------------------------------------------------------------\n\nFile: empty.js\n--------------------------------------------------------------------------------\n\n--------------------------------------------------------------------------------\n\nFile: src/component.tsx\n--------------------------------------------------------------------------------\nexport const MyComponent = () => <div />;\n--------------------------------------------------------------------------------\n\nFile: src/utils/api.ts\n--------------------------------------------------------------------------------\nfetch('/api/data');\n--------------------------------------------------------------------------------\n\nFile: src/test/main.test.js\n--------------------------------------------------------------------------------\nassert(true);\n--------------------------------------------------------------------------------\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` exists containing various files with different extensions and in different subdirectories, including a `node_modules` directory.
+  - Command Behavior Analysis: The command specifies `/test_data` as the target directory. The tool applies its default file matching patterns (`.js`, `.ts`, `.tsx`) and default ignore patterns (`**/node_modules/**`). It finds all matching files, including those in subdirectories (`src/`, `src/utils/`, `src/test/`). It correctly ignores `guide.md`, `data.py`, and the file inside `node_modules`. For each found file, it prints a header `File: <relative_path>`, the default separator (80 dashes), the file content, and the separator again. The file paths in the output are relative to the target directory `/test_data`. Even empty files (`empty.js`) are processed and their (empty) content is printed between separators.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming the tool is read-only and does not alter the file system.
+
+#### Command Category: `source-to-llm --pattern <patterns...> -d <dir>`
+- **Function and Parameter Description**:
+  - This command scans a directory for files matching custom patterns.
+  - `-p, --pattern <patterns...>`: Specifies one or more glob patterns to match files. This overrides the default file patterns.
+  - `-d <path>`: Specifies the target directory to scan.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/main.js`: `console.log('hello world');`
+  - `/test_data/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/docs/guide.md`: `# Guide`
+  - `/test_data/data.py`: `print('hello from python')`
+  - `/test_data/src/test/main.test.js`: `assert(true);`
+  - `/test_data/node_modules/some_lib/index.js`: `// lib code`
+  **2. Command**:
+  `source-to-llm --pattern "**/*.tsx" "**/*.ts" -d /test_data`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: src/component.tsx\n--------------------------------------------------------------------------------\nexport const MyComponent = () => <div />;\n--------------------------------------------------------------------------------\n\nFile: src/utils/api.ts\n--------------------------------------------------------------------------------\nfetch('/api/data');\n--------------------------------------------------------------------------------\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` exists with a mix of file types.
+  - Command Behavior Analysis: The command uses the `--pattern` flag to explicitly look for files ending in `.tsx` and `.ts`. This custom pattern list overrides the default. The tool correctly finds `src/component.tsx` and `src/utils/api.ts` within the `/test_data` directory. It still applies the default ignore patterns, so `node_modules` is skipped. The output is formatted with the default separator.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `source-to-llm --pattern <patterns...> --ignore <patterns...> -d <dir>`
+- **Function and Parameter Description**:
+  - This command scans a directory using custom file patterns and custom ignore patterns.
+  - `-p, --pattern <patterns...>`: Specifies glob patterns to match files, overriding the defaults.
+  - `-i, --ignore <patterns...>`: Specifies glob patterns to ignore. **Crucially, providing this flag completely overrides the default ignore list** (e.g., `**/node_modules/**` is no longer ignored unless specified again).
+  - `-d <path>`: Specifies the target directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/main.js`: `console.log('hello world');`
+  - `/test_data/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/docs/guide.md`: `# Guide`
+  - `/test_data/data.py`: `print('hello from python')`
+  - `/test_data/src/test/main.test.js`: `assert(true);`
+  - `/test_data/node_modules/some_lib/index.js`: `// lib code`
+  - `/test_data/empty.js`: (empty content)
+  - `/test_data/evil.ts`: `-1`
+  - `/test_data/-.c-.aa.c.js`: `file with a tricky name`
+  **2. Command**:
+  `source-to-llm --pattern "**/*.*s" --ignore "\n" -d /test_data`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: main.js\n--------------------------------------------------------------------------------\nconsole.log('hello world');\n--------------------------------------------------------------------------------\n\nFile: evil.ts\n--------------------------------------------------------------------------------\n-1\n--------------------------------------------------------------------------------\n\nFile: empty.js\n--------------------------------------------------------------------------------\n\n--------------------------------------------------------------------------------\n\nFile: -.c-.aa.c.js\n--------------------------------------------------------------------------------\nfile with a tricky name\n--------------------------------------------------------------------------------\n\nFile: src/utils/api.ts\n--------------------------------------------------------------------------------\nfetch('/api/data');\n--------------------------------------------------------------------------------\n\nFile: src/test/main.test.js\n--------------------------------------------------------------------------------\nassert(true);\n--------------------------------------------------------------------------------\n\nFile: node_modules/some_lib/index.js\n--------------------------------------------------------------------------------\n// lib code\n--------------------------------------------------------------------------------\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` with various files, including one in `node_modules`.
+  - Command Behavior Analysis: The pattern `**/*.*s` matches files ending with `s` (e.g., `.js`, `.ts`). The ignore pattern is `\n`, which is a non-standard glob pattern that effectively matches nothing. Because the `--ignore` flag is used, the default ignore list is discarded. As a result, `node_modules/some_lib/index.js` is now included in the output because it matches the file pattern and is not caught by any ignore rule. All other files ending in `s` are also included.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `source-to-llm --separator <string> -d <dir>`
+- **Function and Parameter Description**:
+  - This command scans a directory and formats the output with a custom separator.
+  - `-s, --separator <string>`: Specifies a custom string to use as a separator before and after each file's content. This overrides the default 80-dash line.
+  - `-d <path>`: Specifies the target directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/main.js`: `console.log('hello world');`
+  - `/test_data/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/docs/guide.md`: `# Guide`
+  - `/test_data/data.py`: `print('hello from python')`
+  - `/test_data/src/test/main.test.js`: `assert(true);`
+  - `/test_data/node_modules/some_lib/index.js`: `// lib code`
+  **2. Command**:
+  `source-to-llm --separator "==== Apm37mP1Jw9Nah ====" -d /test_data`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: main.js\n==== Apm37mP1Jw9Nah ====\nconsole.log('hello world');\n==== Apm37mP1Jw9Nah ====\n\nFile: src/component.tsx\n==== Apm37mP1Jw9Nah ====\nexport const MyComponent = () => <div />;\n==== Apm37mP1Jw9Nah ====\n\nFile: src/utils/api.ts\n==== Apm37mP1Jw9Nah ====\nfetch('/api/data');\n==== Apm37mP1Jw9Nah ====\n\nFile: src/test/main.test.js\n==== Apm37mP1Jw9Nah ====\nassert(true);\n==== Apm37mP1Jw9Nah ====\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` with a mix of file types.
+  - Command Behavior Analysis: The command uses the default file patterns and ignore patterns but provides a custom separator string via the `--separator` flag. The output correctly uses `"==== Apm37mP1Jw9Nah ===="` as the separator instead of the default line of dashes.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `source-to-llm --dir <path>`
+- **Function and Parameter Description**:
+  - This command scans a specified directory for source files and prints their content.
+  - `--dir <path>`: Long-form alias for `-d <path>`. Specifies the target directory to scan.
+  - **Default Behavior**: Uses default file patterns and ignore patterns.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/project_dir/main.js`: `console.log('hello world');`
+  - `/test_data/project_dir/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/project_dir/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/project_dir/docs/guide.md`: `# Guide`
+  - `/test_data/project_dir/data.py`: `print('hello from python')`
+  - `/test_data/project_dir/src/test/main.test.js`: `assert(true);`
+  - `/test_data/project_dir/node_modules/some_lib/index.js`: `// lib code`
+  **2. Command**:
+  `source-to-llm --dir /test_data/project_dir`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: main.js\n--------------------------------------------------------------------------------\nconsole.log('hello world');\n--------------------------------------------------------------------------------\n\nFile: src/component.tsx\n--------------------------------------------------------------------------------\nexport const MyComponent = () => <div />;\n--------------------------------------------------------------------------------\n\nFile: src/utils/api.ts\n--------------------------------------------------------------------------------\nfetch('/api/data');\n--------------------------------------------------------------------------------\n\nFile: src/test/main.test.js\n--------------------------------------------------------------------------------\nassert(true);\n--------------------------------------------------------------------------------\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data/project_dir` contains a project structure.
+  - Command Behavior Analysis: The command uses the long-form `--dir` option to specify the target directory. The functionality is identical to using `-d`. It applies default patterns and ignores, finding all `.js`, `.ts`, and `.tsx` files while skipping `.md`, `.py`, and `node_modules`. The output paths are relative to `/test_data/project_dir`.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `source-to-llm --pattern <patterns...> --separator <string> -d <dir>`
+- **Function and Parameter Description**:
+  - This command combines custom file patterns and a custom separator.
+  - `-p, --pattern <patterns...>`: Specifies custom glob patterns for file matching.
+  - `-s, --separator <string>`: Specifies a custom separator string.
+  - `-d <path>`: Specifies the target directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/main.js`: `console.log('hello world');`
+  - `/test_data/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/docs/guide.md`: `# Guide`
+  - `/test_data/data.py`: `print('hello from python')`
+  - `/test_data/src/test/main.test.js`: `assert(true);`
+  - `/test_data/node_modules/some_lib/index.js`: `// lib code`
+  **2. Command**:
+  `source-to-llm --pattern "**/*.py" --separator "---FILE---" -d /test_data`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: data.py\n---FILE---\nprint('hello from python')\n---FILE---\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` with a mix of file types.
+  - Command Behavior Analysis: The command specifically targets python files (`**/*.py`) and sets a custom separator (`---FILE---`). The tool correctly finds only `data.py` and formats its output using the specified separator. Default ignore patterns are still in effect.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+#### Command Category: `source-to-llm --pattern <patterns...> --dir <path>`
+- **Function and Parameter Description**:
+  - This command tests the tool's handling of unusual or potentially malicious pattern strings.
+  - `-p, --pattern <patterns...>`: Specifies a glob pattern. The tool should treat this as a literal pattern and not be vulnerable to injection or parsing errors.
+  - `--dir <path>`: Specifies the target directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/project_dir_pd/main.js`: `console.log('hello world');`
+  - `/test_data/project_dir_pd/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/project_dir_pd/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/project_dir_pd/docs/guide.md`: `# Guide`
+  - `/test_data/project_dir_pd/data.py`: `print('hello from python')`
+  - `/test_data/project_dir_pd/src/test/main.test.js`: `assert(true);`
+  - `/test_data/project_dir_pd/node_modules/some_lib/index.js`: `// lib code`
+  - `/test_data/project_dir_pd/empty.js`: (empty content)
+  - `/test_data/project_dir_pd/evil.ts`: `` `reboot` ``
+  - `/test_data/project_dir_pd/_--b-_.-..js`: `file with a tricky name`
+  **2. Command**:
+  `source-to-llm --pattern "'; DROP TABLE users; --" --dir /test_data/project_dir_pd`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory `/test_data/project_dir_pd` is set up.
+  - Command Behavior Analysis: The command is given a pattern that resembles a SQL injection attack. The tool is expected to treat this as a literal glob pattern. Since no file in the directory has the name `'; DROP TABLE users; --`, the glob search yields no results. Consequently, the standard output is empty, and the program exits successfully with code 0. This demonstrates robust handling of arbitrary input strings as patterns.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `source-to-llm --pattern <patterns...> --ignore <patterns...> --separator <string> --dir <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates the combined usage of all major options.
+  - `-p, --pattern <patterns...>`: Custom file patterns.
+  - `-i, --ignore <patterns...>`: Custom ignore patterns, overriding the defaults.
+  - `-s, --separator <string>`: Custom separator string.
+  - `--dir <path>`: Target directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is pre-populated with the following files:
+  - `/test_data/project_dir_all/main.js`: `console.log('hello world');`
+  - `/test_data/project_dir_all/src/component.tsx`: `export const MyComponent = () => <div />;`
+  - `/test_data/project_dir_all/src/utils/api.ts`: `fetch('/api/data');`
+  - `/test_data/project_dir_all/docs/guide.md`: `# Guide`
+  - `/test_data/project_dir_all/data.py`: `print('hello from python')`
+  - `/test_data/project_dir_all/src/test/main.test.js`: `assert(true);`
+  - `/test_data/project_dir_all/node_modules/some_lib/index.js`: `// lib code`
+  **2. Command**:
+  `source-to-llm --pattern "**/*.js" "**/*.ts" --ignore "**/node_modules/**" --separator "--- File Boundary ---" --dir /test_data/project_dir_all`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "File: main.js\n--- File Boundary ---\nconsole.log('hello world');\n--- File Boundary ---\n\nFile: src/utils/api.ts\n--- File Boundary ---\nfetch('/api/data');\n--- File Boundary ---\n\nFile: src/test/main.test.js\n--- File Boundary ---\nassert(true);\n--- File Boundary ---\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory `/test_data/project_dir_all` is set up.
+  - Command Behavior Analysis: The command combines all options. It looks for `.js` and `.ts` files, explicitly ignores any path containing `node_modules`, uses a custom separator `"--- File Boundary ---"`, and operates on the `/test_data/project_dir_all` directory. The tool correctly identifies `main.js`, `src/utils/api.ts`, and `src/test/main.test.js`. It correctly excludes `src/component.tsx` (wrong extension), `guide.md`, `data.py`, and `node_modules/some_lib/index.js` (due to the ignore rule). The output is formatted with the specified custom separator.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating a read-only operation.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

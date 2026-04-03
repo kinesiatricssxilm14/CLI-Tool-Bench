@@ -1,0 +1,278 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: ujson5
+**Repository Name**: ujson5
+**Core Functionality Description**:
+This CLI tool converts JSON5 data into standard JSON format. It can read JSON5 from an input file or standard input, and write the resulting JSON to an output file or standard output. The tool provides options to control the output format, including sorting keys alphabetically, specifying indentation, suppressing whitespace, and disabling the escaping of non-ASCII characters.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `ujson5 <infile>`
+- **Function and Parameter Description**:
+  This command reads a JSON5 file from the specified `infile` path, converts it to standard JSON, and prints the formatted result to standard output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_INFILE_TO_STDOUT_3.json5` with the following JSON5 content, which includes comments and a trailing comma:
+  ```json5
+  // Random comment g3JRJvop
+  {"wM3FUXm1l": "4Qd8aavMPN0ILEXO8", "2kC2to5ym": "4Gs0FMRyqdezIiG8", "9LhYygUkO": "TPmYvCQJ0XRIvX0IwrG", "cAwFWbwbz": "MQxl82Nbcs", "id": 948, "active": false,
+  }
+  ```
+  **2. Command**:
+  `ujson5 /test_data/input_INFILE_TO_STDOUT_3.json5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n  \"wM3FUXm1l\": \"4Qd8aavMPN0ILEXO8\",\n  \"2kC2to5ym\": \"4Gs0FMRyqdezIiG8\",\n  \"9LhYygUkO\": \"TPmYvCQJ0XRIvX0IwrG\",\n  \"cAwFWbwbz\": \"MQxl82Nbcs\",\n  \"id\": 948,\n  \"active\": false\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single JSON5 file at the specified path.
+  - Command Behavior Analysis: The tool is invoked with one positional argument, the input file path. It reads the content of this file, parses it as JSON5 (ignoring comments and the trailing comma), and then serializes the resulting data structure into a standard, pretty-printed JSON string.
+  - Final State Changes (fs_diff): The command prints a status message "JSON5 converted to JSON" followed by the resulting JSON string to standard output. The file system remains unchanged.
+
+#### Command Category: `ujson5 <infile> <outfile>`
+- **Function and Parameter Description**:
+  This command reads a JSON5 file from the `infile` path, converts it to standard JSON, and writes the result to the specified `outfile` path.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_INFILE_TO_OUTFILE_3.json5` with JSON5 content.
+  ```json5
+  // Random comment brj6Kr0cgeOtiR
+  {"ywftOsIlj": "vbafsqM0GXIeDHMeJ5ts", "QKmJ4zr9x9": "hIbtm6sHGZnqco", "MRzHGWO": "yqYl2Fc5obm", "YGfU6": "GQp9PPnTSeRwM6a7wt7", "Q6fQoM": "ZsUDJ3MxFNtn4Xkpx", "id": 440, "active": true,
+  }
+  ```
+  **2. Command**:
+  `ujson5 /test_data/input_INFILE_TO_OUTFILE_3.json5 /test_data/output_INFILE_TO_OUTFILE_3.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "output to /test_data/output_INFILE_TO_OUTFILE_3.json\n",
+      "fs_diff": {
+          "/test_data/output_INFILE_TO_OUTFILE_3.json": {
+              "type": "ADD",
+              "content": "{\n  \"ywftOsIlj\": \"vbafsqM0GXIeDHMeJ5ts\",\n  \"QKmJ4zr9x9\": \"hIbtm6sHGZnqco\",\n  \"MRzHGWO\": \"yqYl2Fc5obm\",\n  \"YGfU6\": \"GQp9PPnTSeRwM6a7wt7\",\n  \"Q6fQoM\": \"ZsUDJ3MxFNtn4Xkpx\",\n  \"id\": 440,\n  \"active\": true\n}"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input JSON5 file. The output file does not exist.
+  - Command Behavior Analysis: The tool is invoked with two positional arguments: the input file and the output file. It reads and parses the input JSON5 file, then serializes the data into a pretty-printed JSON string.
+  - Final State Changes (fs_diff): The command prints a confirmation message to standard output indicating the output path. It then creates a new file at the specified output path and writes the converted JSON content into it.
+
+#### Command Category: `echo '<json5>' | ujson5`
+- **Function and Parameter Description**:
+  This command reads JSON5 data from standard input (stdin), converts it to standard JSON, and prints the formatted result to standard output (stdout).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No files are created. The input is provided via a pipe.
+  **2. Command**:
+  `echo '// Random comment L7Y8FuiXRq\n{\"hp1wzT08t\": \"Y85qMDGEOD\", \"hQki4Jbf\": \"VHO5EjsOGB\", \"RPCZSrVV\": \"kQqBS1v7k9zIfvHn\", \"PGnFvwMH\": \"VptH4EmCiktiDDg\", \"2LDqL\": \"NnH9fwlmX2QRGWFLcgy\", \"id\": 391, \"active\": false}' | ujson5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n  \"hp1wzT08t\": \"Y85qMDGEOD\",\n  \"hQki4Jbf\": \"VHO5EjsOGB\",\n  \"RPCZSrVV\": \"kQqBS1v7k9zIfvHn\",\n  \"PGnFvwMH\": \"VptH4EmCiktiDDg\",\n  \"2LDqL\": \"NnH9fwlmX2QRGWFLcgy\",\n  \"id\": 391,\n  \"active\": false\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool is invoked without any file arguments. It detects this and reads from standard input. It parses the incoming JSON5 string, ignoring comments, and then serializes the data into a pretty-printed JSON string.
+  - Final State Changes (fs_diff): The command prints a status message followed by the converted JSON to standard output. The file system is not modified.
+
+#### Command Category: `ujson5 <infile> --sort-keys`
+- **Function and Parameter Description**:
+  This command converts a JSON5 file to JSON, sorting the keys of objects alphabetically in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_SORT_KEYS_0.json5` with JSON5 content.
+  **2. Command**:
+  `ujson5 /test_data/input_SORT_KEYS_0.json5 --sort-keys`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n  \"2U9x9La\": \"LJtKyGym6VxrKSwL\",\n  \"FQjTBXUdjG\": \"uNnzyhMlUGhD3Jmc\",\n  \"O0c2Q\": \"klPwP6B14JVJtSE\",\n  \"RWwAgddS\": \"vSCGnw6XOBO\",\n  \"active\": false,\n  \"id\": 534,\n  \"nOcqVjx\": \"u4A1LobcnBKiW489T\"\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file. The `--sort-keys` flag instructs the JSON serializer to sort the dictionary keys alphabetically before writing the output.
+  - Final State Changes (fs_diff): The converted JSON, with its top-level keys sorted alphabetically (`2U9x9La`, `FQjTBXUdjG`, `O0c2Q`, etc.), is printed to standard output.
+
+#### Command Category: `ujson5 <infile> --no-ensure-ascii`
+- **Function and Parameter Description**:
+  This command converts a JSON5 file to JSON. The `--no-ensure-ascii` flag ensures that non-ASCII characters in the input (like `你好世界`) are output as-is, rather than being escaped into `\uXXXX` sequences.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_NO_ENSURE_ASCII_1.json5` containing JSON5 with unicode escape sequences: `{"\\u4f60\\u597d\\u4e16\\u754c": "test_L5qE"}`.
+  **2. Command**:
+  `ujson5 /test_data/input_NO_ENSURE_ASCII_1.json5 --no-ensure-ascii`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n  \"1mxvBPT\": \"U29yoHAqACH7SUbFI\",\n  \"ohI8U2\": \"Vre5tDgBorQuAMu\",\n  \"94ID8oiS8f\": \"R60lYQFz68t2VzUmSLv\",\n  \"m3e7fFh\": \"eMhDSoUweGki53V8nWD\",\n  \"id\": 777,\n  \"active\": false,\n  \"你好世界\": \"test_L5qE\"\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains a key with unicode escape sequences.
+  - Command Behavior Analysis: The tool reads and parses the input file. The `--no-ensure-ascii` flag instructs the JSON serializer to output multi-byte characters directly instead of escaping them.
+  - Final State Changes (fs_diff): The resulting JSON is printed to stdout, where the key `\u4f60\u597d\u4e16\u754c` has been rendered as the literal string `你好世界`.
+
+#### Command Category: `ujson5 <infile> --indent <N>`
+- **Function and Parameter Description**:
+  This command converts a JSON5 file to pretty-printed JSON, using a specified number of spaces for each level of indentation. The `<N>` argument determines the number of spaces.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_INDENT_3.json5` with JSON5 content.
+  **2. Command**:
+  `ujson5 /test_data/input_INDENT_3.json5 --indent 7`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n       \"5o5JL\": \"gynVtEgkJWO\",\n       \"01jC3\": \"LvNMq20eO7nfu\",\n       \"CpfwXti\": \"FptVqT6m7waF8suwny\",\n       \"yXWwqXW4Z\": \"xjarpAPKfLu\",\n       \"44Pwgrzk\": \"wPWL92NboXhebbm4D\",\n       \"id\": 191,\n       \"active\": false\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file. The `--indent 7` argument instructs the JSON serializer to format the output with newlines and use 7 spaces for each level of indentation.
+  - Final State Changes (fs_diff): The converted JSON is printed to stdout, with each key-value pair indented by 7 spaces.
+
+#### Command Category: `ujson5 <infile> --no-indent`
+- **Function and Parameter Description**:
+  This command converts a JSON5 file to JSON, separating items with spaces rather than newlines. This produces a more compact output than the default, but less compact than `--compact`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_NO_INDENT_0.json5` with JSON5 content.
+  **2. Command**:
+  `ujson5 /test_data/input_NO_INDENT_0.json5 --no-indent`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\"mrb56\": \"dJ9I5We7CTgEV\", \"k3hJzKu\": \"ReJveNMWnNfWmMNE\", \"7Geajwp1bW\": \"fstLUIfYDcJT3\", \"Ln1AhKn\": \"KOQRjexfIF4\", \"wnAcEyj\": \"foZxrqZgaM\", \"id\": 739, \"active\": true}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file. The `--no-indent` flag instructs the JSON serializer to place the output on a single line, using default spacing (a single space) after commas and colons.
+  - Final State Changes (fs_diff): The converted JSON is printed to stdout as a single line.
+
+#### Command Category: `ujson5 <infile> --compact`
+- **Function and Parameter Description**:
+  This command converts a JSON5 file to the most compact JSON representation by suppressing all non-essential whitespace between tokens (commas, colons, brackets, etc.).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_COMPACT_2.json5` with JSON5 content.
+  **2. Command**:
+  `ujson5 /test_data/input_COMPACT_2.json5 --compact`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\"F6kL7\":\"abBKWlYgiLOGXK7S2T5b\",\"Kk5Ax\":\"mveDnve3zgnBNr\",\"B8JhFkpES\":\"L4PRddsPn2aHDKUW\",\"pTVuIqmQ\":\"8vU0Kn0ilO\",\"id\":330,\"active\":true}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file. The `--compact` flag instructs the JSON serializer to remove all optional whitespace, producing the smallest possible output string. This option is mutually exclusive with `--indent` and `--no-indent`.
+  - Final State Changes (fs_diff): The converted JSON is printed to stdout as a single line with no spaces.
+
+#### Command Category: `ujson5 <infile> --sort-keys --indent <N>`
+- **Function and Parameter Description**:
+  This command combines multiple formatting options: it sorts the keys of objects alphabetically (`--sort-keys`) and uses a specified number of spaces for indentation (`--indent <N>`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_SORT_KEYS_AND_INDENT_2.json5` with JSON5 content.
+  **2. Command**:
+  `ujson5 /test_data/input_SORT_KEYS_AND_INDENT_2.json5 --sort-keys --indent 5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n     \"EuKLVa\": \"hzrOn9dASLhWVWaORHY7\",\n     \"IJs47Wl\": \"5Kxr55iR92mlf2\",\n     \"RtnLE\": \"gphPLam8UzDxG7Ge4ca\",\n     \"Wl4Veb7b\": \"sRGC4m3goVzqV8QlPN\",\n     \"active\": true,\n     \"id\": 186\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file and applies both `--sort-keys` and `--indent 5` during JSON serialization. The keys are sorted first, and then the output is pretty-printed with a 5-space indent.
+  - Final State Changes (fs_diff): The resulting JSON, which is both key-sorted and indented by 5 spaces, is printed to standard output.
+
+#### Command Category: `ujson5 <infile> --sort-keys --no-ensure-ascii`
+- **Function and Parameter Description**:
+  This command combines key sorting (`--sort-keys`) with the option to output non-ASCII characters directly (`--no-ensure-ascii`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_SORT_KEYS_AND_NO_ASCII_3.json5` containing JSON5 with unicode escape sequences.
+  **2. Command**:
+  `ujson5 /test_data/input_SORT_KEYS_AND_NO_ASCII_3.json5 --no-ensure-ascii --sort-keys`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n  \"0SM0kP5\": \"llIQcuVi379AEW\",\n  \"31ld57lz\": \"WaA66Zn2ntq196QFeq3\",\n  \"Bi0aXuZ\": \"VDSUYeXEDUjzeAL\",\n  \"active\": true,\n  \"id\": 21,\n  \"pjVP5c7x\": \"8tXopY7wgzDZVvnydQ\",\n  \"u6i57YagFD\": \"5smOdiAAwprOnKD\",\n  \"你好世界\": \"test_SpHMF\"\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file with unsorted keys and unicode escapes exists.
+  - Command Behavior Analysis: The tool reads the input file and applies both `--sort-keys` and `--no-ensure-ascii` during serialization. The keys are sorted alphabetically, and unicode characters are rendered directly.
+  - Final State Changes (fs_diff): The resulting JSON, with sorted keys and a literal `你好世界` key, is printed to standard output using default indentation.
+
+#### Command Category: `ujson5 <infile> --sort-keys --no-ensure-ascii --indent <N>`
+- **Function and Parameter Description**:
+  This command combines all three formatting options: sorting keys (`--sort-keys`), outputting non-ASCII characters directly (`--no-ensure-ascii`), and using a custom indentation level (`--indent <N>`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/input_ALL_FLAGS_0.json5` containing JSON5 with unicode escape sequences and comments.
+  **2. Command**:
+  `ujson5 /test_data/input_ALL_FLAGS_0.json5 --sort-keys --no-ensure-ascii --indent 4`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "JSON5 converted to JSON\n{\n    \"IxIsg5NC\": \"XYh5VXU2m0OAglI\",\n    \"Ju1dLI\": \"XpXCJ1OK8ObqUq\",\n    \"KQzxoS\": \"fvgK9yRJ81o7\",\n    \"VVHfFy03U\": \"LLaPbzBh8PnqVgBPTIm\",\n    \"active\": true,\n    \"gRNY7mE\": \"Yw3Q81akMm5tnDCr1vj\",\n    \"id\": 986,\n    \"你好世界\": \"test_i78H2\"\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input JSON5 file exists.
+  - Command Behavior Analysis: The tool reads the input file and applies all specified flags during serialization. It sorts keys alphabetically, ensures non-ASCII characters are not escaped, and formats the output with a 4-space indent.
+  - Final State Changes (fs_diff): The fully formatted JSON is printed to standard output, reflecting all three options: sorted keys, literal unicode characters, and 4-space indentation.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

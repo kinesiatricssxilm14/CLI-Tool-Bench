@@ -1,0 +1,193 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: gitlab-pipeline-simulator
+**Repository Name**: gitlab-pipeline-simulator
+**Core Functionality Description**:
+The CLI tool simulates GitLab CI pipeline execution based on a provided YAML configuration file and a set of variables. Its core purpose is to predict which jobs will run under different conditions without needing to push changes to a repository. The tool parses the CI YAML file, evaluates `rules:if` conditions against user-provided variables, and outputs a list of jobs that would be executed. It supports string equality (`==`) and regex (`=~`) comparisons in the rules. The tool also provides options to display the scripts of matching jobs or to simply output an expanded version of the YAML configuration.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `gitlab-pipeline-simulator <yaml>`
+- **Function and Parameter Description**:
+  This command simulates a pipeline run by taking a single argument: the path to a GitLab CI YAML file. When no CI variables are provided on the command line, it evaluates the rules in the YAML file against a default (empty) set of variables.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single YAML file named `test_simulate_no_vars_4.yml` is created in the `/test_data/` directory with the following content, defining three jobs with different rules.
+  ```yaml
+  path: /test_data/test_simulate_no_vars_4.yml
+  content:
+  
+  stages:
+    - build
+    - test
+    - deploy
+  
+  build-job:
+    stage: build
+    script:
+      - echo "Building..."
+    rules:
+      - if: '$CI_COMMIT_BRANCH == "main"'
+  
+  test-job:
+    stage: test
+    script:
+      - echo "Testing..."
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "push"'
+  
+  deploy-job:
+    stage: deploy
+    script:
+      - echo "Deploying..."
+    rules:
+      - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\\.[0-9]+\\.[0-9]+$/'
+  ```
+  **2. Command**:
+  `gitlab-pipeline-simulator /test_data/test_simulate_no_vars_4.yml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n=== Pipeline Simulation Results ===\nJobs that would run based on current conditions:\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a GitLab CI configuration file at `/test_data/test_simulate_no_vars_4.yml`.
+  - Command Behavior Analysis: The tool is invoked with the path to the YAML file but without any CI variables. It parses the YAML and evaluates the `rules:if` conditions for each job. Since no variables like `CI_COMMIT_BRANCH` or `CI_PIPELINE_SOURCE` are provided, none of the conditions evaluate to true. Consequently, the tool prints the standard header for the simulation results but lists no jobs.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating the command is read-only and does not create, modify, or delete any files on the filesystem.
+
+#### Command Category: `gitlab-pipeline-simulator <yaml> <var=val>`
+- **Function and Parameter Description**:
+  This command simulates a pipeline run with a single CI variable. It takes the path to the YAML file and one `key=value` pair representing a CI variable.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A YAML file named `test_simulate_one_var_2.yml` is created in `/test_data/` with content identical to the previous example.
+  **2. Command**:
+  `gitlab-pipeline-simulator /test_data/test_simulate_one_var_2.yml CI_PIPELINE_SOURCE=web`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n=== Pipeline Simulation Results ===\nJobs that would run based on current conditions:\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the specified GitLab CI configuration file.
+  - Command Behavior Analysis: The tool is invoked with the variable `CI_PIPELINE_SOURCE` set to `web`. It evaluates the rules in the YAML. The `test-job` has a rule `if: '$CI_PIPELINE_SOURCE == "push"'`. Since `"web"` is not equal to `"push"`, this condition is false. No other rules match. As a result, no jobs are selected to run, and the output only contains the header.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, confirming the tool performs no file system modifications.
+
+#### Command Category: `gitlab-pipeline-simulator <yaml> <var1=val1> <var2=val2>`
+- **Function and Parameter Description**:
+  This command simulates a pipeline run with multiple CI variables. It accepts the YAML file path followed by any number of `key=value` pairs.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A YAML file named `test_simulate_multi_vars_4.yml` is created in `/test_data/` with content identical to the previous examples.
+  **2. Command**:
+  `gitlab-pipeline-simulator /test_data/test_simulate_multi_vars_4.yml CI_COMMIT_BRANCH=main CI_COMMIT_TAG=v1.4.20 CI_PIPELINE_SOURCE=api`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n=== Pipeline Simulation Results ===\nJobs that would run based on current conditions:\n\ud83d\ude80 Stage: build\n   \u2705 Job: build-job\n      \u251c\u2500 Condition: $CI_COMMIT_BRANCH == \"main\"\n\n\ud83d\ude80 Stage: deploy\n   \u2705 Job: deploy-job\n      \u251c\u2500 Condition: $CI_COMMIT_TAG =~ /^v[0-9]+\\.[0-9]+\\.[0-9]+$/\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the specified GitLab CI configuration file.
+  - Command Behavior Analysis: The tool is given three variables: `CI_COMMIT_BRANCH=main`, `CI_COMMIT_TAG=v1.4.20`, and `CI_PIPELINE_SOURCE=api`. It evaluates the rules:
+    1.  `build-job`: The rule `$CI_COMMIT_BRANCH == "main"` is true because the provided variable matches.
+    2.  `test-job`: The rule `$CI_PIPELINE_SOURCE == "push"` is false because the provided value is `api`.
+    3.  `deploy-job`: The rule `$CI_COMMIT_TAG =~ /^v[0-9]+\\.[0-9]+\\.[0-9]+$/` is true because `v1.4.20` matches the regex pattern.
+    The tool then prints a formatted report showing the `build-job` and `deploy-job` grouped by their respective stages, along with the specific condition that caused them to be included.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `gitlab-pipeline-simulator -show-scripts <yaml> <var=val>`
+- **Function and Parameter Description**:
+  This command simulates a pipeline run and includes the `-show-scripts` flag. This flag instructs the tool to display the `script` section for any jobs that are determined to run.
+  - `-show-scripts`: A flag that, when present, modifies the output to include the script commands for matching jobs.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A YAML file named `test_show_scripts_one_var_1.yml` is created in `/test_data/` with content identical to the previous examples.
+  **2. Command**:
+  `gitlab-pipeline-simulator -show-scripts /test_data/test_show_scripts_one_var_1.yml CI_COMMIT_BRANCH=feat/aa-zz-z-za`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n=== Pipeline Simulation Results ===\nJobs that would run based on current conditions:\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the specified GitLab CI configuration file.
+  - Command Behavior Analysis: The tool is invoked with the `-show-scripts` flag and the variable `CI_COMMIT_BRANCH=feat/aa-zz-z-za`. It evaluates the rules. The `build-job` rule `$CI_COMMIT_BRANCH == "main"` is false. No other rules match. Because no jobs are selected to run, the `-show-scripts` flag has no effect on the output, which simply shows the standard header. If a job had matched, its script content would have been printed.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `gitlab-pipeline-simulator -expand-only <yaml>`
+- **Function and Parameter Description**:
+  This command uses the `-expand-only` flag. Instead of simulating the pipeline, it should parse the input YAML file and print the fully expanded configuration to standard output.
+  - `-expand-only`: A flag that bypasses pipeline simulation and instead outputs the processed YAML configuration.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A YAML file named `test_expand_only_3.yml` is created in `/test_data/` with content identical to the previous examples.
+  **2. Command**:
+  `gitlab-pipeline-simulator -expand-only /test_data/test_expand_only_3.yml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "stages:\n  - build\n  - test\n  - deploy\nbuild-job:\n  stage: build\n  script:\n    - echo \"Building...\"\n  rules:\n    - if: '$CI_COMMIT_BRANCH == \"main\"'\ntest-job:\n  stage: test\n  script:\n    - echo \"Testing...\"\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"push\"'\ndeploy-job:\n  stage: deploy\n  script:\n    - echo \"Deploying...\"\n  rules:\n    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\\.[0-9]+\\.[0-9]+$/'\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the specified GitLab CI configuration file.
+  - Command Behavior Analysis: The tool is invoked with the `-expand-only` flag. It reads the content of `/test_data/test_expand_only_3.yml` and prints it directly to `stdout`. In this specific sample, no complex expansion (like resolving YAML anchors or `!reference` tags) is demonstrated; the behavior is to simply echo the input file's content. The implementation should match this observed behavior.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+
+#### Command Category: `Edge cases with invalid inputs`
+- **Function and Parameter Description**:
+  This tests the tool's behavior when a variable is provided with an empty string value.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A YAML file named `test_edge_cases_4.yml` is created in `/test_data/` with content identical to the previous examples.
+  **2. Command**:
+  `gitlab-pipeline-simulator /test_data/test_edge_cases_4.yml EVIL_VAR=''`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n=== Pipeline Simulation Results ===\nJobs that would run based on current conditions:\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the specified GitLab CI configuration file.
+  - Command Behavior Analysis: The tool is invoked with a variable `EVIL_VAR` set to an empty string. Since this variable is not used in any of the `rules` within the YAML file, it has no effect on the simulation outcome. No rules are satisfied, and thus no jobs are listed in the output. The tool handles the empty string value gracefully.
+  - Final State Changes (fs_diff): The `fs_diff` is empty.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

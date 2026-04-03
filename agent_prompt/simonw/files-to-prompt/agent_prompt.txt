@@ -1,0 +1,406 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: file-aggregator
+**Repository Name**: file-aggregator
+**Core Functionality Description**:
+This CLI tool is designed to concatenate the contents of multiple files from specified directories into a single, structured output. It recursively traverses directories to find files. By default, it respects `.gitignore` files to exclude certain files and also ignores hidden files (those starting with a dot). The tool offers several options to customize its behavior:
+- Filter files by specific extensions.
+- Modify the default ignoring behavior (e.g., include hidden files, ignore `.gitignore` rules).
+- Format the output in different styles: the default plain text format, an XML-like format, or as Markdown fenced code blocks.
+- Add line numbers to the file contents in the output.
+- Write the final aggregated content to a specified output file instead of standard output.
+- Read file paths from standard input, allowing it to be used in command pipelines.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `file-aggregator <paths>`
+- **Function and Parameter Description**:
+  This is the basic command. It takes one or more file or directory paths as arguments. It recursively finds all non-hidden files within the given paths, concatenates their contents, and prints them to standard output. By default, it respects `.gitignore` files to exclude matching files. Each file's output is preceded by its path and a `---` separator.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data` directory structure:
+  - `/test_data/.gitignore`: Contains patterns `*.log` and `.hidden_file` to be ignored.
+  - `/test_data/empty_file.txt`: An empty file.
+  - `/test_data/test_dir/file1.py`: A Python script.
+  - `/test_data/test_dir/file2.txt`: A text file.
+  - `/test_data/test_dir/file with spaces.txt`: A text file with spaces in its name.
+  - `/test_data/test_dir/.hidden_file`: A hidden configuration file.
+  - `/test_data/test_dir/temp.log`: A log file.
+  - `/test_data/test_dir/another.log`: Another log file.
+  - `/test_data/test_dir/subdir/file3.md`: A Markdown file in a subdirectory.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data/test_dir` is populated with various files, including a subdirectory, a hidden file, and log files. A `.gitignore` file exists in the parent directory `/test_data`, which specifies that `*.log` files and `.hidden_file` should be ignored.
+  - Command Behavior Analysis: The tool is invoked on the `/test_data/test_dir` directory. It recursively scans for files. It correctly ignores `.hidden_file` (because it's hidden and also in `.gitignore`) and the two `.log` files (because of the `*.log` pattern in `.gitignore`). The remaining files are processed. For each file, its path is printed, followed by `---`, then its content, and finally another `---`. The files are processed in alphabetical order of their paths.
+  - Final State Changes (fs_diff): No changes are made to the file system as the output is directed to `stdout`.
+
+#### Command Category: `file-aggregator <paths> --cxml`
+- **Function and Parameter Description**:
+  This command aggregates files like the basic version but formats the output in an XML-like structure.
+  - `--cxml`: This flag changes the output format. The entire output is wrapped in `<documents>`. Each file is wrapped in a `<document>` tag with an `index` attribute. The file path is placed in a `<source>` tag, and its content is placed in a `<document_content>` tag.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous example.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --cxml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "<documents>\n<document index=\"1\">\n<source>/test_data/test_dir/file with spaces.txt</source>\n<document_content>\nContent for file with spaces.\n</document_content>\n</document>\n<document index=\"2\">\n<source>/test_data/test_dir/file1.py</source>\n<document_content>\nimport os\n\ndef main():\n    print('Hello from Python')\n\n</document_content>\n</document>\n<document index=\"3\">\n<source>/test_data/test_dir/file2.txt</source>\n<document_content>\nThis is a simple text file.\nIt has multiple lines.\n</document_content>\n</document>\n<document index=\"4\">\n<source>/test_data/test_dir/subdir/file3.md</source>\n<document_content>\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n</document_content>\n</document>\n</documents>\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool selects the same set of files as the base case (respecting `.gitignore` and ignoring hidden files). However, due to the `--cxml` flag, the output format is changed. The entire collection is enclosed in `<documents>`. Each file is represented by a `<document>` block containing its source path and content, with a 1-based index.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --markdown`
+- **Function and Parameter Description**:
+  This command aggregates files and formats the output using Markdown fenced code blocks.
+  - `--markdown`: This flag changes the output format. For each file, its path is printed, followed by a Markdown code block containing the file's content. The language identifier for the code block (e.g., `python`) is inferred from the file extension. If the file content itself contains triple backticks, the tool should use four or more backticks for the outer fence to avoid rendering issues.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --markdown`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n```\nContent for file with spaces.\n```\n/test_data/test_dir/file1.py\n```python\nimport os\n\ndef main():\n    print('Hello from Python')\n\n```\n/test_data/test_dir/file2.txt\n```\nThis is a simple text file.\nIt has multiple lines.\n```\n/test_data/test_dir/subdir/file3.md\n````\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n````\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool selects the same files. The `--markdown` flag dictates the output format. For `file1.py`, it correctly infers the language as `python`. For `.txt` files, it uses a plain code block. For `file3.md`, which contains a ` ``` ` code block, the tool cleverly wraps the content in ` ```` ` (four backticks) to ensure correct Markdown rendering.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --line-numbers`
+- **Function and Parameter Description**:
+  This command aggregates files and prepends line numbers to each line of the content.
+  - `--line-numbers` / `-n`: This flag enables line numbering. Each line in the file content is prefixed with its line number and padding.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --line-numbers`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\n1  Content for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\n1  import os\n2  \n3  def main():\n4      print('Hello from Python')\n\n---\n/test_data/test_dir/file2.txt\n---\n1  This is a simple text file.\n2  It has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n1  # Markdown File\n2  \n3  - Item 1\n4  - Item 2\n5  ```\n6  code block\n7  ```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool selects the same files and uses the default `---` separator format. The `--line-numbers` flag modifies the content part of the output. Each line of each file's content is prefixed with its 1-based line number, right-padded, followed by two spaces.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --cxml --line-numbers`
+- **Function and Parameter Description**:
+  This command combines XML-style formatting with line numbering.
+  - `--cxml`: Formats the output in XML.
+  - `--line-numbers`: Adds line numbers to the content within the XML structure.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --cxml --line-numbers`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "<documents>\n<document index=\"1\">\n<source>/test_data/test_dir/file with spaces.txt</source>\n<document_content>\n1  Content for file with spaces.\n</document_content>\n</document>\n<document index=\"2\">\n<source>/test_data/test_dir/file1.py</source>\n<document_content>\n1  import os\n2  \n3  def main():\n4      print('Hello from Python')\n</document_content>\n</document>\n<document index=\"3\">\n<source>/test_data/test_dir/file2.txt</source>\n<document_content>\n1  This is a simple text file.\n2  It has multiple lines.\n</document_content>\n</document>\n<document index=\"4\">\n<source>/test_data/test_dir/subdir/file3.md</source>\n<document_content>\n1  # Markdown File\n2  \n3  - Item 1\n4  - Item 2\n5  ```\n6  code block\n7  ```\n</document_content>\n</document>\n</documents>\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool combines the effects of `--cxml` and `--line-numbers`. It generates the XML structure, and the content inside each `<document_content>` block is prefixed with line numbers, just as in the previous example.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --markdown --line-numbers`
+- **Function and Parameter Description**:
+  This command combines Markdown formatting with line numbering.
+  - `--markdown`: Formats the output as Markdown fenced code blocks.
+  - `--line-numbers`: Adds line numbers to the content within the code blocks.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --markdown --line-numbers`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n```\n1  Content for file with spaces.\n```\n/test_data/test_dir/file1.py\n```python\n1  import os\n2  \n3  def main():\n4      print('Hello from Python')\n```\n/test_data/test_dir/file2.txt\n```\n1  This is a simple text file.\n2  It has multiple lines.\n```\n/test_data/test_dir/subdir/file3.md\n````\n1  # Markdown File\n2  \n3  - Item 1\n4  - Item 2\n5  ```\n6  code block\n7  ```\n````\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool combines the effects of `--markdown` and `--line-numbers`. It generates the Markdown code block structure, and the content inside each block is prefixed with line numbers.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> -e <ext>`
+- **Function and Parameter Description**:
+  This command filters the files to be processed based on their extension.
+  - `-e, --extension <ext>`: Only include files with the specified extension. The extension should be provided without the leading dot.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir -e 'md'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The `-e 'md'` flag instructs the tool to only include files ending with the `.md` extension. From the available files, only `/test_data/test_dir/subdir/file3.md` matches this criterion. The tool then prints its path and content in the default format.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> -e <ext1> -e <ext2>`
+- **Function and Parameter Description**:
+  This command demonstrates using the extension filter multiple times to include files with any of the specified extensions.
+  - `-e, --extension <ext>`: This option can be specified multiple times to create a list of allowed extensions.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir -e 'txt' -e 'md'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool is given two extension filters: `-e 'txt'` and `-e 'md'`. It processes all files ending in either `.txt` or `.md`. This includes `file with spaces.txt`, `file2.txt`, and `file3.md`. The output contains the content of these three files.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --include-hidden`
+- **Function and Parameter Description**:
+  This command modifies the default behavior to include hidden files and directories (those starting with a `.`) in the scan.
+  - `--include-hidden`: Overrides the default exclusion of hidden files/directories. Note that this does not override `.gitignore` rules.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --include-hidden`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The `--include-hidden` flag is used. This tells the tool to consider files like `.hidden_file`. However, the `.gitignore` file also contains a rule to ignore `.hidden_file`. The `.gitignore` rule takes precedence, so `.hidden_file` is still excluded. The log files are also excluded due to `.gitignore`. Therefore, the output is identical to the base case. This demonstrates that `.gitignore` rules are evaluated independently of the hidden file status.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --ignore <pattern>`
+- **Function and Parameter Description**:
+  This command allows specifying custom ignore patterns.
+  - `--ignore <pattern>`: A pattern for files or directories to ignore. The pattern matching uses `fnmatch` syntax (e.g., `*`, `?`). This can be used multiple times. In this sample, an empty pattern is used, which has no effect.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --ignore ''`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The command is run with `--ignore ''`. Providing an empty ignore pattern has no effect on file selection. The tool behaves exactly like the base case, respecting the default hidden file exclusion and the `.gitignore` rules.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --ignore <pattern> --ignore-files-only`
+- **Function and Parameter Description**:
+  This command demonstrates how to make `--ignore` patterns apply only to files, not directories.
+  - `--ignore <pattern>`: Specifies a pattern to ignore. Here, it's `'subdir'`.
+  - `--ignore-files-only`: Modifies the behavior of `--ignore` so that patterns only match against file names, not directory names.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --ignore 'subdir' --ignore-files-only`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The command uses `--ignore 'subdir'`. Without `--ignore-files-only`, this would cause the entire `subdir` directory to be skipped. However, because `--ignore-files-only` is present, the pattern `'subdir'` is only tested against filenames. Since there is no file named `subdir`, the pattern doesn't match anything. The tool still descends into the `subdir` directory and processes `file3.md`. The output is therefore identical to the base case.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> --ignore-gitignore`
+- **Function and Parameter Description**:
+  This command disables the default behavior of respecting `.gitignore` files.
+  - `--ignore-gitignore`: Tells the tool to not read or apply any `.gitignore` files it finds.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir --ignore-gitignore`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/another.log\n---\nDEBUG: Another log entry.\n\n---\n/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/temp.log\n---\nINFO: Application started.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The `--ignore-gitignore` flag is used, so the rules in `/test_data/.gitignore` (`*.log`, `.hidden_file`) are ignored. Consequently, `another.log` and `temp.log` are now included in the output. However, the tool still ignores hidden files by default, so `.hidden_file` is still excluded.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `file-aggregator <paths> -o <file>`
+- **Function and Parameter Description**:
+  This command writes the aggregated output to a file instead of standard output.
+  - `-o, --output <file>`: Specifies the path to the output file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous examples.
+  **2. Command**:
+  `file-aggregator /test_data/test_dir -o /test_data/output_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/output_4.txt": {
+              "type": "ADD",
+              "content": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n/test_data/test_dir/subdir/file3.md\n---\n# Markdown File\n\n- Item 1\n- Item 2\n```\ncode block\n```\n\n---\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as the base case.
+  - Command Behavior Analysis: The tool operates like the base case in terms of file selection. However, the `-o /test_data/output_4.txt` flag redirects the output. Instead of printing to `stdout`, the aggregated content is written to the specified file.
+  - Final State Changes (fs_diff): The `stdout` is empty. The `fs_diff` shows that a new file, `/test_data/output_4.txt`, has been created (`ADD`). Its content is exactly what would have been printed to `stdout` in the base case.
+
+#### Command Category: `cat paths.txt | file-aggregator`
+- **Function and Parameter Description**:
+  This command demonstrates the ability to read file paths from standard input (stdin).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The file system is set up identically to the previous examples.
+  - A script `printf '%s\\n' '/test_data/test_dir/file1.py' '/test_data/test_dir/file2.txt' > /tmp/paths.txt` is run, creating a file with two paths, each on a new line.
+  **2. Command**:
+  `cat /tmp/paths.txt | file-aggregator`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: In addition to the standard file setup, a file `/tmp/paths.txt` is created containing two explicit file paths.
+  - Command Behavior Analysis: The `cat` command reads `/tmp/paths.txt` and pipes its content to the `file-aggregator`'s stdin. The tool detects that it's receiving input from stdin and reads the newline-separated paths. It then processes only these two specified files (`file1.py` and `file2.txt`), ignoring all others and not performing any recursive directory scan. The output contains the content of just these two files.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `cat paths.bin | file-aggregator --null`
+- **Function and Parameter Description**:
+  This command reads NUL-separated file paths from stdin, which is useful for filenames containing spaces or other special characters.
+  - `--null` / `-0`: Instructs the tool to read paths from stdin separated by a NUL character (`\0`) instead of newlines.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The file system is set up identically to the previous examples.
+  - A script `printf '%s\\0' '/test_data/test_dir/file with spaces.txt' '/test_data/empty_file.txt' > /tmp/paths.bin` is run, creating a file with two paths separated by a NUL character.
+  **2. Command**:
+  `cat /tmp/paths.bin | file-aggregator --null`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file with spaces.txt\n---\nContent for file with spaces.\n\n---\n/test_data/empty_file.txt\n---\n\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A binary file `/tmp/paths.bin` is created containing two paths, including one with spaces, separated by a NUL byte.
+  - Command Behavior Analysis: The content of `/tmp/paths.bin` is piped to the tool. The `--null` flag tells the tool to split the input stream on NUL characters. It correctly parses the two paths, including `'file with spaces.txt'`, and processes them. The output includes the content of the file with spaces and the empty file.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `cat paths.txt | file-aggregator <path_arg>`
+- **Function and Parameter Description**:
+  This command demonstrates that the tool can process paths from both stdin and command-line arguments simultaneously.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The file system is set up identically to the previous examples.
+  - A script `printf '%s\\n' '/test_data/test_dir/file2.txt' > /tmp/paths.txt` is run.
+  **2. Command**:
+  `cat /tmp/paths.txt | file-aggregator /test_data/test_dir/file1.py`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/test_data/test_dir/file1.py\n---\nimport os\n\ndef main():\n    print('Hello from Python')\n\n\n---\n/test_data/test_dir/file2.txt\n---\nThis is a simple text file.\nIt has multiple lines.\n\n---\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: `/tmp/paths.txt` is created with the path to `file2.txt`.
+  - Command Behavior Analysis: The tool receives `/test_data/test_dir/file1.py` as a command-line argument and `/test_data/test_dir/file2.txt` from stdin. It processes both sources, aggregating the content from both files into the final output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>
