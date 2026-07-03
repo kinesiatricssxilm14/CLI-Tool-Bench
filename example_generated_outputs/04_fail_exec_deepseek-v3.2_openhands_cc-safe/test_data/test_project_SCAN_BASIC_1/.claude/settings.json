@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "docker run --privileged ubuntu",
+      "sudo du -sh /",
+      "rm file.txt",
+      "git push --force",
+      "kubectl exec mypod -- ls"
+    ]
+  }
+}

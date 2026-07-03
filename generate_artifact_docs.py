@@ -216,7 +216,7 @@ This guide explains how to use the artifact at `{BASE_URL}/` without downloading
 
 | Component | Location | Size |
 | --- | --- | ---: |
-| Example 100% successful agents | `example_generated_outputs/` | < 1 MB |
+| Example generated codebases (success & failures) | `example_generated_outputs/` | < 1 MB |
 | Sanitized agent prompts ({task_count}) | `agent_prompt/` | ~2 MB |
 | Differential fuzzing scripts ({task_count}) | `run_differential_test/repo/*/start.py` | ~1 MB |
 | Evaluation engine | `run_differential_test/DiffTestEngine.py` | in-repo |
@@ -416,10 +416,10 @@ agent_prompt/<owner>/<repo>/agent_prompt.txt       # Sanitized intent given to a
 run_differential_test/repo/<owner>/<repo>/start.py # Full fuzzing + differential oracle
 results_metadata_with_sp.json                      # All per-model scores
 run_differential_test/DiffTestEngine.py            # Side-effect + stdout checking
-example_generated_outputs/                         # Two 100% successful generated codebases
+example_generated_outputs/                         # Representative success and failure case examples
 ```
 
-Reviewers can browse the **[`example_generated_outputs/`](example_generated_outputs/)** directory to see real codebases generated entirely from scratch by DeepSeek-V3.2 and Kimi-k2.5.
+Reviewers can browse the **[`example_generated_outputs/`](example_generated_outputs/)** directory to see real codebases representing successful builds, compilation errors, runtime crashes, and hallucinated workspaces without downloading the 1GB archive.
 
 Example — **prompt-scanner** (file-input CLI with programmatic fuzz fixtures):
 
@@ -433,7 +433,7 @@ Example — **prompt-scanner** (file-input CLI with programmatic fuzz fixtures):
 ```text
 .
 ├── docs/                         # Human-readable artifact guides (start here)
-├── example_generated_outputs/    # Browsable 100% success examples (Go & Python)
+├── example_generated_outputs/    # Browsable success & failure cases (Go, JS, Python)
 ├── agent_prompt/                 # {task_count} sanitized prompts
 ├── run_differential_test/        # Differential engine + {task_count} start.py fuzzers
 ├── results_metadata_with_sp.json # Complete evaluation table
