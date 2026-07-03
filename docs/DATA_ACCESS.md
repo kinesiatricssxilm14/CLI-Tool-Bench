@@ -12,11 +12,11 @@
 
 | Asset | Size | Link |
 | --- | ---: | --- |
-| OpenHands generated repositories | ~523 MB | [Download](https://drive.google.com/file/d/17EIXINJ7JK-K7F8bRIBwBA9gtLBotwv3/view?usp=drive_link) |
-| Mini-SWE-Agent generated repositories | ~216 MB | [Download](https://drive.google.com/file/d/1asdPwLFh-__Sz374WWi5B42SqldIDw43/view?usp=drive_link) |
-| Full result metadata archive | small | [Download](https://drive.google.com/file/d/1Xz8cAiZ5quceI2ypvOf7bYBqGc1KKEOX/view?usp=drive_link) |
-| Category metadata | small | [Download](https://drive.google.com/file/d/1XVHt1QYw1lbyFILgRJKzyuX-Tz_C-yWU/view?usp=drive_link) |
-| Raw candidate filtering dataset | large | [Download](https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link) |
+| OpenHands generated repositories | ~480 MB | [Download](YOUR_OPENHANDS_DRIVE_LINK_HERE) |
+| Mini-SWE-Agent generated repositories | ~200 MB | [Download](YOUR_MINI_SWE_DRIVE_LINK_HERE) |
+| Full result metadata archive | small | [Download](YOUR_METADATA_DRIVE_LINK_HERE) |
+| Category metadata | small | [Download](YOUR_CATEGORY_DRIVE_LINK_HERE) |
+| Raw candidate filtering dataset | large | [Download](YOUR_RAW_DATA_DRIVE_LINK_HERE) |
 
 ## Why split storage?
 

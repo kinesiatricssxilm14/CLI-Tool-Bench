@@ -19,3 +19,4 @@ parse_traj*.py
 move_logs.py
 extract_figs.py
 restore_sp_zero.py
+drive_uploads_package/

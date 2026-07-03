@@ -265,6 +265,15 @@ The canonical artifact entry point remains this repository root.
     (DOCS_DIR / "QUICKSTART.md").write_text(text, encoding="utf-8")
 
 
+# --- Google Drive Link Configuration ---
+# Update these variables after uploading your new ZIP files to Google Drive.
+# Replace the URL with your new sharing links.
+LINK_OPENHANDS = "YOUR_OPENHANDS_DRIVE_LINK_HERE"
+LINK_MINISWE = "YOUR_MINI_SWE_DRIVE_LINK_HERE"
+LINK_METADATA = "YOUR_METADATA_DRIVE_LINK_HERE"
+LINK_CATEGORY = "YOUR_CATEGORY_DRIVE_LINK_HERE"
+LINK_RAW_DATA = "YOUR_RAW_DATA_DRIVE_LINK_HERE"
+
 def write_data_access() -> None:
     text = f"""# Data Access & External Assets
 
@@ -280,11 +289,11 @@ def write_data_access() -> None:
 
 | Asset | Size | Link |
 | --- | ---: | --- |
-| OpenHands generated repositories | ~523 MB | [Download](https://drive.google.com/file/d/17EIXINJ7JK-K7F8bRIBwBA9gtLBotwv3/view?usp=drive_link) |
-| Mini-SWE-Agent generated repositories | ~216 MB | [Download](https://drive.google.com/file/d/1asdPwLFh-__Sz374WWi5B42SqldIDw43/view?usp=drive_link) |
-| Full result metadata archive | small | [Download](https://drive.google.com/file/d/1Xz8cAiZ5quceI2ypvOf7bYBqGc1KKEOX/view?usp=drive_link) |
-| Category metadata | small | [Download](https://drive.google.com/file/d/1XVHt1QYw1lbyFILgRJKzyuX-Tz_C-yWU/view?usp=drive_link) |
-| Raw candidate filtering dataset | large | [Download](https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link) |
+| OpenHands generated repositories | ~480 MB | [Download]({LINK_OPENHANDS}) |
+| Mini-SWE-Agent generated repositories | ~200 MB | [Download]({LINK_MINISWE}) |
+| Full result metadata archive | small | [Download]({LINK_METADATA}) |
+| Category metadata | small | [Download]({LINK_CATEGORY}) |
+| Raw candidate filtering dataset | large | [Download]({LINK_RAW_DATA}) |
 
 ## Why split storage?
 
@@ -439,7 +448,7 @@ python compute_confidence_intervals.py   # prints SD + 90% CI
 python generate_artifact_docs.py         # refresh docs/ markdown tables
 ```
 
-Large generated repositories (~740 MB zipped) remain on Google Drive — see [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md).
+Large generated repositories remain on Google Drive — see [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md).
 
 ---
 
@@ -457,12 +466,6 @@ Large generated repositories (~740 MB zipped) remain on Google Drive — see [do
 - **Side-effects are enforced:** stdout is compared only after filesystem deltas match the oracle (see [docs/EVALUATION.md](docs/EVALUATION.md)).
 - **De-identified prompts:** author names, URLs, and branding removed before agent execution.
 - **Isolated sandboxes:** agent runs use Docker without network connectivity.
-
----
-
-## Citation
-
-If you use this benchmark, please cite the CLI-Tool-Bench paper (ICSE 2027 submission).
 """
     (REPO_ROOT / "README.md").write_text(text, encoding="utf-8")
 

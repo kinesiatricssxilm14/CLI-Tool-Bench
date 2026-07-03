@@ -75,7 +75,7 @@ python compute_confidence_intervals.py   # prints SD + 90% CI
 python generate_artifact_docs.py         # refresh docs/ markdown tables
 ```
 
-Large generated repositories (~740 MB zipped) remain on Google Drive — see [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md).
+Large generated repositories remain on Google Drive — see [docs/DATA_ACCESS.md](docs/DATA_ACCESS.md).
 
 ---
 
@@ -93,9 +93,3 @@ Large generated repositories (~740 MB zipped) remain on Google Drive — see [do
 - **Side-effects are enforced:** stdout is compared only after filesystem deltas match the oracle (see [docs/EVALUATION.md](docs/EVALUATION.md)).
 - **De-identified prompts:** author names, URLs, and branding removed before agent execution.
 - **Isolated sandboxes:** agent runs use Docker without network connectivity.
-
----
-
-## Citation
-
-If you use this benchmark, please cite the CLI-Tool-Bench paper (ICSE 2027 submission).
