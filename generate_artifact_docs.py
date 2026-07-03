@@ -259,9 +259,9 @@ Agents receive **no access** to fuzzing scripts during generation; evaluation is
 
 ## Optional interactive view
 
-If your browser renders static HTML from the file tree, you may also open
-{link("index.html", "index.html")} for a searchable task browser and leaderboard widget.
-The canonical artifact entry point remains this repository root.
+*(Note: For security reasons, anonymous platforms like 4open.science often disable executing JavaScript in raw HTML files. To view the interactive dashboard, simply clone the repository and open `index.html` in your local browser.)*
+
+The dashboard provides a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics.
 """
     (DOCS_DIR / "QUICKSTART.md").write_text(text, encoding="utf-8")
 
@@ -379,24 +379,8 @@ def write_readme(rows: list[dict], tasks: list[str]) -> None:
 [![Artifact Available](https://img.shields.io/badge/Artifact-Available-success)](#)
 [![Tasks](https://img.shields.io/badge/Tasks-{task_count}-blue)](#)
 [![Models × Frameworks](https://img.shields.io/badge/Evaluated-7_models_%C3%97_2_frameworks-orange)](#)
-[![Interactive Web Explorer](https://img.shields.io/badge/Web_Explorer-Click_Here!-ff69b4.svg)](#interactive-web-explorer-new)
 
 > **Artifact URL (paper):** `{BASE_URL}/`
-
----
-
-## 🌟 Interactive Web Explorer (NEW!)
-
-**Reviewers: Don't want to browse through folders manually?**
-We have built an interactive Web Dashboard directly into this repository! 
-
-👉 **[Open the Web Explorer (index.html)](index.html)** 👈
-*(If viewing on anonymous.4open.science, simply click `index.html` in the file browser above to view the interactive dashboard.)*
-
-**In the Web Explorer, you can:**
-1. View the **Interactive Leaderboard** (complete with Standard Deviation and Confidence Intervals).
-2. Browse all **{task_count} Tasks** via the Task Explorer.
-3. Instantly view the **Sanitized Agent Prompts** and the **Differential Fuzzing Test Scripts (`start.py`)** side-by-side.
 
 ---
 
@@ -456,7 +440,7 @@ Example — **prompt-scanner** (file-input CLI with programmatic fuzz fixtures):
 ├── category.json                 # Domain taxonomy
 ├── compute_confidence_intervals.py
 ├── generate_artifact_docs.py     # Regenerate docs/LEADERBOARD.md etc.
-├── index.html                    # Optional interactive browser (same repo)
+├── index.html                    # Local interactive dashboard (open in browser)
 └── zero_file_cases.md            # Qualitative failure analysis
 ```
 

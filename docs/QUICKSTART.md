@@ -56,6 +56,6 @@ Agents receive **no access** to fuzzing scripts during generation; evaluation is
 
 ## Optional interactive view
 
-If your browser renders static HTML from the file tree, you may also open
-[index.html](https://anonymous.4open.science/r/CLI-Tool-Bench-F303/index.html) for a searchable task browser and leaderboard widget.
-The canonical artifact entry point remains this repository root.
+*(Note: For security reasons, anonymous platforms like 4open.science often disable executing JavaScript in raw HTML files. To view the interactive dashboard, simply clone the repository and open `index.html` in your local browser.)*
+
+The dashboard provides a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics.
