@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/mp4analyzer/__init__.py
+src/mp4analyzer/cli.py
+src/mp4analyzer/formatter.py
+src/mp4analyzer/parser.py
+src/mp4analyzer.egg-info/PKG-INFO
+src/mp4analyzer.egg-info/SOURCES.txt
+src/mp4analyzer.egg-info/dependency_links.txt
+src/mp4analyzer.egg-info/entry_points.txt
+src/mp4analyzer.egg-info/top_level.txt

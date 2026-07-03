@@ -1,0 +1,2 @@
+[console_scripts]
+mp4analyzer = mp4analyzer.cli:main

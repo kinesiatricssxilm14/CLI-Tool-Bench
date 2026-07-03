@@ -38,11 +38,14 @@
 ## What reviewers can verify immediately (no multi-GB download)
 
 ```text
-agent_prompt/<owner>/<repo>/agent_prompt.txt     # Sanitized intent given to agents
+agent_prompt/<owner>/<repo>/agent_prompt.txt       # Sanitized intent given to agents
 run_differential_test/repo/<owner>/<repo>/start.py # Full fuzzing + differential oracle
-results_metadata_with_sp.json                     # All per-model scores
-run_differential_test/DiffTestEngine.py             # Side-effect + stdout checking
+results_metadata_with_sp.json                      # All per-model scores
+run_differential_test/DiffTestEngine.py            # Side-effect + stdout checking
+example_generated_outputs/                         # Two 100% successful generated codebases
 ```
+
+Reviewers can browse the **[`example_generated_outputs/`](example_generated_outputs/)** directory to see real codebases generated entirely from scratch by DeepSeek-V3.2 and Kimi-k2.5.
 
 Example — **prompt-scanner** (file-input CLI with programmatic fuzz fixtures):
 
@@ -56,6 +59,7 @@ Example — **prompt-scanner** (file-input CLI with programmatic fuzz fixtures):
 ```text
 .
 ├── docs/                         # Human-readable artifact guides (start here)
+├── example_generated_outputs/    # Browsable 100% success examples (Go & Python)
 ├── agent_prompt/                 # 94 sanitized prompts
 ├── run_differential_test/        # Differential engine + 94 start.py fuzzers
 ├── results_metadata_with_sp.json # Complete evaluation table

@@ -13,6 +13,7 @@ This guide explains how to use the artifact at `https://anonymous.4open.science/
 
 | Component | Location | Size |
 | --- | --- | ---: |
+| Example 100% successful agents | `example_generated_outputs/` | < 1 MB |
 | Sanitized agent prompts (94) | `agent_prompt/` | ~2 MB |
 | Differential fuzzing scripts (94) | `run_differential_test/repo/*/start.py` | ~1 MB |
 | Evaluation engine | `run_differential_test/DiffTestEngine.py` | in-repo |
