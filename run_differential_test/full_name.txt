@@ -1,7 +1,6 @@
 cyberxuan-XBX/gscc
 ako/backing-tracks
 multimediallc/codeowners-plus
-VictorFrancelino/simplescript
 consi/ymldiff
 jrswab/lsq
 hoangsonww/SQL-Mongo-Query-Converter
@@ -34,7 +33,6 @@ henryhale/depgraph
 daadLang/daad
 soulteary/ssh-config
 skewb1k/upfile
-Matricess/depcycle
 devOpifex/obfuscator
 monstermichl/TypeShell
 sanchezpaco/gitlab-pipeline-simulator
@@ -60,12 +58,9 @@ tawandakembo/code-collator
 sweatyvise/gomi-rename
 yehorovye/gotcha
 jaunruh/jmux
-CMIP-Data-Request/CMIP7_DReq_Software
 panispani/sanitext
 horiacristescu/nub
 alizmhdi/shamsi-calendar
-LucasBringsken/whattheflag
-Osc2405/pbi-docs
 miekg/gotmplfmt
 pinin4fjords/nf-metro
 offensiverep/effrit
@@ -89,7 +84,6 @@ ykdojo/cc-safe
 simonw/files-to-prompt
 dreamquality/swagger-coverage-cli
 eyereasoner/eyeling
-ChrisChinchilla/Vale-MCP
 rstackjs/browserslist-to-es-version
 rayokota/jsonata-python
 bhadmus/postwright

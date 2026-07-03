@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI-Tool-Bench: Artifact Explorer</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Highlight.js for code formatting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
+        .sidebar-item:hover { background-color: #1e293b; cursor: pointer; }
+        .sidebar-item.active { background-color: #334155; border-left: 4px solid #3b82f6; }
+        .code-container { background: #1e293b; border-radius: 8px; overflow: hidden; }
+        .code-header { background: #0f172a; padding: 8px 16px; font-size: 0.875rem; color: #94a3b8; border-bottom: 1px solid #334155; }
+        pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 0.875rem; }
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Navbar -->
+    <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+                CLI-Tool-Bench Explorer
+            </h1>
+            <span class="px-2 py-1 bg-slate-800 text-xs rounded text-slate-300 border border-slate-700">ICSE 2027 Artifact</span>
+        </div>
+        <div class="flex space-x-6 text-sm">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="text-blue-400 font-semibold hover:text-blue-300 transition-colors">📊 Leaderboard</button>
+            <button onclick="switchTab('tasks')" id="tab-tasks" class="text-slate-400 hover:text-slate-200 transition-colors">🔍 Task & Test Explorer</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- Dashboard Tab -->
+        <div id="view-dashboard" class="w-full h-full p-8 overflow-y-auto hidden">
+            <div class="max-w-6xl mx-auto space-y-8">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                    <h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center">
+                        <span class="mr-2">📈</span> Overall Agent Performance (Semantic Match)
+                    </h2>
+                    <p class="text-slate-400 text-sm mb-6">
+                        Performance metrics computed across 94 repositories. Shows average Semantic Match (SM) score.
+                        Standard deviation (SD) and 90% confidence intervals are reported in the Leaderboard tab.
+                    </p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700 text-slate-400 text-sm">
+                                    <th class="py-3 px-4 font-medium">Model</th>
+                                    <th class="py-3 px-4 font-medium">Framework</th>
+                                    <th class="py-3 px-4 font-medium">Avg SM Score</th>
+                                    <th class="py-3 px-4 font-medium">Std Dev (SD)</th>
+                                    <th class="py-3 px-4 font-medium">Avg Tokens</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-bold mb-2">Artifact Highlights</h3>
+                        <ul class="space-y-3 text-sm text-slate-300 list-disc list-inside mt-4">
+                            <li><strong>Task Explorer:</strong> Browse all 94 tasks with sanitized prompts and full fuzzing scripts side-by-side.</li>
+                            <li><strong>Statistical rigor:</strong> Leaderboard includes SD and 90% CI; recomputable via <code class="text-xs bg-slate-900 px-1 py-0.5 rounded">make stats</code>.</li>
+                            <li><strong>Evaluation integrity:</strong> Filesystem side-effects are enforced before stdout comparison.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-bold mb-2">Reproducibility</h3>
+                        <p class="text-sm text-slate-300 mb-4">We provide a 1-click reproduction pipeline using Docker and Make.</p>
+                        <div class="bg-slate-900 rounded p-4 font-mono text-xs text-blue-300">
+                            $ make setup<br>
+                            $ make download  <span class="text-slate-500"># Fetches 1GB evaluation logs automatically</span><br>
+                            $ make reproduce <span class="text-slate-500"># Computes all metrics and generates PDF figures</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Explorer Tab -->
+        <div id="view-tasks" class="w-full h-full flex hidden">
+            <!-- Sidebar -->
+            <div class="w-1/4 bg-slate-800 border-r border-slate-700 flex flex-col h-full shrink-0">
+                <div class="p-4 border-b border-slate-700 bg-slate-900">
+                    <input type="text" id="task-search" placeholder="Search tasks (e.g. prompt-scanner)..." class="w-full bg-slate-800 border border-slate-600 text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    <div class="text-xs text-slate-500 mt-2" id="task-count">Loading tasks...</div>
+                </div>
+                <div id="task-list" class="flex-1 overflow-y-auto">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 flex flex-col h-full bg-[#0f172a] overflow-hidden">
+                <div class="p-6 border-b border-slate-800 bg-slate-900 shrink-0">
+                    <h2 id="current-task-title" class="text-2xl font-bold text-slate-100">Select a task</h2>
+                    <p class="text-slate-400 text-sm mt-1">Review the provided intent prompt and the generated differential fuzzing test script.</p>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-6 space-y-6" id="task-details" style="display: none;">
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
+                        
+                        <!-- Prompt -->
+                        <div class="code-container flex flex-col h-full shadow-lg border border-slate-700">
+                            <div class="code-header flex justify-between items-center">
+                                <span>📄 Sanitized Agent Prompt</span>
+                                <span class="text-xs px-2 py-1 bg-slate-800 rounded">Input to Agent</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto relative">
+                                <pre><code id="prompt-content" class="language-markdown"></code></pre>
+                            </div>
+                        </div>
+
+                        <!-- Test Script -->
+                        <div class="code-container flex flex-col h-full shadow-lg border border-slate-700">
+                            <div class="code-header flex justify-between items-center">
+                                <span>🧪 Differential Fuzzing Test Script (start.py)</span>
+                                <span class="text-xs px-2 py-1 bg-indigo-900/50 text-indigo-300 rounded border border-indigo-700/50">Evaluation Oracle</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto relative">
+                                <pre><code id="test-content" class="language-python"></code></pre>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div id="task-placeholder" class="flex-1 flex items-center justify-center text-slate-500">
+                    <div class="text-center">
+                        <div class="text-4xl mb-3">👈</div>
+                        <p>Select a repository from the sidebar to inspect its configuration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Load the bundled data -->
+    <script src="web_explorer_data.js"></script>
+    <script>
+        // State
+        let currentTab = 'dashboard'; // 'dashboard' or 'tasks'
+        let tasks = [];
+        
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.getElementById('view-dashboard').classList.toggle('hidden', tabId !== 'dashboard');
+            document.getElementById('view-tasks').classList.toggle('hidden', tabId !== 'tasks');
+            
+            document.getElementById('tab-dashboard').className = tabId === 'dashboard' ? 'text-blue-400 font-semibold transition-colors' : 'text-slate-400 hover:text-slate-200 transition-colors';
+            document.getElementById('tab-tasks').className = tabId === 'tasks' ? 'text-blue-400 font-semibold transition-colors' : 'text-slate-400 hover:text-slate-200 transition-colors';
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.ARTIFACT_DATA === 'undefined') {
+                document.body.innerHTML = '<div class="p-10 text-red-400 text-xl font-bold">Error: web_explorer_data.js not loaded. Please run the bundle script.</div>';
+                return;
+            }
+
+            const data = window.ARTIFACT_DATA;
+            tasks = Object.keys(data.tasks).sort();
+            
+            // Render Dashboard Stats
+            renderDashboard(data.metadata);
+            
+            // Render Task List
+            renderTaskList(tasks);
+            
+            // Search
+            document.getElementById('task-search').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = tasks.filter(t => t.toLowerCase().includes(term));
+                renderTaskList(filtered);
+            });
+            
+            // Start at dashboard
+            switchTab('dashboard');
+        });
+        
+        function renderDashboard(metadataList) {
+            // Aggregate metrics by Model + Framework
+            const stats = {};
+            metadataList.forEach(m => {
+                const key = m.model_name + '|' + m.framework;
+                if (!stats[key]) {
+                    stats[key] = { model: m.model_name, framework: m.framework, scores: [], tokens: [] };
+                }
+                stats[key].scores.push(m.sm || 0); // Semantic match
+                stats[key].tokens.push((m.prompt_tokens || 0) + (m.completion_tokens || 0));
+            });
+            
+            const tableBody = document.getElementById('leaderboard-body');
+            const rows = [];
+            
+            for (const key in stats) {
+                const s = stats[key];
+                const avgScore = s.scores.reduce((a, b) => a + b, 0) / s.scores.length;
+                
+                // Calculate SD
+                const variance = s.scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / s.scores.length;
+                const sd = Math.sqrt(variance);
+                
+                const avgTokens = s.tokens.reduce((a, b) => a + b, 0) / s.tokens.length;
+                
+                rows.push({
+                    model: s.model, framework: s.framework, avgScore, sd, avgTokens
+                });
+            }
+            
+            // Sort by score descending
+            rows.sort((a, b) => b.avgScore - a.avgScore);
+            
+            tableBody.innerHTML = rows.map((r, i) => `
+                <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                    <td class="py-3 px-4 font-semibold ${i===0 ? 'text-amber-400' : 'text-slate-200'}">${r.model}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs border ${r.framework === 'OpenHands' ? 'bg-blue-900/30 border-blue-700 text-blue-300' : 'bg-purple-900/30 border-purple-700 text-purple-300'}">${r.framework}</span></td>
+                    <td class="py-3 px-4 text-emerald-400 font-mono">${(r.avgScore * 100).toFixed(1)}%</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono">± ${(r.sd * 100).toFixed(2)}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono">${Math.round(r.avgTokens).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function renderTaskList(taskList) {
+            const listEl = document.getElementById('task-list');
+            document.getElementById('task-count').innerText = `${taskList.length} repositories available`;
+            
+            listEl.innerHTML = taskList.map(task => `
+                <div class="sidebar-item p-3 border-b border-slate-700/50 transition-colors" onclick="selectTask('${task}')" id="task-item-${task.replace(/\//g, '-')}">
+                    <div class="font-medium text-sm text-slate-200 break-all">${task}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectTask(taskId) {
+            // Update active state
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`task-item-${taskId.replace(/\//g, '-')}`).classList.add('active');
+            
+            // Show content
+            document.getElementById('task-placeholder').style.display = 'none';
+            document.getElementById('task-details').style.display = 'block';
+            
+            document.getElementById('current-task-title').innerText = taskId;
+            
+            const taskData = window.ARTIFACT_DATA.tasks[taskId];
+            
+            document.getElementById('prompt-content').textContent = taskData.prompt || 'No prompt available.';
+            document.getElementById('test-content').textContent = taskData.test_script || 'No test script available.';
+            
+            // Re-highlight
+            hljs.highlightElement(document.getElementById('prompt-content'));
+            hljs.highlightElement(document.getElementById('test-content'));
+        }
+    </script>
+</body>
+</html>

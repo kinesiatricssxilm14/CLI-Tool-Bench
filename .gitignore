@@ -1,0 +1,21 @@
+# Large generated artifacts — host on Google Drive (see docs/DATA_ACCESS.md)
+openhands_results/
+openhands_logs/
+mini-swe-logs/
+mini_swe_agent_results/
+Mini-SWE-Agent-Full/
+*.zip
+
+# Optional oversized raw dump
+raw_benchmark_dataset.jsonl
+
+# Local debug / scratch
+page_*.png
+test_*.png
+debug_*.py
+explore_*.py
+find_example*.py
+parse_traj*.py
+move_logs.py
+extract_figs.py
+restore_sp_zero.py
