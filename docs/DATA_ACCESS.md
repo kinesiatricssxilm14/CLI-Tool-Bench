@@ -12,11 +12,11 @@
 
 | Asset | Size | Link |
 | --- | ---: | --- |
-| OpenHands generated repositories | ~480 MB | [Download](YOUR_OPENHANDS_DRIVE_LINK_HERE) |
-| Mini-SWE-Agent generated repositories | ~200 MB | [Download](YOUR_MINI_SWE_DRIVE_LINK_HERE) |
-| Full result metadata archive | small | [Download](YOUR_METADATA_DRIVE_LINK_HERE) |
-| Category metadata | small | [Download](YOUR_CATEGORY_DRIVE_LINK_HERE) |
-| Raw candidate filtering dataset | large | [Download](YOUR_RAW_DATA_DRIVE_LINK_HERE) |
+| OpenHands generated repositories | ~480 MB | [Download](https://drive.google.com/file/d/1jWK3CM3AA-AfyawXCq_MbVCvVo4WP07J/view?usp=sharing) |
+| Mini-SWE-Agent generated repositories | ~200 MB | [Download](https://drive.google.com/file/d/1H5CXRHzxemnO8j_pPF2aziTfq_p0IjFl/view?usp=sharing) |
+| Full result metadata archive | ~1 MB | [In-Repo Link](https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/results_metadata_with_sp.json) |
+| Category metadata | ~3 KB | [In-Repo Link](https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/category.json) |
+| Raw candidate filtering dataset | large | [Download](https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link) |
 
 ## Why split storage?
 

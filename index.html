@@ -61,6 +61,7 @@
                                     <th class="py-3 px-4 font-medium">Framework</th>
                                     <th class="py-3 px-4 font-medium">Avg SM Score</th>
                                     <th class="py-3 px-4 font-medium">Std Dev (SD)</th>
+                                    <th class="py-3 px-4 font-medium">90% CI</th>
                                     <th class="py-3 px-4 font-medium">Avg Tokens</th>
                                 </tr>
                             </thead>
@@ -214,13 +215,14 @@
                 const avgScore = s.scores.reduce((a, b) => a + b, 0) / s.scores.length;
                 
                 // Calculate SD
-                const variance = s.scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / s.scores.length;
+                const variance = s.scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / (s.scores.length > 1 ? s.scores.length - 1 : 1);
                 const sd = Math.sqrt(variance);
+                const margin = 1.645 * (sd / Math.sqrt(s.scores.length));
                 
                 const avgTokens = s.tokens.reduce((a, b) => a + b, 0) / s.tokens.length;
                 
                 rows.push({
-                    model: s.model, framework: s.framework, avgScore, sd, avgTokens
+                    model: s.model, framework: s.framework, avgScore, sd, margin, avgTokens
                 });
             }
             
@@ -232,7 +234,8 @@
                     <td class="py-3 px-4 font-semibold ${i===0 ? 'text-amber-400' : 'text-slate-200'}">${r.model}</td>
                     <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs border ${r.framework === 'OpenHands' ? 'bg-blue-900/30 border-blue-700 text-blue-300' : 'bg-purple-900/30 border-purple-700 text-purple-300'}">${r.framework}</span></td>
                     <td class="py-3 px-4 text-emerald-400 font-mono">${(r.avgScore * 100).toFixed(1)}%</td>
-                    <td class="py-3 px-4 text-slate-400 font-mono">± ${(r.sd * 100).toFixed(2)}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono">${r.sd.toFixed(3)}</td>
+                    <td class="py-3 px-4 text-slate-400 font-mono">± ${(r.margin * 100).toFixed(1)}%</td>
                     <td class="py-3 px-4 text-slate-400 font-mono">${Math.round(r.avgTokens).toLocaleString()}</td>
                 </tr>
             `).join('');

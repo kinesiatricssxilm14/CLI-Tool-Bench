@@ -269,11 +269,11 @@ The canonical artifact entry point remains this repository root.
 # --- Google Drive Link Configuration ---
 # Update these variables after uploading your new ZIP files to Google Drive.
 # Replace the URL with your new sharing links.
-LINK_OPENHANDS = "YOUR_OPENHANDS_DRIVE_LINK_HERE"
-LINK_MINISWE = "YOUR_MINI_SWE_DRIVE_LINK_HERE"
-LINK_METADATA = "YOUR_METADATA_DRIVE_LINK_HERE"
-LINK_CATEGORY = "YOUR_CATEGORY_DRIVE_LINK_HERE"
-LINK_RAW_DATA = "YOUR_RAW_DATA_DRIVE_LINK_HERE"
+LINK_OPENHANDS = "https://drive.google.com/file/d/1jWK3CM3AA-AfyawXCq_MbVCvVo4WP07J/view?usp=sharing"
+LINK_MINISWE = "https://drive.google.com/file/d/1H5CXRHzxemnO8j_pPF2aziTfq_p0IjFl/view?usp=sharing"
+LINK_METADATA = "https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/results_metadata_with_sp.json"
+LINK_CATEGORY = "https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/category.json"
+LINK_RAW_DATA = "https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link"
 
 def write_data_access() -> None:
     text = f"""# Data Access & External Assets
@@ -292,8 +292,8 @@ def write_data_access() -> None:
 | --- | ---: | --- |
 | OpenHands generated repositories | ~480 MB | [Download]({LINK_OPENHANDS}) |
 | Mini-SWE-Agent generated repositories | ~200 MB | [Download]({LINK_MINISWE}) |
-| Full result metadata archive | small | [Download]({LINK_METADATA}) |
-| Category metadata | small | [Download]({LINK_CATEGORY}) |
+| Full result metadata archive | ~1 MB | [In-Repo Link]({LINK_METADATA}) |
+| Category metadata | ~3 KB | [In-Repo Link]({LINK_CATEGORY}) |
 | Raw candidate filtering dataset | large | [Download]({LINK_RAW_DATA}) |
 
 ## Why split storage?
