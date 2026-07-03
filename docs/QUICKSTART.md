@@ -56,6 +56,6 @@ Agents receive **no access** to fuzzing scripts during generation; evaluation is
 
 ## Optional interactive view
 
-A live interactive dashboard providing a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics is securely hosted on GitHub Pages:
+*(Note: For security reasons, anonymous platforms like 4open.science often disable executing JavaScript in raw HTML files. To view the interactive dashboard, simply clone the repository and open `index.html` in your local browser.)*
 
-👉 **[Launch Interactive Web Explorer](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)** 👈
+The dashboard provides a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics.
