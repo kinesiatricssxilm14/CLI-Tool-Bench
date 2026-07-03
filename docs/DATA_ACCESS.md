@@ -14,8 +14,8 @@
 | --- | ---: | --- |
 | OpenHands generated repositories | ~480 MB | [Download](https://drive.google.com/file/d/1jWK3CM3AA-AfyawXCq_MbVCvVo4WP07J/view?usp=sharing) |
 | Mini-SWE-Agent generated repositories | ~200 MB | [Download](https://drive.google.com/file/d/1H5CXRHzxemnO8j_pPF2aziTfq_p0IjFl/view?usp=sharing) |
-| Full result metadata archive | ~1 MB | [In-Repo Link](https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/results_metadata_with_sp.json) |
-| Category metadata | ~3 KB | [In-Repo Link](https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/category.json) |
+| Full result metadata archive | ~1 MB | [In-Repo Link](https://anonymous.4open.science/r/CLI-Tool-Bench-F303/results_metadata_with_sp.json) |
+| Category metadata | ~3 KB | [In-Repo Link](https://anonymous.4open.science/r/CLI-Tool-Bench-F303/category.json) |
 | Raw candidate filtering dataset | ~166 MB | [Download](https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link) |
 
 ## Why split storage?

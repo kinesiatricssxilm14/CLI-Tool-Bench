@@ -271,8 +271,8 @@ The dashboard provides a searchable task browser, side-by-side prompt/script vie
 # Replace the URL with your new sharing links.
 LINK_OPENHANDS = "https://drive.google.com/file/d/1jWK3CM3AA-AfyawXCq_MbVCvVo4WP07J/view?usp=sharing"
 LINK_MINISWE = "https://drive.google.com/file/d/1H5CXRHzxemnO8j_pPF2aziTfq_p0IjFl/view?usp=sharing"
-LINK_METADATA = "https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/results_metadata_with_sp.json"
-LINK_CATEGORY = "https://github.com/kinesiatricssxilm14/CLI-Tool-Bench/blob/main/category.json"
+LINK_METADATA = f"{BASE_URL}/results_metadata_with_sp.json"
+LINK_CATEGORY = f"{BASE_URL}/category.json"
 LINK_RAW_DATA = "https://drive.google.com/file/d/1nqUUYhUPclafc11yVuWAxh4PeIED0UG-/view?usp=drive_link"
 
 def write_data_access() -> None:
