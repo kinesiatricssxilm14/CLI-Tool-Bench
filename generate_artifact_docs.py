@@ -294,7 +294,7 @@ def write_data_access() -> None:
 | Mini-SWE-Agent generated repositories | ~200 MB | [Download]({LINK_MINISWE}) |
 | Full result metadata archive | ~1 MB | [In-Repo Link]({LINK_METADATA}) |
 | Category metadata | ~3 KB | [In-Repo Link]({LINK_CATEGORY}) |
-| Raw candidate filtering dataset | large | [Download]({LINK_RAW_DATA}) |
+| Raw candidate filtering dataset | ~166 MB | [Download]({LINK_RAW_DATA}) |
 
 ## Why split storage?
 
@@ -379,8 +379,24 @@ def write_readme(rows: list[dict], tasks: list[str]) -> None:
 [![Artifact Available](https://img.shields.io/badge/Artifact-Available-success)](#)
 [![Tasks](https://img.shields.io/badge/Tasks-{task_count}-blue)](#)
 [![Models × Frameworks](https://img.shields.io/badge/Evaluated-7_models_%C3%97_2_frameworks-orange)](#)
+[![Interactive Web Explorer](https://img.shields.io/badge/Web_Explorer-Click_Here!-ff69b4.svg)](#interactive-web-explorer-new)
 
 > **Artifact URL (paper):** `{BASE_URL}/`
+
+---
+
+## 🌟 Interactive Web Explorer (NEW!)
+
+**Reviewers: Don't want to browse through folders manually?**
+We have built an interactive Web Dashboard directly into this repository! 
+
+👉 **[Open the Web Explorer (index.html)](index.html)** 👈
+*(If viewing on anonymous.4open.science, simply click `index.html` in the file browser above to view the interactive dashboard.)*
+
+**In the Web Explorer, you can:**
+1. View the **Interactive Leaderboard** (complete with Standard Deviation and Confidence Intervals).
+2. Browse all **{task_count} Tasks** via the Task Explorer.
+3. Instantly view the **Sanitized Agent Prompts** and the **Differential Fuzzing Test Scripts (`start.py`)** side-by-side.
 
 ---
 
