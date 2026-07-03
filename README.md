@@ -5,8 +5,24 @@
 [![Artifact Available](https://img.shields.io/badge/Artifact-Available-success)](#)
 [![Tasks](https://img.shields.io/badge/Tasks-94-blue)](#)
 [![Models × Frameworks](https://img.shields.io/badge/Evaluated-7_models_%C3%97_2_frameworks-orange)](#)
+[![Interactive Web Explorer](https://img.shields.io/badge/Web_Explorer-Click_Here!-ff69b4.svg)](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)
 
 > **Artifact URL (paper):** `https://anonymous.4open.science/r/CLI-Tool-Bench-F303/`
+
+---
+
+## 🌟 Interactive Web Explorer (NEW!)
+
+We have built an interactive Web Dashboard directly into this repository! 
+
+👉 **[Open the Web Explorer (Interactive Dashboard)](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)** 👈
+
+**In the Web Explorer, you can:**
+1. View the **Interactive Leaderboard** (complete with Standard Deviation and Confidence Intervals).
+2. Browse all **94 Tasks** via the Task Explorer.
+3. Instantly view the **Sanitized Agent Prompts** and the **Differential Fuzzing Test Scripts (`start.py`)** side-by-side.
+
+---
 
 ---
 

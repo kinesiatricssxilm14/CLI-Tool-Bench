@@ -259,9 +259,9 @@ Agents receive **no access** to fuzzing scripts during generation; evaluation is
 
 ## Optional interactive view
 
-*(Note: For security reasons, anonymous platforms like 4open.science often disable executing JavaScript in raw HTML files. To view the interactive dashboard, simply clone the repository and open `index.html` in your local browser.)*
+A live interactive dashboard providing a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics is securely hosted on GitHub Pages:
 
-The dashboard provides a searchable task browser, side-by-side prompt/script viewers, and a leaderboard widget with SD/CI metrics.
+👉 **[Launch Interactive Web Explorer](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)** 👈
 """
     (DOCS_DIR / "QUICKSTART.md").write_text(text, encoding="utf-8")
 
@@ -379,8 +379,24 @@ def write_readme(rows: list[dict], tasks: list[str]) -> None:
 [![Artifact Available](https://img.shields.io/badge/Artifact-Available-success)](#)
 [![Tasks](https://img.shields.io/badge/Tasks-{task_count}-blue)](#)
 [![Models × Frameworks](https://img.shields.io/badge/Evaluated-7_models_%C3%97_2_frameworks-orange)](#)
+[![Interactive Web Explorer](https://img.shields.io/badge/Web_Explorer-Click_Here!-ff69b4.svg)](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)
 
 > **Artifact URL (paper):** `{BASE_URL}/`
+
+---
+
+## 🌟 Interactive Web Explorer (NEW!)
+
+We have built an interactive Web Dashboard directly into this repository! 
+
+👉 **[Open the Web Explorer (Interactive Dashboard)](https://kinesiatricssxilm14.github.io/CLI-Tool-Bench/)** 👈
+
+**In the Web Explorer, you can:**
+1. View the **Interactive Leaderboard** (complete with Standard Deviation and Confidence Intervals).
+2. Browse all **{task_count} Tasks** via the Task Explorer.
+3. Instantly view the **Sanitized Agent Prompts** and the **Differential Fuzzing Test Scripts (`start.py`)** side-by-side.
+
+---
 
 ---
 
