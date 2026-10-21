@@ -1,0 +1,4 @@
+#!/bin/sh
+# Block commits that would introduce credentials or internal host paths.
+# Install with: git config core.hooksPath .githooks
+exec python3 "$(git rev-parse --show-toplevel)/check_no_secrets.py" --staged

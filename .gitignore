@@ -1,3 +1,9 @@
+# Agent trajectories embed the LLM api_key and the Docker bind-mount host path.
+# Sanitize with sanitize_trajectories.py before sharing them anywhere.
+*.traj.json
+*.traj.jsonl
+batch_run.log
+
 # Large generated artifacts — host on Google Drive (see docs/DATA_ACCESS.md)
 openhands_results/
 openhands_logs/
