@@ -1,0 +1,254 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: mcgf
+**Repository Name**: mcgf
+**Core Functionality Description**:
+A command-line tool for forecasting future values from time-series data stored in a CSV file. The tool reads historical data, where each row represents an observation of a specific 'gene' (identifier) at a given 'time_index' with a certain 'frequency'. It can then predict future frequencies for these genes.
+
+The tool supports two forecasting models:
+1.  **Linear Trend (`trend`)**: Fits a simple linear regression model to the historical data of each gene. This is the default method.
+2.  **Moving Average (`ma`)**: Calculates the average of the last `k` observations for each gene.
+
+The user can specify the input CSV file, filter for a single gene, choose the forecasting method, set the forecast horizon (number of steps ahead to predict), and define the window size for the moving average model. The results are displayed in a neatly formatted table in the console.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `mcgf <csv>`
+- **Function and Parameter Description**:
+  - This is the default command execution.
+  - It takes one positional argument: `csv`, which is the path to the input data file.
+  - By default, it uses the `trend` forecasting method with a `horizon` of 1.
+  - It processes all unique 'genes' found in the CSV file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_trend_default_2.csv` with the following content structure:
+  ```csv
+  time_index,phase,gene,frequency
+  1,early_bull,AFBQBF,0.2162
+  2,late_bull,QFXORF,0.3163
+  3,accumulation,QBGVZ,0.1022
+  ... [omitted 42 lines of similar content] ...
+  94,late_bull,AFBQBF,0.0664
+  95,late_bull,AFBQBF,0.77
+  ```
+  **2. Command**:
+  `mcgf /test_data/input_trend_default_2.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 1 STEP AHEAD  (method: trend)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+1)\n──────────────────────────────────────────────────────────\nAFBQBF                                [FLOAT]           [FLOAT]\nE_GJETF                               [FLOAT]           [FLOAT]\nQBGVZ                                 [FLOAT]           [FLOAT]\nQFXORF                                [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a CSV file with historical gene frequency data. The columns are `time_index`, `phase`, `gene`, and `frequency`.
+  - Command Behavior Analysis: The program reads the specified CSV file. It groups the data by the `gene` column. For each gene, it performs a linear trend forecast. This involves fitting a line to the `(time_index, frequency)` data points for that gene. It then uses this model to predict the frequency at the next time step (i.e., at `max(time_index) + 1`). The program then prints a formatted table containing each gene, its last recorded frequency, and the forecasted frequency for the next step. The `phase` column is ignored in the calculation.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `mcgf <csv> --horizon <N>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--horizon <N>`: An integer specifying the number of steps ahead to forecast.
+  - This command uses the default `trend` method.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_trend_horizon_4.csv` with content similar to the previous example.
+  **2. Command**:
+  `mcgf /test_data/input_trend_horizon_4.csv --horizon 3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 3 STEP AHEAD  (method: trend)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+3)\n──────────────────────────────────────────────────────────\nFGFIECVC                              [FLOAT]           [FLOAT]\nOKPWDXOF                              [FLOAT]           [FLOAT]\nTBVXRQCNRI                            [FLOAT]           [FLOAT]\nUPOVH                                 [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with gene frequency data is available.
+  - Command Behavior Analysis: The logic is similar to the default case, but the forecast is calculated for a future time step defined by the `--horizon` argument. For each gene, after fitting the linear trend model, the prediction is made for `max(time_index) + 3`. The output table header is updated to reflect the horizon, showing "3 STEP AHEAD" and "Forecast(+3)".
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --gene <GENE>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--gene <GENE>`: A string specifying the name of a single gene to forecast.
+  - This command uses the default `trend` method and a `horizon` of 1.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_trend_gene_4.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_trend_gene_4.csv --gene SSVJAUA`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 1 STEP AHEAD  (method: trend)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+1)\n──────────────────────────────────────────────────────────\nSSVJAUA                               [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with data for multiple genes is available.
+  - Command Behavior Analysis: The program reads the CSV but filters the data to include only the rows where the `gene` column matches "SSVJAUA". It then performs the default trend forecast (horizon=1) on this subset of data. The output table displays the forecast for only the specified gene. The "Total genes" count in the summary should reflect the number of genes processed (in this case, 1).
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --gene <GENE> --horizon <N>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--gene <GENE>`: Filter for a single gene.
+  - `--horizon <N>`: Set the forecast horizon.
+  - This command uses the default `trend` method.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_trend_gene_horizon_2.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_trend_gene_horizon_2.csv --gene ODQTCTUAFK --horizon 8`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 8 STEP AHEAD  (method: trend)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+8)\n──────────────────────────────────────────────────────────\nODQTCTUAFK                            [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with multi-gene data is present.
+  - Command Behavior Analysis: This combines the logic of the previous two examples. The program filters the data for the gene "ODQTCTUAFK" and then calculates a trend forecast 8 steps into the future. The output table is formatted accordingly, showing the specific gene and the `+8` forecast.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --method ma --window <N>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--method ma`: Specifies using the moving average forecasting model.
+  - `--window <N>`: An integer defining the number of recent data points to include in the moving average calculation. This is required for the `ma` method.
+  - The default `horizon` of 1 is used.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_ma_window_2.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_ma_window_2.csv --method ma --window 6`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 1 STEP AHEAD  (method: ma)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+1)\n──────────────────────────────────────────────────────────\nFYOLBYE                               [FLOAT]           [FLOAT]\nGFEXQGTERW                            [FLOAT]           [FLOAT]\nNFBJHYR                               [FLOAT]           [FLOAT]\nNZUZQGWAZW                            [FLOAT]           [FLOAT]\nYNGXVK                                [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with gene frequency data is available.
+  - Command Behavior Analysis: The program reads the CSV and groups data by gene. For each gene, it sorts the observations by `time_index` in ascending order. The forecast is calculated by taking the average of the `frequency` values of the last 6 data points for that gene. The output table header is updated to show `(method: ma)`.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --method ma --window <N> --horizon <N>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--method ma`: Use the moving average model.
+  - `--window <N>`: Set the window size for the moving average.
+  - `--horizon <N>`: Set the forecast horizon.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_ma_window_horizon_2.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_ma_window_horizon_2.csv --method ma --window 4 --horizon 7`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 7 STEP AHEAD  (method: ma)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+7)\n──────────────────────────────────────────────────────────\nAVMCPIOWJX                            [FLOAT]           [FLOAT]\nILYERZGISS                            [FLOAT]           [FLOAT]\nM_WJMPTTPU                            [FLOAT]           [FLOAT]\nRBQKUP                                [FLOAT]           [FLOAT]\nTBADMFA                               [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file is present.
+  - Command Behavior Analysis: The program calculates a moving average forecast using a window of 4. The `--horizon 7` parameter does not affect the moving average calculation itself (which is always based on the last `N` points), but it must be reflected in the output table's header ("7 STEP AHEAD" and "Forecast(+7)").
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --method ma --window <N> --gene <GENE>`
+- **Function and Parameter Description**:
+  - `csv`: Path to the input data file.
+  - `--method ma`: Use the moving average model.
+  - `--window <N>`: Set the window size.
+  - `--gene <GENE>`: Filter for a single gene.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_ma_window_gene_2.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_ma_window_gene_2.csv --method ma --window 6 --gene PYXAV`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 1 STEP AHEAD  (method: ma)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+1)\n──────────────────────────────────────────────────────────\nPYXAV                                 [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with multi-gene data is present.
+  - Command Behavior Analysis: The program filters the data for the gene "PYXAV". It then calculates the moving average of the last 6 data points for this specific gene. The result is displayed in the output table.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --method ma --window <N> --gene <GENE> --horizon <N>`
+- **Function and Parameter Description**:
+  - All parameters are combined: `csv` path, `ma` method, window size, gene filter, and forecast horizon.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_ma_window_gene_horizon_4.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_ma_window_gene_horizon_4.csv --method ma --window 8 --gene NJVYCDU --horizon 8`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 8 STEP AHEAD  (method: ma)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+8)\n──────────────────────────────────────────────────────────\nNJVYCDU                               [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file with multi-gene data is present.
+  - Command Behavior Analysis: This is the most specific command. The program filters for gene "NJVYCDU", calculates the moving average of its last 8 data points, and displays the result in a table where the header indicates an 8-step-ahead forecast.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `mcgf <csv> --method trend --window <N>`
+- **Function and Parameter Description**:
+  - This command demonstrates that the `--window` parameter should be ignored when the method is `trend`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A CSV file is created at `/test_data/input_invalid_trend_with_window_0.csv`.
+  **2. Command**:
+  `mcgf /test_data/input_invalid_trend_with_window_0.csv --method trend --window -1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "──────────────────────────────────────────────────────────\n MARKET CYCLE GENE FORECAST – 1 STEP AHEAD  (method: trend)\n──────────────────────────────────────────────────────────\n\nTotal observations : [COUNT]\nTotal genes : [COUNT]\n\nGene                              Last Freq    Forecast(+1)\n──────────────────────────────────────────────────────────\nBEEBSWOC                              [FLOAT]           [FLOAT]\nEU_WU                                 [FLOAT]           [FLOAT]\nQJICOUITZ                             [FLOAT]           [FLOAT]\nVUAWP                                 [FLOAT]           [FLOAT]\n──────────────────────────────────────────────────────────\n\nDone.\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CSV file is available.
+  - Command Behavior Analysis: The program is explicitly told to use the `trend` method. Even though a `--window` argument is provided (with an invalid value of -1), it must be ignored because it is only relevant for the `ma` method. The program should proceed to execute a standard trend forecast with a horizon of 1, as if `--window` was never specified. The successful execution (exit code 0) and correct output confirm this behavior.
+  - Final State Changes (fs_diff): No file system changes.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

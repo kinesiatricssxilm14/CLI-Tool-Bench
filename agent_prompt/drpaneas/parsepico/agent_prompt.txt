@@ -1,0 +1,279 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: parsepico
+**Repository Name**: parsepico
+**Core Functionality Description**:
+This CLI tool is designed to parse a proprietary game cartridge file format (`.p8`). It extracts graphics and map data from specific sections within the file and converts them into standard image and data formats.
+
+The tool's primary functions are:
+- It reads the `__gfx__` (graphics) and `__map__` (map) sections of a `.p8` cartridge file.
+- It generates a `map.png` image rendering the tilemap data.
+- It generates a `spritesheet.png` image by stacking sprite sheet sections.
+- It creates a `sprites/` directory containing individual 8x8 sprite images (`sprite_NNN.png`) and section images (`section_X.png`).
+- It produces `spritesheet.json` and `map.json` files, which contain structured metadata about the extracted sprites and map layout, respectively.
+- It supports flags (`--3`, `--4`) to treat specific sprite memory regions as "dual-purpose," using them as additional map data. This alters the number of exported sprites and the dimensions of the generated map.
+- It includes a `--clean` option to remove any previously generated output files and directories before running the extraction process.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `parsepico --cart <file>`
+- **Function and Parameter Description**:
+  This is the default command for parsing a cartridge file.
+  - `--cart string`: Specifies the path to the cartridge file (`.p8`) to be parsed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A cartridge file named `fuzz_cart_cart_only_4.p8` is mounted at `/test_data/fuzz_cart_cart_only_4.p8`. Its content is a standard `.p8` file with `__gfx__` and `__map__` sections containing hex-encoded data.
+  ```
+  // Abbreviated content of /test_data/fuzz_cart_cart_only_4.p8
+  pico-8 cartridge // http://www.pico-8.com
+  version 29
+  __lua__
+  -- fuzzed code
+  __gfx__
+  2609d6f0edf884da815c3f7d5ffd4a509f1ee6df0b944edad7dbe29fadb96b4a752aafcfe9d6bb2bcbc99ea0dbb31493c3eec84b5cca83cd3a53bb5acdeacc88
+  ... [omitted 100+ lines of hex data] ...
+  acad41eaff85637d62ff686861bfa8087b212e4af16a35e63c4dce1ef9b02b07aba4cc02fb9c26e206bbcb355aff35ce90b4370f1cadb9738aa1d218e79379ad
+  __map__
+  bbbd4847a4038c079a09fd3a2fdd4f2e64cca3e04eca3fab08f0edae6dec4dfd0f2ee5eebfaafb399d9bcea5ac53b98cd6ad7d01ae5fdae9dacf8388f0cdd3d412ae69d3afd5bcd8a128ca3702bd3fee7f896a3bf8bc93a5ee3c87f9bed5a4db46bb4d239ca7cdcc00119b62ddaa6e57ecb751fa8cba0cdad2dec92a70dedfff
+  ... [omitted 30+ lines of hex data] ...
+  edee3b61114d517b8c55b4aaddba7e550ab5c3dbf9249ec87a0ceef0777fecbba12aaa9eea3c5f5eb2fef35f60d92ced551bad3bbc6bcddc191f84fbe79aec7ddb7abed3c15a009dffaa8afdf4bbbf83bc3e233dfbcfdd85d52f4fd9d276acff0fdbdeeae7fc2ed1872ae0f1daba3fe48d04dff45556c9ca6bce1e382dae58fe
+  __gff__
+  0000
+  __sfx__
+  0000100000000000000000000000000000000000000000000000000000000000
+  0000100000000000000000000000000000000000000000000000000000000000
+  __music__
+  00 00 00 00 00
+  00 00 00 00 00
+  ```
+  **2. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_only_4.p8`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully generated map.png\nSaved 4 sections into 'sprites' folder.\nCreated spritesheet.png with 4 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_only_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\n2609d6f0edf884da815c3f7d5ffd4a509f1ee6df0b944edad7dbe29fadb96b4a752aafcfe9d6bb2bcbc99ea0dbb31493c3eec84b5cca83cd3a53bb5acdeacc88\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single cartridge file at the path specified by `--cart`.
+  - Command Behavior Analysis: The program parses the input `.p8` file. It locates the `__gfx__` and `__map__` data sections. It decodes the hexadecimal strings into pixel and tile data. By default (no `--3` or `--4` flags), it processes all 256 sprites from the `__gfx__` section. The `__gfx__` data is divided into 4 sections (0-3). The program generates multiple output files based on this data.
+  - Final State Changes (fs_diff): The program creates several files in the current working directory:
+    - `map.png`: An image rendering the tilemap from the `__map__` section.
+    - `spritesheet.png`: An image created by vertically stacking the 4 section images.
+    - `spritesheet.json`: A JSON file with metadata for all 256 sprites.
+    - `map.json`: A JSON file describing the map layout.
+    - A new directory `sprites/` is created, containing:
+      - `section_0.png`, `section_1.png`, `section_2.png`, `section_3.png`: Images for each of the four 128x32 sprite sheet sections.
+      - `sprite_000.png` through `sprite_255.png`: Individual 8x8 images for each sprite.
+    The `stdout` messages confirm the successful creation of each of these outputs.
+
+#### Command Category: `parsepico --cart <file> --clean`
+- **Function and Parameter Description**:
+  This command parses a cartridge file after first cleaning up any previous output.
+  - `--cart string`: Specifies the path to the cartridge file (`.p8`).
+  - `--clean`: If present, the tool will remove `sprites/`, `map.png`, and `spritesheet.png` before generating new files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A cartridge file `fuzz_cart_cart_clean_4.p8` is mounted. The logic should assume that output files from a previous run might exist.
+  **2. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_clean_4.p8 --clean`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Removed old sprites/ folder.\nSuccessfully generated map.png\nSaved 4 sections into 'sprites' folder.\nCreated spritesheet.png with 4 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_clean_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\neadaffe3baff13c9ef54657582aac270baf4575ea69ba39bf4bae5b2c43bef8ea7cadf71ee55e3e6bc78f6af646e0568de16a22a06ab929fe0d7aff7c8aa8ce0\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A cartridge file exists. The `--clean` flag implies that the working directory might contain `sprites/`, `map.png`, and `spritesheet.png` from a previous execution.
+  - Command Behavior Analysis: The first action, triggered by `--clean`, is to delete the `sprites/` directory (if it exists) and the `map.png` and `spritesheet.png` files. The `stdout` "Removed old sprites/ folder." confirms this. After cleaning, the program proceeds with the default parsing logic as described in the previous command category.
+  - Final State Changes (fs_diff): After the cleanup, the program generates a fresh set of output files (`map.png`, `spritesheet.png`, `spritesheet.json`, `map.json`, and `sprites/`) exactly as in the default case.
+
+#### Command Category: `parsepico --cart <file> --3`
+- **Function and Parameter Description**:
+  This command parses a cartridge, treating sprite section 3 as shared map data.
+  - `--cart string`: Specifies the path to the cartridge file (`.p8`).
+  - `--3`: Treats sprite section 3 (sprites 128-191) as additional map data, not as sprites.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A cartridge file `fuzz_cart_cart_3_4.p8` is mounted.
+  **2. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_3_4.p8 --3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully generated map.png\nSaved 3 sections into 'sprites' folder.\nCreated spritesheet.png with 3 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_3_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\n2da0910b06cdbabb29dee706cd7adb0e66558a3582cb7e57f52fc8bc59d53e46834c192d58ba8978f65bfb18e45e3c6cccdc4d7facdd3c0efdf2e413cdeb8b8f\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A cartridge file exists.
+  - Command Behavior Analysis: The `--3` flag modifies the parsing logic. The data corresponding to sprite section 3 (the lower half of the spritesheet, sprites 128-191) is now interpreted as part of the map data instead of sprite data. This means only sprites 0-127 and 192-255 are treated as actual sprites. The `stdout` reflects this, stating "Saved 3 sections" (sections 0, 1, and 4) instead of 4.
+  - Final State Changes (fs_diff): The output is different from the default case:
+    - `map.png` is now larger, as it includes the data from the shared section.
+    - `spritesheet.png` is smaller, composed of only 3 sections.
+    - `spritesheet.json` only contains metadata for the available sprites (0-127 and 192-255).
+    - The `sprites/` directory contains fewer files: `section_0.png`, `section_1.png`, `section_2.png` (corresponding to sprites 0-127 and 192-255) and individual sprite PNGs for only those available sprites.
+
+#### Command Category: `parsepico --cart <file> --4`
+- **Function and Parameter Description**:
+  This command parses a cartridge, treating sprite section 4 as shared map data.
+  - `--cart string`: Specifies the path to the cartridge file (`.p8`).
+  - `--4`: Treats sprite section 4 (sprites 192-255) as additional map data, not as sprites.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A cartridge file `fuzz_cart_cart_4_4.p8` is mounted.
+  **2. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_4_4.p8 --4`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully generated map.png\nSaved 3 sections into 'sprites' folder.\nCreated spritesheet.png with 3 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_4_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\n5aab4d9a2d0e1dcfcaafeb7fd9a9c0d586c49ea0bbb36eb6daa6aaf56edaf72e599af2dfb4c8ddce4de3b0fcded1936bdf75caef6902bffea87d03ba75ae46be\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The logic is analogous to the `--3` flag. The `--4` flag causes the data for sprite section 4 (sprites 192-255) to be used for the map. Only sprites 0-191 are treated as sprites. The `stdout` confirms "Saved 3 sections".
+  - Final State Changes (fs_diff): The output is altered similarly to the `--3` case, but for a different data range. `map.png` is larger, `spritesheet.png` is smaller, and the `sprites/` directory and `spritesheet.json` only contain data for sprites 0-191.
+
+#### Command Category: `parsepico --cart <file> --3 --4`
+- **Function and Parameter Description**:
+  This command parses a cartridge, treating both sections 3 and 4 as shared map data.
+  - `--cart string`: Specifies the path to the cartridge file (`.p8`).
+  - `--3`: Treats sprite section 3 (sprites 128-191) as map data.
+  - `--4`: Treats sprite section 4 (sprites 192-255) as map data.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A cartridge file `fuzz_cart_cart_3_4_4.p8` is mounted.
+  **2. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_3_4_4.p8 --3 --4`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully generated map.png\nSaved 2 sections into 'sprites' folder.\nCreated spritesheet.png with 2 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_3_4_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\n7dc692ed3fced7fd1433cb061e62a3e9dd3e1aadea7ef2b2ca187bf4ad23b6c606ba550144bedcbb3da9bbbba3e4661ffea6b0a5ec87bae03ba3d1a035ae54fd\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: When both `--3` and `--4` are used, the entire lower half of the spritesheet (sprites 128-255) is used as map data. Only the first two sections (sprites 0-127) are treated as sprites. The `stdout` confirms this by reporting "Saved 2 sections".
+  - Final State Changes (fs_diff): The output reflects this combined logic. `map.png` is at its largest possible size. `spritesheet.png` is at its smallest, composed of only 2 sections. The `sprites/` directory and `spritesheet.json` only contain data for sprites 0-127.
+
+#### Command Category: `parsepico --cart <file> --3 --clean`
+- **Function and Parameter Description**:
+  Combines the `--3` (shared section) and `--clean` (cleanup) functionalities.
+- **Execution Context and Sample**:
+  **1. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_3_clean_4.p8 --3 --clean`
+  **2. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Removed old sprites/ folder.\nSuccessfully generated map.png\nSaved 3 sections into 'sprites' folder.\nCreated spritesheet.png with 3 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_3_clean_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\nd1d719bb40fd4ffcb5ca00ebd9c599d3b5d9e0eea5bce0a1fbb60dcf8edabc031c476cacb7cffde681f2cbe2ee6b3fe280bac28eb359acd4280ef2eecabfdaf8\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This command first performs the cleanup action from `--clean`, removing any old output files. Then, it proceeds with the parsing logic of the `--3` command, treating sprite section 3 as map data. The `stdout` confirms both steps.
+
+#### Command Category: `parsepico --cart <file> --4 --clean`
+- **Function and Parameter Description**:
+  Combines the `--4` (shared section) and `--clean` (cleanup) functionalities.
+- **Execution Context and Sample**:
+  **1. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_4_clean_4.p8 --4 --clean`
+  **2. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Removed old sprites/ folder.\nSuccessfully generated map.png\nSaved 3 sections into 'sprites' folder.\nCreated spritesheet.png with 3 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_4_clean_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\nad92dcafc67b8e5a21fc700eca8dadb52c9d4ad27ddfda4edbdebd601fc62d6eb2373f449fbdc906158d7ebb8c36b6b8bd8ea5cdb0580865f2a4fe3ce723defe\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This command first performs the cleanup action from `--clean`. Then, it proceeds with the parsing logic of the `--4` command, treating sprite section 4 as map data. The `stdout` confirms both steps.
+
+#### Command Category: `parsepico --cart <file> --3 --4 --clean`
+- **Function and Parameter Description**:
+  Combines the `--3`, `--4` (both shared sections), and `--clean` (cleanup) functionalities.
+- **Execution Context and Sample**:
+  **1. Command**:
+  `parsepico --cart /test_data/fuzz_cart_cart_3_4_clean_4.p8 --3 --4 --clean`
+  **2. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Removed old sprites/ folder.\nSuccessfully generated map.png\nSaved 2 sections into 'sprites' folder.\nCreated spritesheet.png with 2 sections.\nSuccessfully generated spritesheet.json\nSuccessfully created individual sprite PNGs\nSuccessfully generated map.json\n",
+      "fs_diff": {
+          "/test_data/fuzz_cart_cart_3_4_clean_4.p8": {
+              "type": "MOD",
+              "content": "pico-8 cartridge // http://www.pico-8.com\nversion 29\n__lua__\n-- fuzzed code\n__gfx__\n9cf4cb7c00d321e04bfa4aabd4be18c62c7646273a6ec1ccbcbef25e3fda5b19fdfcab1179c70b5c64bbea4bdff309c9b29c8817b2ddeb7ed390cdb1eccc5f35\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This command first performs the cleanup action from `--clean`. Then, it proceeds with the parsing logic of using both `--3` and `--4`, treating the entire lower half of the spritesheet as map data. The `stdout` confirms both steps.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

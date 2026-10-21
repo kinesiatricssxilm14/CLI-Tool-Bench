@@ -1,0 +1,92 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: ebt-profile
+**Repository Name**: ebt-profile
+**Core Functionality Description**:
+A command-line tool for profiling CSV datasets. It can analyze a given CSV file and report its properties, such as dimensions, column names, and null value counts. It supports outputting the profile in both a human-readable format and a structured JSON format for programmatic use.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `ebt-profile --input <file>`
+- **Function and Parameter Description**:
+  - `ebt-profile`: The main command to execute the dataset profiling tool.
+  - `--input <file>`: A required parameter that specifies the path to the input CSV file to be profiled.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_normal_2_PROFILE_CSV.csv` with the following content:
+  ```csv
+  Ap7njT,BVYTv,ATt55m,YIBE,RLqo,pcyq0V3n,1lDtEHF,xztN4,FU5KSj2,YFbpT7rm
+  6KiprhD8oixaTsV,rY4IF,zyiripFdl3,Tp9uuQsvuAU1MK,9hQ5ozfDoB8x,sAYFzAlJDms,aSv12,DrrerSJ,iAIm9k6D2hBLx,iJnwNOK58t
+  ABJZBq,kkPz4SB,eHrNi,VcfWp,38ppCWFXe,Al8jJ,uHScd3,7vwp6lG0azkrP,Wt7e1ibHLO,6zuZbiDbxSa
+  j6zX5VjQ,cEAzjkmap9PKg2,yXiqbsRh,fRT5Yj6059PiE,vrhbhsmQX,soYz1OZ7uC814Dk,f3jqLGPDOFyvx,F1RAYIGs,QnvslwhUCVDwE,KSO7oHmVkdehh
+  x2E2czZF,1nNf5iQ7oRn,M3yqEBxU,FUltOsoX2H1JEFE,uVcoJbYWNoTJu,NvtXv,jYTF0iEIJvtUj,jKG3F8A1MUrU,euynR0L2HxiwO,q0Q2lb
+  RxjVUrPkYV,mXyMK,jkVbyfvKpTOIG,Qbo2o1iuURFmSYU,D75tQRZMwUa,cnBD06P,L7MynpPLk,zuUSLZLZmPKjee,8mTSX2l0,XZJHbNgZfQA6N4O
+  ```
+  **2. Command**:
+  `ebt-profile --input /test_data/fuzz_normal_2_PROFILE_CSV.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "shape: (5, 10)\ncolumns: ['Ap7njT', 'BVYTv', 'ATt55m', 'YIBE', 'RLqo', 'pcyq0V3n', '1lDtEHF', 'xztN4', 'FU5KSj2', 'YFbpT7rm']\nnull_counts: {'Ap7njT': 0, 'BVYTv': 0, 'ATt55m': 0, 'YIBE': 0, 'RLqo': 0, 'pcyq0V3n': 0, '1lDtEHF': 0, 'xztN4': 0, 'FU5KSj2': 0, 'YFbpT7rm': 0}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single CSV file at the specified path. The CSV has a header row and 5 data rows, with 10 columns in total.
+  - Command Behavior Analysis: The program is invoked with the `--input` argument pointing to the CSV file. It reads the file, likely using a library like pandas. It calculates the dataset's shape (number of data rows and columns), extracts the column names from the header, and counts the number of null/missing values in each column. Finally, it prints these three pieces of information to standard output, each on a new line, in a `key: value` format.
+  - Final State Changes (fs_diff): There are no changes to the file system. The tool only reads the input file and prints to `stdout`.
+
+#### Command Category: `ebt-profile --input <file> --json`
+- **Function and Parameter Description**:
+  - `ebt-profile`: The main command to execute the dataset profiling tool.
+  - `--input <file>`: A required parameter that specifies the path to the input CSV file to be profiled.
+  - `--json`: An optional flag. When present, it directs the tool to output the full profiling report in a pretty-printed JSON format.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/fuzz_normal_2_PROFILE_CSV_JSON.csv` with the following content:
+  ```csv
+  AqOJLm,mPxkUm,xW6pqt,RXjRXXm2,xJ4ZJ,3939f7W,ncXft,4XD0E,tSdtIgc,9U2s
+  9V9ZHVw,3Qp2GIs54FHNvp3,nF30uqgSEPI5DG,mSEkI,iWdDbL6IuWIs,mCNPkNKwm,xLeID,tMf8Rz7uHVVLxQX,fnSeDGXDZf,Du4jS
+  hi7aOA,qUffR1CN,GfQrCOUh7VZ1ES,L9lMt7oiI,KfqZQm5GL,EJ7xyYx,AxwQCIlk,e6GTd,Vlzjpy4Sv,0FZc6s14ax1Xv
+  tmMkYm1BU72ud,TYyTEqjhdkubybJ,DddYbVXLfh,VmhVxgL2uq,jVLqIRmMQRcjxb,AMmgCcP5,HGhwZn,jgD9M2aRVDHQrl7,OUdHsBCr6VR,1kfKjSoGlP
+  0XY6yw7LCb,D8ZZXBhpj,O7ZyQq,kluMOEX,7hCYGw89,149LtBmGv,FtNFr4YTakhYg,GPHJmvJ,ukBozsAYgU0,jQPwocWAJTqKU4
+  r16vpo9,VpRE8orQ6CS6,e8TXI,WEzFge2GMn,axA2oV,FYXqFnRPz,7UOzxFWR,cHAVMMPLub,iTIZbNdQWuKSc,aWncxbTAUjtN
+  ```
+  **2. Command**:
+  `ebt-profile --input /test_data/fuzz_normal_2_PROFILE_CSV_JSON.csv --json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"shape\": [\n    5,\n    10\n  ],\n  \"columns\": [\n    \"AqOJLm\",\n    \"mPxkUm\",\n    \"xW6pqt\",\n    \"RXjRXXm2\",\n    \"xJ4ZJ\",\n    \"3939f7W\",\n    \"ncXft\",\n    \"4XD0E\",\n    \"tSdtIgc\",\n    \"9U2s\"\n  ],\n  \"null_counts\": {\n    \"AqOJLm\": 0,\n    \"mPxkUm\": 0,\n    \"xW6pqt\": 0,\n    \"RXjRXXm2\": 0,\n    \"xJ4ZJ\": 0,\n    \"3939f7W\": 0,\n    \"ncXft\": 0,\n    \"4XD0E\": 0,\n    \"tSdtIgc\": 0,\n    \"9U2s\": 0\n  },\n  \"data_types\": {\n    \"AqOJLm\": \"str\",\n    \"mPxkUm\": \"str\",\n    \"xW6pqt\": \"str\",\n    \"RXjRXXm2\": \"str\",\n    \"xJ4ZJ\": \"str\",\n    \"3939f7W\": \"str\",\n    \"ncXft\": \"str\",\n    \"4XD0E\": \"str\",\n    \"tSdtIgc\": \"str\",\n    \"9U2s\": \"str\"\n  },\n  \"summary\": {\n    \"AqOJLm\": {\n      \"count\": 5,\n      \"unique\": 5,\n      \"top\": \"9V9ZHVw\",\n      \"freq\": 1\n    },\n    \"mPxkUm\": {\n      \"count\": 5,\n      \"unique\": 5,\n      \"top\": \"3Qp2GIs54FHNvp3\",\n      \"freq\": 1\n    },\n    ... [omitted 7 similar column summary entries] ...\n    \"9U2s\": {\n      \"count\": 5,\n      \"unique\": 5,\n      \"top\": \"Du4jS\",\n      \"freq\": 1\n    }\n  }\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single CSV file at the specified path. The CSV has a header row and 5 data rows, with 10 columns.
+  - Command Behavior Analysis: The program is invoked with both the `--input` argument and the `--json` flag. This signals the tool to perform a comprehensive analysis and output the results in JSON format. The tool reads the CSV and computes: shape, column names, null counts, the data type of each column (in this case, all are strings), and a statistical summary for each column (including count, unique values, the most frequent value, and its frequency). All this information is then compiled into a single JSON object, which is pretty-printed (indented) and written to standard output.
+  - Final State Changes (fs_diff): There are no changes to the file system. The tool operates in a read-only manner.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

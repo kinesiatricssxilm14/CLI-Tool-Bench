@@ -1,0 +1,273 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: ssh-config
+Repository Name: ssh-config
+Core Functionality Description:
+Converts YAML/JSON representations into standard SSH config files, and converts classic SSH config files into YAML or JSON. Supports reading configuration from files or standard input (stdin), and supports output to files or standard output (stdout).
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation: The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:
+  - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: ssh-config -to-yaml -src <file>
+- Function and Parameter Description:
+Converts an SSH config file (Text format) to YAML format and outputs to standard output.
+  - `-to-yaml`: Convert SSH config(Text/JSON) to YAML.
+  - `-src`: Source file or directories path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_yaml_from_src_4.dat` containing standard SSH config text (e.g., `Host lfdajczxueela\n  HostName qyhd.uzf.net...`).
+2. Command:
+`ssh-config -to-yaml -src /test_data/input_to_yaml_from_src_4.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "Group aszamgdfqbaklmv:\n  Hosts:\n    aszamgdfqbaklmv:\n      config:\n        HostName: jklzyvfz.sfjr.pyp.qwqa.org\n        Port: \"47977\"\n        User: ngmx\n... [omitted 12 lines of similar YAML content] ...\n        Port: \"24864\"\n        User: ujqqk\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a standard SSH config file at the specified source path.
+  - Command Behavior Analysis: The program reads the SSH config file, parses the `Host`, `HostName`, `User`, and `Port` directives, and groups them into a specific YAML structure (`Group <name>: Hosts: <name>: config: ...`). It then prints the resulting YAML to standard output.
+  - Final State Changes (fs_diff): No file system changes occurred. The output was strictly directed to stdout.
+##### Command Category: ssh-config -to-json -src <file>
+- Function and Parameter Description:
+Converts an SSH config file (Text format) to JSON format and outputs to standard output.
+  - `-to-json`: Convert SSH config(YAML/Text) to JSON.
+  - `-src`: Source file or directories path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_json_from_src_2.dat` containing standard SSH config text.
+2. Command:
+`ssh-config -to-json -src /test_data/input_to_json_from_src_2.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "[{\"Name\":\"bjxazzbwjx\",\"Data\":{\"HostName\":\"ridor.pfinzdu.org\",\"Port\":\"21974\",\"User\":\"vsgohyx\"}},... [omitted similar JSON objects] ...]\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a standard SSH config file at the specified source path.
+  - Command Behavior Analysis: The program reads the SSH config file, parses the directives, and constructs a JSON array of objects, each containing a `Name` and a `Data` object with the configuration details. It then prints the JSON array to standard output.
+  - Final State Changes (fs_diff): No file system changes occurred.
+##### Command Category: ssh-config -to-ssh -src <file>
+- Function and Parameter Description:
+Converts a JSON formatted SSH configuration to standard SSH config format and outputs to standard output.
+  - `-to-ssh`: Convert SSH config(YAML/JSON) to standard SSH format.
+  - `-src`: Source file or directories path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_ssh_from_src_3.dat` containing JSON formatted SSH configuration.
+2. Command:
+`ssh-config -to-ssh -src /test_data/input_to_ssh_from_src_3.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file with SSH configurations at the specified source path.
+  - Command Behavior Analysis: The program reads the JSON file. Based on the sample, it outputs an empty newline to standard output (Note: This is the exact behavior from the oracle result that must be replicated).
+  - Final State Changes (fs_diff): No file system changes occurred.
+##### Command Category: ssh-config -to-yaml -src <file> -dest <file>
+- Function and Parameter Description:
+Converts an SSH config file to YAML format and saves it to a specified destination file.
+  - `-to-yaml`: Convert SSH config(Text/JSON) to YAML.
+  - `-src`: Source file or directories path.
+  - `-dest`: Destination file path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_yaml_from_src_to_dest_1.dat` containing standard SSH config text.
+2. Command:
+`ssh-config -to-yaml -src /test_data/input_to_yaml_from_src_to_dest_1.dat -dest /test_data/output_to_yaml_from_src_to_dest_1.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "File has been saved successfully\nFile path: /test_data/output_to_yaml_from_src_to_dest_1.dat\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/output_to_yaml_from_src_to_dest_1.dat": {
+            "type": "ADD",
+            "content": "Group hpdanjzrxyiih:\n  Hosts:\n    hpdanjzrxyiih:\n      config:\n        HostName: fvvcojk.hzgvkux.evcx.com\n... [omitted 11 lines of similar YAML content] ...\n        Port: \"12923\"\n        User: vvfzoqdrtk"
+        }
+    }
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains an SSH config file. The destination file does not yet exist.
+  - Command Behavior Analysis: The program reads the source file, converts it to YAML format, writes the YAML content to the specified destination file, and prints a success message to standard output.
+  - Final State Changes (fs_diff): A new file is created at the destination path containing the converted YAML data.
+##### Command Category: ssh-config -to-json -src <file> -dest <file>
+- Function and Parameter Description:
+Converts an SSH config file to JSON format and saves it to a specified destination file.
+  - `-to-json`: Convert SSH config(YAML/Text) to JSON.
+  - `-src`: Source file or directories path.
+  - `-dest`: Destination file path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_json_from_src_to_dest_3.dat` containing standard SSH config text.
+2. Command:
+`ssh-config -to-json -src /test_data/input_to_json_from_src_to_dest_3.dat -dest /test_data/output_to_json_from_src_to_dest_3.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "File has been saved successfully\nFile path: /test_data/output_to_json_from_src_to_dest_3.dat\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/output_to_json_from_src_to_dest_3.dat": {
+            "type": "ADD",
+            "content": "[{\"Name\":\"aulgtoddqlyrg\",\"Data\":{\"HostName\":\"ngqsw.vnrcjeia.com\",\"Port\":\"44944\",\"User\":\"iqpqusl\"}},... [omitted similar JSON objects] ...]"
+        }
+    }
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains an SSH config file. The destination file does not yet exist.
+  - Command Behavior Analysis: The program reads the source file, converts it to a JSON array, writes the JSON content to the specified destination file, and prints a success message to standard output.
+  - Final State Changes (fs_diff): A new file is created at the destination path containing the converted JSON data.
+##### Command Category: ssh-config -to-ssh -src <file> -dest <file>
+- Function and Parameter Description:
+Converts a YAML formatted SSH configuration to standard SSH config format and saves it to a specified destination file.
+  - `-to-ssh`: Convert SSH config(YAML/JSON) to standard SSH format.
+  - `-src`: Source file or directories path.
+  - `-dest`: Destination file path.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_ssh_from_src_to_dest_2.dat` containing YAML formatted SSH configuration.
+2. Command:
+`ssh-config -to-ssh -src /test_data/input_to_ssh_from_src_to_dest_2.dat -dest /test_data/output_to_ssh_from_src_to_dest_2.dat`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "File has been saved successfully\nFile path: /test_data/output_to_ssh_from_src_to_dest_2.dat\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/output_to_ssh_from_src_to_dest_2.dat": {
+            "type": "ADD",
+            "content": ""
+        }
+    }
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a YAML file with SSH configurations. The destination file does not yet exist.
+  - Command Behavior Analysis: The program reads the YAML file, processes it, creates the destination file, and prints a success message. Based on the sample, it writes an empty string to the destination file.
+  - Final State Changes (fs_diff): A new empty file is created at the destination path.
+##### Command Category: cat <file> | ssh-config -to-yaml
+- Function and Parameter Description:
+Reads SSH configuration from standard input, converts it to YAML format, and outputs to standard output.
+  - `-to-yaml`: Convert SSH config(Text/JSON) to YAML.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_yaml_from_pipe_2.dat` containing standard SSH config text.
+2. Command:
+`cat /test_data/input_to_yaml_from_pipe_2.dat | ssh-config -to-yaml`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "Group aysiodgildoz:\n  Hosts:\n    aysiodgildoz:\n      config:\n        HostName: qiia.sgmp.itpp.io\n... [omitted 13 lines of similar YAML content] ...\n        Port: \"5437\"\n        User: ablxf\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains an SSH config file.
+  - Command Behavior Analysis: The program reads the SSH config data piped via standard input, converts it to the specific YAML structure, and prints it to standard output.
+  - Final State Changes (fs_diff): No file system changes occurred.
+##### Command Category: cat <file> | ssh-config -to-json
+- Function and Parameter Description:
+Reads SSH configuration from standard input, converts it to JSON format, and outputs to standard output.
+  - `-to-json`: Convert SSH config(YAML/Text) to JSON.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_json_from_pipe_1.dat` containing standard SSH config text.
+2. Command:
+`cat /test_data/input_to_json_from_pipe_1.dat | ssh-config -to-json`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "[{\"Name\":\"delbwxnc\",\"Data\":{\"HostName\":\"moty.xasrauf.net\",\"Port\":\"9191\",\"User\":\"zkvxi\"}},... [omitted similar JSON objects] ...]\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains an SSH config file.
+  - Command Behavior Analysis: The program reads the SSH config data piped via standard input, converts it to a JSON array, and prints it to standard output.
+  - Final State Changes (fs_diff): No file system changes occurred.
+##### Command Category: cat <file> | ssh-config -to-ssh
+- Function and Parameter Description:
+Reads JSON formatted SSH configuration from standard input, converts it to standard SSH config format, and outputs to standard output.
+  - `-to-ssh`: Convert SSH config(YAML/JSON) to standard SSH format.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite scripts were executed.
+Mounted files:
+  - `/test_data/input_to_ssh_from_pipe_3.dat` containing JSON formatted SSH configuration.
+2. Command:
+`cat /test_data/input_to_ssh_from_pipe_3.dat | ssh-config -to-ssh`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file with SSH configurations.
+  - Command Behavior Analysis: The program reads the JSON data piped via standard input. Based on the sample, it outputs an empty newline to standard output.
+  - Final State Changes (fs_diff): No file system changes occurred.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,257 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: fsm-proc
+**Repository Name**: fsm-proc
+**Core Functionality Description**:
+This is a CLI tool for processing and editing files based on a set of rules defined as a state machine. It reads an input file record-by-record (defaulting to line-by-line) and applies actions based on the current state and whether the current record matches a specified regular expression. Supported actions include printing data, and transitioning to a new state. This allows for complex, stateful text processing. The tool can take the state machine program either from a file or as a command-line string.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `ted -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command executes a state machine program from a file against an input file.
+  - `fsm-proc [PROGRAM] [INPUTFILE...]`
+  - `-f, --fsa-file FSAFILE`: Specifies the file containing the state machine program to run.
+  - `INPUTFILE`: The input file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_2.fsa` with content: `/vis/ -> /kft/ { println $0 }`
+    - `/test_data/input_2.txt` with content:
+      ```
+      OME5bT
+      cc5Ib465e1z15
+      ovVdqs9FAdSDFe
+      leNzV29LwQ1YNatjUQ7
+      xDvxmGB6rEfc7be
+      RbmJACwd
+      8oIYMzgZmgYgrvGVUler
+      pRsKdYbHDjY
+      QbCjMTjQr0rpeI64JcA
+      dwBpS5DtZsIBCDcl9
+      ```
+  **2. Command**:
+  `fsm-proc -f /test_data/program_2.fsa /test_data/input_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "OME5bT\ncc5Ib465e1z15\novVdqs9FAdSDFe\nleNzV29LwQ1YNatjUQ7\nxDvxmGB6rEfc7be\nRbmJACwd\n8oIYMzgZmgYgrvGVUler\npRsKdYbHDjY\nQbCjMTjQr0rpeI64JcA\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A program file and an input file are present. The program file defines a state transition rule that is not met by any line in the input file.
+  - Command Behavior Analysis: The tool is invoked with the program file and input file. By default, when no program rules are matched, the tool should print each line of the input file. However, a key behavior is observed: the tool processes the input line by line, but it omits the very last line of the file from its output if that line is not terminated by a newline character. In this sample, `input_2.txt`'s last line `dwBpS5DtZsIBCDcl9` does not have a trailing newline, and it is absent from the `stdout`.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted <program_string> <input_file>`
+- **Function and Parameter Description**:
+  - This command executes a state machine program, provided as a string, against an input file.
+  - `fsm-proc [PROGRAM] [INPUTFILE...]`
+  - `PROGRAM`: A string containing the state machine program.
+  - `INPUTFILE`: The input file to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created in the `/test_data/` directory:
+    - `/test_data/input_2.txt` with content:
+      ```
+      tYxH8nvhlifCIe4HMh
+      lbhAOEWin61TAPE
+      aaDto0F0lS687p4g7Ak7
+      pwNKlEiWaJRfQ6
+      vLqLqtKzxaGLCh
+      gTrHJvxXfgJXEiNKVS
+      pbJsgh
+      rqDPkuGdNBB
+      BDP03dYzLLA
+      t9f50OVzgKC5
+      93LOLT1V
+      ```
+  **2. Command**:
+  `fsm-proc '/vrxl/ { do s/qsk/uav/g }' /test_data/input_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "tYxH8nvhlifCIe4HMh\nlbhAOEWin61TAPE\naaDto0F0lS687p4g7Ak7\npwNKlEiWaJRfQ6\nvLqLqtKzxaGLCh\ngTrHJvxXfgJXEiNKVS\npbJsgh\nrqDPkuGdNBB\nBDP03dYzLLA\nt9f50OVzgKC5\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An input file is provided. The program is given as a command-line argument.
+  - Command Behavior Analysis: The program `'/vrxl/ { do s/qsk/uav/g }'` specifies a sed-like substitution action if a line matches `/vrxl/`. No line in the input matches this regex. Therefore, the tool falls back to its default behavior of printing each line. The same "missing last line" behavior is observed as in the previous sample: the last line `93LOLT1V` from the input is not printed because it lacks a trailing newline.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted -n -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates the use of the `-n` flag to suppress default output.
+  - `-n, --no-print`: Do not print lines by default. Output is only generated by explicit actions like `print`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_1.fsa` with content: `state1: /jkf/ -> state2 state2: /qxoi/ { print -> state1 }`
+    - `/test_data/input_1.txt` with content:
+      ```
+      DIzvfZ4bk
+      0KoKtfVGC11Lpx
+      nJgkR689c3TFsoQR
+      CTtcYa
+      3fPJQxblatkLbzCR6
+      3fwqX2M5hYyq
+      bsNCZnsQTzZ2jTH
+      mzmOlgEJJggi
+      aRIXEPY7PdxVIsPjG
+      IyMA0cU1qeZ
+      ```
+  **2. Command**:
+  `fsm-proc -n -f /test_data/program_1.fsa /test_data/input_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A program file and an input file are provided. The program defines a two-state machine that will `print` a line only if it's in `state2` and the line matches `/qxoi/`.
+  - Command Behavior Analysis: The `-n` flag is active, so the tool does not print lines by default. The program starts in `state1`. To transition to `state2`, a line must match `/jkf/`. No line in the input matches `/jkf/`. Therefore, the state never changes to `state2`, and the `print` action is never triggered. The result is an empty `stdout`, correctly demonstrating the effect of the `-n` flag.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted --var <k=v> -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command shows that the tool can accept a `--var` flag.
+  - `--var key=value`: Defines a variable. While the sample shows the flag is accepted, its usage within the program logic is not demonstrated.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_1.fsa` with content: `/rvdzx/ -> /eqn/ { println $0 }`
+    - `/test_data/input_1.txt` with content:
+      ```
+      m9xc2tFZbzxyx
+      9Plk5OiP4xR2X0ypbZ
+      lNQA6FxaDIpezUUQriK
+      AS48SxQclo5rsJrP
+      nlvsMCAM
+      A6HzsfibS
+      u87xfX1cXfHSe3si
+      zPoDZKUsmYO3U
+      u9S55Sx9CurYV
+      qK10HU421ihO3
+      ```
+  **2. Command**:
+  `fsm-proc --var wwgBOypZ=ndxhs74i -f /test_data/program_1.fsa /test_data/input_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "m9xc2tFZbzxyx\n9Plk5OiP4xR2X0ypbZ\nlNQA6FxaDIpezUUQriK\nAS48SxQclo5rsJrP\nnlvsMCAM\nA6HzsfibS\nu87xfX1cXfHSe3si\nzPoDZKUsmYO3U\nu9S55Sx9CurYV\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A program file and an input file are present.
+  - Command Behavior Analysis: The tool is called with a `--var` flag. The program itself does not reference this variable. The tool must parse the flag without error and proceed with execution. Since no program rules are matched, it falls back to the default line-printing behavior, again exhibiting the "missing last line" quirk.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted -s <sep> -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates the use of a custom record separator.
+  - `-s, --seperator SEPERATOR`: Sets the record separator. Defaults to `\n`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_3.fsa` with content: `BEGIN { println "Starting" } /xwh/ { print } END { println "Finished" }`
+    - `/test_data/input_3.txt` with content: (a 15-line file of random strings)
+  **2. Command**:
+  `fsm-proc -s --- -f /test_data/program_3.fsa /test_data/input_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The program file defines `BEGIN` and `END` blocks, which should theoretically execute before and after processing.
+  - Command Behavior Analysis: The record separator is set to `---`. The input file does not contain this separator. Consequently, the entire file is treated as a single record. This record does not match the program's regex `/xwh/`. Critically, the `BEGIN` and `END` blocks do not execute, resulting in an empty `stdout`. This implies a specific implementation detail: if a custom separator is provided and not found in the input (resulting in only one record), the `BEGIN` and `END` blocks are not triggered. This behavior must be replicated.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted --debug -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates the `--debug` flag for verbose output.
+  - `--debug`: Provides Lexer and Parser information.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_2.fsa` with content: `state1: /zlstm/ -> state2 state2: /amfuo/ { print -> state1 }`
+    - `/test_data/input_2.txt` with content: (an 11-line file of random strings)
+  **2. Command**:
+  `fsm-proc --debug -f /test_data/program_2.fsa /test_data/input_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{Type:LABEL Literal:state1 LineNum:1 Position:9}\n{Type:REGEX Literal:zlstm LineNum:1 Position:16}\n{Type:-> Literal:-> LineNum:1 Position:19}\n{Type:IDENT Literal:state2 LineNum:1 Position:21}\n{Type:LABEL Literal:state2 LineNum:1 Position:35}\n{Type:REGEX Literal:amfuo LineNum:1 Position:42}\n{Type:{ Literal:{ LineNum:1 Position:44}\n{Type:PRINT Literal:print LineNum:1 Position:46}\n{Type:-> Literal:-> LineNum:1 Position:53}\n{Type:IDENT Literal:state1 LineNum:1 Position:55}\n{Type:} Literal:} LineNum:1 Position:62}\nstate1:/zlstm/  :: goto: state2\nstate2:/amfuo/  :: { print '$_'; goto: state1;  }\n4Ja3cdxsHGyCh\nSArxnv4jJhb5ZGc9RRc\nZr0ABz2SBdN\nfhp4bVt0A1VVKQJlix9\njnTCbDR9SOd\nEmw2lpK\nWRCZOeSq4olsqtCy\n7oGzX\n9Gh5Ond3F8A\nXuYtWgCcyZBDX\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A program file and an input file are ready.
+  - Command Behavior Analysis: The `--debug` flag causes the tool to first print detailed information about how it tokenizes (lexes) and parses the program file. The output shows each token with its type, literal value, and position. It then prints a summary of the parsed state machine rules. After this debug preamble, it proceeds with normal execution. Since no rules are matched, it prints the input lines by default, again showing the "missing last line" behavior.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `ted -n --var <k=v> -s <sep> -f <program_file> <input_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates the combination of multiple flags: `-n`, `--var`, and `-s`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created in the `/test_data/` directory:
+    - `/test_data/program_0.fsa` with content: `/meoeh/ -> /awrbs/ { println $0 }`
+    - `/test_data/input_0.txt` with content: (a 15-line file of random strings)
+  **2. Command**:
+  `fsm-proc -n --var lznh=G7G68TAnN7daaM -s '|' -f /test_data/program_0.fsa /test_data/input_0.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A program file and an input file are present.
+  - Command Behavior Analysis: This sample combines multiple flags. The `-n` flag suppresses default printing. The `-s '|'` flag sets the record separator to `|`, which does not exist in the input file. The `--var` flag is accepted but unused. Because the separator is not found, the whole file is one record. This record does not match `/meoeh/`, so the program's `println` action is not triggered. Since `-n` is also active, there is no default output. The final `stdout` is correctly empty.
+  - Final State Changes (fs_diff): No file system changes occur.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

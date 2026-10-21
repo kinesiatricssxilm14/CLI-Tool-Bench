@@ -1,0 +1,475 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development.
+You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch.
+Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+Important: You MUST create all repository files directly in the current working directory. Do NOT create an outer folder for the repository name, as you are already inside the target repository folder.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: todo-bridge
+**Repository Name**: todo-bridge
+**Core Functionality Description**:
+This is a CLI tool that converts to-do lists from various formats (CSV, Markdown, and Todo.txt) into a specific, structured JSON format. It supports creating tasks, subtasks, projects, and tags based on the input file's content. The tool can either generate a new JSON data structure from scratch or merge the new tasks into an existing one. The format of the input file is detected automatically based on its extension (.csv, .md, .txt).
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `todo-bridge <input.csv>`
+- **Function and Parameter Description**:
+  - This command converts a CSV file into a structured JSON format.
+  - `input_file`: A positional argument specifying the path to the input CSV file.
+  - The resulting JSON is printed directly to standard output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_4.csv` is created with the following content:
+  ```csv
+  title,notes,project,tags,isDone,timeEstimate,dueDay,subtasks
+  "WB8QnL","lkq7TcwZcsDk1dI8BokWZ9AJQqDNxU7gbKC4Cw","OE1nCgzem","X5wc5l2z,hGgBVJ","true","2h 27m","2024-01-01","bC28gyXw2q"
+  "zrCmeyHdLF","NM5Jckbtv6RmiRyQEMc6ti94fcxEc1EPq","gkDPM6g66x","","0","1h 23m","2024-01-01","sZZdq"
+  "CVoK1WUijEAb","qM48jffLds7vOvwQh8VH7bI","D1ppT","rRM179,YkZMC0","1","4h 39m","2024-01-01",""
+  "TXI8JgQu","ONmOrAskTeVHD","Iakfq","5yRa9o,QCUjqsuJ","false","4h 25m","2024-01-01","MySahc6pW|3xuOJZ36"
+  "lWOhTUB3lon0xYUrFT","KnnwsjQUo2wlL","mn5we2P8","","true","4h 7m","2024-01-01","Aa7HYJDAxOl|geXOFvhb0vBA"
+  ```
+  **2. Command**:
+  `todo-bridge /test_data/input_4.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nConversion Summary:\n  Tasks: 11\n  Projects: 6\n  Tags: 6\n{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"fa23b315d38848f4bae33\",\n        \"3adcc112c328476885a1c\",\n        \"38910a80550d4f4bbfe60\",\n...[omitted 900+ lines of JSON data]... \n    \"archiveOld\": {\n      \"task\": {\n        \"ids\": [],\n        \"entities\": {}\n      },\n      \"timeTracking\": {\n        \"project\": {},\n        \"tag\": {}\n      },\n      \"lastTimeTrackingFlush\": 1773735694173\n    }\n  },\n  \"crossModelVersion\": 4.2}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single CSV file at `/test_data/input_4.csv`. The CSV contains a header row and five data rows, each representing a task.
+  - Command Behavior Analysis: The `todo-bridge` command is executed with the path to the CSV file. The tool reads the CSV and parses each row. It uses the `project` column to create projects, the `tags` column (comma-separated) to create tags, and the `subtasks` column (pipe-separated) to create sub-tasks for a parent task. It converts `timeEstimate` strings (e.g., "2h 27m") into milliseconds. It interprets `isDone` values like "true", "1", "0", and "false". The entire parsed data is then formatted into a large JSON object representing the application's data state.
+  - Final State Changes (fs_diff): No changes are made to the file system. The command prints a conversion summary followed by the complete JSON data structure to `stdout`.
+
+#### Command Category: `todo-bridge <input.csv> <output.json>`
+- **Function and Parameter Description**:
+  - This command converts a CSV file into a structured JSON format and saves it to a specified file.
+  - `input_file`: Path to the input CSV file.
+  - `output_file`: Path where the output JSON file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_4.csv` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_4.csv /test_data/output_4.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_4.csv to /test_data/output_4.json\n\nConversion Summary:\n  Tasks: 7\n  Projects: 5\n  Tags: 1\n  Completed tasks: 1\n  Incomplete tasks: 6\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - aNAA6bn (2 tasks)\n  - ujTuL (1 tasks)\n  - nkZRuR7iA3 (2 tasks)\n  - Dm6k8fRMG (2 tasks)\n\nTags created:\n  - 3gaDy (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_4.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"220db7a9453f478d980de\",\n        \"1fd3f90c4f1e42c0ba5a5\",\n        \"0c7e7836dde6425798919\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV file `/test_data/input_4.csv`.
+  - Command Behavior Analysis: The command is executed with both an input and an output file path. The tool parses the input CSV file as described previously.
+  - Final State Changes (fs_diff): Instead of printing the JSON to stdout, the tool creates a new file at `/test_data/output_4.json` and writes the generated JSON data into it. The `stdout` now contains a success message and a detailed conversion summary, including counts of tasks, projects, tags, and a list of created projects and tags with their respective task counts.
+
+#### Command Category: `todo-bridge <input.csv> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Converts a CSV to a JSON file with a specified indentation level.
+  - `input_file`: Path to the input CSV file.
+  - `output_file`: Path for the output JSON file.
+  - `--indent INDENT`: An option to specify the indentation level for the output JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_3.csv` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_3.csv /test_data/output_3.json --indent 2`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_3.csv to /test_data/output_3.json\n\nConversion Summary:\n  Tasks: 5\n  Projects: 4\n  Tags: 5\n  Completed tasks: 2\n  Incomplete tasks: 3\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - WS4kEWtk (1 tasks)\n  - XFMdOi6ij0 (3 tasks)\n  - Zqyx6J8TOG (1 tasks)\n\nTags created:\n  - 4SqyLdSJ (1 tasks)\n  - Kz5ks (1 tasks)\n  - L9P0jip (3 tasks)\n  - 1FRC47 (3 tasks)\n  - owikY (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_3.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"13b6774f1613412591e9c\",\n        \"09386b321a4b42c8a5f18\",\n        \"f3de25f723a4424b89c56\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV file `/test_data/input_3.csv`.
+  - Command Behavior Analysis: The command functions similarly to the previous example, but with the addition of the `--indent 2` option. This instructs the tool to format the output JSON with an indentation of 2 spaces, making it more human-readable.
+  - Final State Changes (fs_diff): A new file `/test_data/output_3.json` is created containing the formatted JSON. The `stdout` shows a success message and a detailed summary, identical in format to the case without the `--indent` option.
+
+#### Command Category: `todo-bridge <input.csv> --merge <backup.json> <output.json>`
+- **Function and Parameter Description**:
+  - Merges tasks from a CSV file into an existing JSON backup file and saves the result to a new file.
+  - `input_file`: Path to the input CSV file.
+  - `--merge BACKUP_FILE`: Specifies the existing JSON backup file to merge with.
+  - `output_file`: Path for the new, merged JSON file. This argument is required when using `--merge`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_3.csv` is created.
+  - A backup file `/test_data/backup_3.json` is created with a minimal, empty data structure.
+  **2. Command**:
+  `todo-bridge /test_data/input_3.csv --merge /test_data/backup_3.json /test_data/output_3.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_3.csv with /test_data/backup_3.json and saved to /test_data/output_3.json\n\nMerge Summary:\n  New tasks added: 7\n  Total tasks: 7\n  Total projects: 4\n  Total tags: 2\n",
+      "fs_diff": {
+          "/test_data/output_3.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"d53b0548119a483bb9251\",\n        \"48227ecee6464c1583ecc\",\n        \"19a71080e7fe4c9c9428d\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the CSV with new tasks and a JSON backup file (which is empty of tasks in this sample).
+  - Command Behavior Analysis: The command is executed with the `--merge` flag. The tool first loads the data from the `backup_3.json` file. Then, it parses the `input_3.csv` file to generate new task data. Finally, it adds the new tasks, projects, and tags to the data loaded from the backup file. Existing projects and tags should be reused if names match.
+  - Final State Changes (fs_diff): The tool creates a new file `/test_data/output_3.json` containing the combined data. The `stdout` provides a success message and a "Merge Summary" with counts of new and total items.
+
+#### Command Category: `todo-bridge <input.csv> --merge <backup.json> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Merges tasks from a CSV into a JSON backup, saving the result to a new, indented JSON file.
+  - `input_file`: Path to the input CSV.
+  - `--merge BACKUP_FILE`: Path to the JSON backup file.
+  - `output_file`: Path for the merged, indented output JSON.
+  - `--indent INDENT`: Specifies the JSON indentation level.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_4.csv` is created.
+  - A backup file `/test_data/backup_4.json` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_4.csv --merge /test_data/backup_4.json /test_data/output_4.json --indent 5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_4.csv with /test_data/backup_4.json and saved to /test_data/output_4.json\n\nMerge Summary:\n  New tasks added: 7\n  Total tasks: 7\n  Total projects: 5\n  Total tags: 4\n",
+      "fs_diff": {
+          "/test_data/output_4.json": {
+              "type": "ADD",
+              "content": "{\n     \"data\": {\n          \"task\": {\n               \"ids\": [\n                    \"bf85dadde89a458488db7\",\n                    \"c3bd8d3ea41e42c5b38f0\",\n                    \"7f7b83a41820467e83f68\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV and an empty JSON backup file.
+  - Command Behavior Analysis: This command combines the merge functionality with the indentation option. The tool performs the merge operation as described above and then formats the final JSON output with the specified indentation (5 spaces in this case).
+  - Final State Changes (fs_diff): A new, indented JSON file `/test_data/output_4.json` is created containing the merged data. The `stdout` shows a success message and a merge summary.
+
+#### Command Category: `todo-bridge <input.md>`
+- **Function and Parameter Description**:
+  - Converts a Markdown file into a structured JSON format and prints it to stdout.
+  - `input_file`: Path to the input Markdown file (`.md`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_3.md` is created with the following content:
+  ```markdown
+  # PrtR4
+      - [ ] JVb64yzQVgM09V79A7Q6NGVic9MN #Y6G0s (1h)
+    - [ ] e0tTcHx4Dbb6ZCBj #wVut
+      - [x] 4jNDcIZdtmShRUsecwyxwpgA
+    - [x] NfNkGV2ZGcSigODagk2dr #1yWeB (3h)
+    - [x] aASJcdQdmrVUnC (3h)
+  ```
+  **2. Command**:
+  `todo-bridge /test_data/input_3.md`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nConversion Summary:\n  Tasks: 5\n  Projects: 2\n  Tags: 3\n{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"53f159bc4316423f8b56e\",\n        \"7c782d3200f74af68f6e2\",\n        \"2cddfda37f8d4a528f4bd\",\n...[omitted 600+ lines of JSON data]...\n  \"crossModelVersion\": 4.2}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a Markdown file with a header, and a list of tasks with varying indentation, completion status, tags, and time estimates.
+  - Command Behavior Analysis: The tool parses the Markdown file. The H1 header (`# PrtR4`) is interpreted as a project. Task list items (`- [ ]`, `- [x]`) are parsed as tasks. Indentation is used to create a parent-child relationship (subtasks). Hashtags (`#Y6G0s`) are parsed as tags. Time estimates in parentheses (`(1h)`) are parsed and converted to milliseconds. The resulting data is formatted into the standard JSON structure.
+  - Final State Changes (fs_diff): No files are changed. A conversion summary and the full JSON output are printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.md> <output.json>`
+- **Function and Parameter Description**:
+  - Converts a Markdown file to a JSON file.
+  - `input_file`: Path to the input Markdown file.
+  - `output_file`: Path for the output JSON file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_2.md` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_2.md /test_data/output_2.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_2.md to /test_data/output_2.json\n\nConversion Summary:\n  Tasks: 4\n  Projects: 2\n  Tags: 3\n  Completed tasks: 3\n  Incomplete tasks: 1\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - FVbSHYxscy (4 tasks)\n\nTags created:\n  - LZHbmD (1 tasks)\n  - xFNOX (1 tasks)\n  - vDmNN0 (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_2.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"01ae9e1d0c734fbca46de\",\n        \"e8c527ad0b2a4ae6aad72\",\n        \"c59b73b67887437a85504\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Markdown file `/test_data/input_2.md`.
+  - Command Behavior Analysis: The tool parses the Markdown file and converts its contents into the JSON data structure.
+  - Final State Changes (fs_diff): The generated JSON is written to `/test_data/output_2.json`. A success message and a detailed conversion summary are printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.md> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Converts a Markdown file to an indented JSON file.
+  - `input_file`: Path to the input Markdown file.
+  - `output_file`: Path for the output JSON file.
+  - `--indent INDENT`: Specifies JSON indentation. A value of `-1` in the sample seems to produce compact, unindented JSON on a single line. The agent should replicate this behavior.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_2.md` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_2.md /test_data/output_2.json --indent -1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_2.md to /test_data/output_2.json\n\nConversion Summary:\n  Tasks: 2\n  Projects: 2\n  Tags: 1\n  Completed tasks: 0\n  Incomplete tasks: 2\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - l7tuCg (2 tasks)\n\nTags created:\n  - vHiTZj3 (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_2.json": {
+              "type": "ADD",
+              "content": "{\n\"data\": {\n\"task\": {\n\"ids\": [\n\"6c5b595613024aceb61f2\",\n\"22cc7247de5545c7a7d44\"\n],\n\"entities\": {\n\"6c5b595613024aceb61f2\": {\n\"id\": \"6c5b595613024aceb61f2\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Markdown file.
+  - Command Behavior Analysis: The tool parses the Markdown file. The `--indent -1` argument is used, which results in a compact JSON output format (no newlines or spaces for formatting).
+  - Final State Changes (fs_diff): The compact JSON is written to `/test_data/output_2.json`. A summary is printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.md> --merge <backup.json> <output.json>`
+- **Function and Parameter Description**:
+  - Merges tasks from a Markdown file into a JSON backup.
+  - `input_file`: Path to the input Markdown file.
+  - `--merge BACKUP_FILE`: Path to the JSON backup file.
+  - `output_file`: Path for the merged output JSON.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_4.md` is created.
+  - A backup file `/test_data/backup_4.json` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_4.md --merge /test_data/backup_4.json /test_data/output_4.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_4.md with /test_data/backup_4.json and saved to /test_data/output_4.json\n\nMerge Summary:\n  New tasks added: 5\n  Total tasks: 5\n  Total projects: 2\n  Total tags: 2\n",
+      "fs_diff": {
+          "/test_data/output_4.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"3ae402d1d7544f4bb6446\",\n        \"494f2ceb9c9641dbb8c3f\",\n        \"97f7347c5f6341719533b\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the Markdown file with new tasks and an empty JSON backup.
+  - Command Behavior Analysis: The tool loads the backup JSON, parses the new tasks from the Markdown file, and adds them to the data structure.
+  - Final State Changes (fs_diff): The merged data is written to `/test_data/output_4.json`. A success message and merge summary are printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.md> --merge <backup.json> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Merges tasks from a Markdown file into a JSON backup, saving the result as an indented JSON file.
+  - `input_file`, `--merge BACKUP_FILE`, `output_file`, `--indent INDENT`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_3.md` is created.
+  - A backup file `/test_data/backup_3.json` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_3.md --merge /test_data/backup_3.json /test_data/output_3.json --indent 2`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_3.md with /test_data/backup_3.json and saved to /test_data/output_3.json\n\nMerge Summary:\n  New tasks added: 3\n  Total tasks: 3\n  Total projects: 2\n  Total tags: 2\n",
+      "fs_diff": {
+          "/test_data/output_3.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"406b332a2f6043a883719\",\n        \"0b1ba287f5c24d289fb8d\",\n        \"24fed5dad3514144ab160\"\n      ],\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Markdown file and an empty JSON backup.
+  - Command Behavior Analysis: The tool performs the merge operation and then formats the final JSON with an indentation of 2 spaces.
+  - Final State Changes (fs_diff): A new, indented JSON file `/test_data/output_3.json` is created with the merged data. `stdout` shows a success message and summary.
+
+#### Command Category: `todo-bridge <input.txt>`
+- **Function and Parameter Description**:
+  - Converts a `todo.txt` formatted file into a structured JSON format and prints it to stdout.
+  - `input_file`: Path to the input `todo.txt` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_4.txt` is created with the following content:
+  ```
+  x 2024-01-10 2024-01-01 ODTnRd7UTgeg +J5X8Foh @DGFiwRw due:2024-12-31 t:41m
+  2024-01-01 n3pxUpPcyE9WeuFjXtHNUDQYk +0e3uROpu7C @70nNIh t:21m
+  (D) x 2024-01-10 2024-01-01 lRv2D6Oudf717EKnvcpnG9i9TQH +yVzR0UwBv @xE9Q6 due:2024-12-31 t:26m
+  2024-01-01 cDwZLKAqtmwK6QbPZpG5sX4Dy7 +5gfgTeCFk @t5TRRv due:2024-12-31
+  x 2024-01-10 2024-01-01 JRqNNIybrkuoqrj8O9weOl0A51hSl1 +zqZaKpex1 @VrVxz1SI
+  ```
+  **2. Command**:
+  `todo-bridge /test_data/input_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"571dfd13b944409584bca\",\n        \"4856100599314e8985881\",\n        \"6733760f41e44a92b4dd0\",\n...[omitted 700+ lines of JSON data]...\n  \"crossModelVersion\": 4.2}\n\nConversion Summary:\n  Tasks: 5\n  Projects: 6\n  Tags: 6\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a `todo.txt` file.
+  - Command Behavior Analysis: The tool parses the `todo.txt` file line by line. It identifies:
+    - Completion status (`x` at the beginning).
+    - Completion and creation dates.
+    - Projects (`+ProjectName`).
+    - Contexts/Tags (`@ContextName`).
+    - Priority (`(A)`, `(B)`, etc.), which is converted into a tag like "Priority A".
+    - Metadata key-value pairs like `due:YYYY-MM-DD` and `t:XXm` for time estimates.
+    - **Important**: The sample shows that for the line `(D) x ...`, the task title becomes `x ...`, indicating the parser might not correctly handle priority and completion markers together. The agent must replicate this specific parsing logic.
+  - Final State Changes (fs_diff): No files are changed. The full JSON is printed to `stdout`, followed by a conversion summary.
+
+#### Command Category: `todo-bridge <input.txt> <output.json>`
+- **Function and Parameter Description**:
+  - Converts a `todo.txt` file to a JSON file.
+  - `input_file`: Path to the input `todo.txt` file.
+  - `output_file`: Path for the output JSON file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_2.txt` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_2.txt /test_data/output_2.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_2.txt to /test_data/output_2.json\n\nConversion Summary:\n  Tasks: 5\n  Projects: 6\n  Tags: 7\n  Completed tasks: 1\n  Incomplete tasks: 4\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - HEFQLz92 (1 tasks)\n  - IjZgBlK (1 tasks)\n  - wxzpJt (1 tasks)\n  - YpWeEJ (1 tasks)\n  - 2lb6Kd (1 tasks)\n\nTags created:\n  - bWZPjHPfcN (1 tasks)\n  - br2y8D (1 tasks)\n  - X2Q7JpTN5 (1 tasks)\n  - Priority A (1 tasks)\n  - M8eNRjG (1 tasks)\n  - Priority C (1 tasks)\n  - NGMl6bM (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_2.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"877e2e393ba64ec997102\",\n        \"80423ca6501b4aecad942\",\n        \"1362acdeec854df295c87\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input `todo.txt` file.
+  - Command Behavior Analysis: The tool parses the `todo.txt` file.
+  - Final State Changes (fs_diff): The generated JSON is written to `/test_data/output_2.json`. A success message and a detailed conversion summary (including priority tags) are printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.txt> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Converts a `todo.txt` file to an indented JSON file.
+  - `input_file`, `output_file`, `--indent INDENT`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An input file `/test_data/input_4.txt` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_4.txt /test_data/output_4.json --indent 1`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully converted /test_data/input_4.txt to /test_data/output_4.json\n\nConversion Summary:\n  Tasks: 5\n  Projects: 6\n  Tags: 7\n  Completed tasks: 3\n  Incomplete tasks: 2\n\nProjects created:\n  - Imported Tasks (0 tasks)\n  - q3Zueb6J (1 tasks)\n  - EP1RD (1 tasks)\n  - x1H4r0M (1 tasks)\n  - JMU7IAgKSX (1 tasks)\n  - U32UO9RusX (1 tasks)\n\nTags created:\n  - NsSj7TaOIp (1 tasks)\n  - Priority C (1 tasks)\n  - O72Ro1 (1 tasks)\n  - c28DTqc (1 tasks)\n  - NzHUig (1 tasks)\n  - Priority D (1 tasks)\n  - ORHwn7BVE (1 tasks)\n",
+      "fs_diff": {
+          "/test_data/output_4.json": {
+              "type": "ADD",
+              "content": "{\n \"data\": {\n  \"task\": {\n   \"ids\": [\n    \"2d77c3b1d23142c6a089c\",\n    \"7e8c9c15495041a395ace\",\n    \"2aa974d97e704f20b5266\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input `todo.txt` file.
+  - Command Behavior Analysis: The tool parses the `todo.txt` file and formats the resulting JSON with an indentation of 1 space.
+  - Final State Changes (fs_diff): The indented JSON is written to `/test_data/output_4.json`. A summary is printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.txt> --merge <backup.json> <output.json>`
+- **Function and Parameter Description**:
+  - Merges tasks from a `todo.txt` file into a JSON backup.
+  - `input_file`, `--merge BACKUP_FILE`, `output_file`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_3.txt` is created.
+  - A backup file `/test_data/backup_3.json` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_3.txt --merge /test_data/backup_3.json /test_data/output_3.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_3.txt with /test_data/backup_3.json and saved to /test_data/output_3.json\n\nMerge Summary:\n  New tasks added: 4\n  Total tasks: 4\n  Total projects: 5\n  Total tags: 5\n",
+      "fs_diff": {
+          "/test_data/output_3.json": {
+              "type": "ADD",
+              "content": "{\n  \"data\": {\n    \"task\": {\n      \"ids\": [\n        \"d0204e42abef44efa5df7\",\n        \"944f2218059b4313920a0\",\n        \"54c4eb7d026346b98dcc0\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the `todo.txt` file and an empty JSON backup.
+  - Command Behavior Analysis: The tool loads the backup JSON, parses the new tasks from the `todo.txt` file, and adds them to the data structure.
+  - Final State Changes (fs_diff): The merged data is written to `/test_data/output_3.json`. A success message and merge summary are printed to `stdout`.
+
+#### Command Category: `todo-bridge <input.txt> --merge <backup.json> <output.json> --indent <N>`
+- **Function and Parameter Description**:
+  - Merges tasks from a `todo.txt` file into a JSON backup, saving the result as an indented JSON file.
+  - `input_file`, `--merge BACKUP_FILE`, `output_file`, `--indent INDENT`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_3.txt` is created.
+  - A backup file `/test_data/backup_3.json` is created.
+  **2. Command**:
+  `todo-bridge /test_data/input_3.txt --merge /test_data/backup_3.json /test_data/output_3.json --indent 5`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Successfully merged /test_data/input_3.txt with /test_data/backup_3.json and saved to /test_data/output_3.json\n\nMerge Summary:\n  New tasks added: 5\n  Total tasks: 5\n  Total projects: 6\n  Total tags: 8\n",
+      "fs_diff": {
+          "/test_data/output_3.json": {
+              "type": "ADD",
+              "content": "{\n     \"data\": {\n          \"task\": {\n               \"ids\": [\n                    \"93d881751bf7419e8521b\",\n                    \"c55a3af8abd747be88b72\",\n                    \"3363f727da25413892fd1\",\n...[TRUNCATED]..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input `todo.txt` file and an empty JSON backup.
+  - Command Behavior Analysis: The tool performs the merge operation and then formats the final JSON with an indentation of 5 spaces.
+  - Final State Changes (fs_diff): A new, indented JSON file `/test_data/output_3.json` is created with the merged data. `stdout` shows a success message and summary.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

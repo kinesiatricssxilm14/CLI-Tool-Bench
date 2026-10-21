@@ -1,0 +1,287 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: sanitext
+**Repository Name**: sanitext
+**Core Functionality Description**:
+This is a command-line tool for processing text strings to detect and sanitize unwanted characters. The primary function is to take a string input and convert it to a clean, ASCII-like representation by replacing or removing non-standard characters. The tool also provides functionality to only detect these characters without performing sanitization, control the verbosity of the output, and specify allowlists for characters that should not be sanitized.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `sanitext --string "<text>"`
+- **Function and Parameter Description**:
+  This is the default command. It processes a given string, sanitizes it, and prints the result to standard output.
+  - `--string <TEXT>`: The input string to be processed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string 'G4ONXOjhXRk with some unicode «ταΒьℓσ»'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "G4ONXOjhXRk with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool takes the input string `'G4ONXOjhXRk with some unicode «ταΒьℓσ»'`. It identifies the non-ASCII characters (`«`, `τ`, `α`, `Β`, `ь`, `ℓ`, `σ`, `»`) and replaces them with their ASCII or simplified equivalents. Based on the output, the specific mapping `«ταΒьℓσ»` is transliterated to `"tabls"`. The final sanitized string is printed to stdout.
+  - Final State Changes (fs_diff): There are no changes to the file system. The tool's output is directed solely to stdout.
+
+#### Command Category: `sanitext --string "<text>" --detect`
+- **Function and Parameter Description**:
+  This command detects non-standard characters in a string but does not perform any sanitization or modification. It prints a list of detected characters and their Unicode names.
+  - `--string <TEXT>`: The input string to be analyzed.
+  - `--detect` or `-d`: A flag to enable detection-only mode.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string 'NbRzwlVY with some unicode «ταΒьℓσ»' --detect`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Detected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool processes the input string. Because the `--detect` flag is present, it only identifies the non-ASCII characters. It then prints a list of tuples, where each tuple contains the character and its official Unicode name, prefixed with "Detected: ". The original string is not modified or printed.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --verbose`
+- **Function and Parameter Description**:
+  This command sanitizes the string and also shows which characters were detected.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--verbose` or `-v`: Enables verbose mode, showing detected characters before the sanitized output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string 'MUxuyswu with some unicode «ταΒьℓσ»' --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Detected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\nMUxuyswu with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool first performs the detection step, printing the list of detected non-ASCII characters and their names, prefixed with "Detected: ". Then, it performs the sanitization, transliterating `«ταΒьℓσ»` to `"tabls"`. Finally, it prints the sanitized string on a new line.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --very-verbose`
+- **Function and Parameter Description**:
+  This command provides the most detailed output, showing the original input, the detected characters, and the final sanitized output.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--very-verbose` or `-vv`: Enables very verbose mode.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string '4DOY5tuJfoJ4Vj5 with some unicode «ταΒьℓσ»' --very-verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Input: 4DOY5tuJfoJ4Vj5 with some unicode «ταΒьℓσ»\nDetected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\nOutput: 4DOY5tuJfoJ4Vj5 with some unicode \"tabls\"\n4DOY5tuJfoJ4Vj5 with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool prints the original string, prefixed with "Input: ". Then, it prints the list of detected characters, prefixed with "Detected: ". After that, it prints the sanitized string, prefixed with "Output: ". Finally, it prints the sanitized string again without any prefix. This final print is the standard output of the sanitization process.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --allow-emoji`
+- **Function and Parameter Description**:
+  This command sanitizes a string while allowing single code point emojis to be preserved.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--allow-emoji`: A flag to add emojis to the character allowlist.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string 'djeCkFKQDn with some unicode «ταΒьℓσ»' --allow-emoji`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "djeCkFKQDn with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool is instructed to allow emojis. The input string does not contain any emojis, so the flag has no effect on this specific input. The tool proceeds with the default sanitization, transliterating `«ταΒьℓσ»` to `"tabls"` and printing the result.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --allow-chars "<chars>"`
+- **Function and Parameter Description**:
+  This command sanitizes a string while preserving a specific set of user-provided characters.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--allow-chars <TEXT>`: A string containing all characters that should be preserved during sanitization.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is empty.
+  **2. Command**:
+  `sanitext --string '92flv1ELOOcz81 with some unicode «ταΒьℓσ»' --allow-chars 'βm'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "92flv1ELOOcz81 with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool is given an allowlist of characters `'βm'`. None of these characters are present in the non-ASCII part of the input string (`«ταΒьℓσ»`). Therefore, the allowlist has no effect, and the tool performs the standard sanitization, resulting in the output `"tabls"`.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --allow-file <file>`
+- **Function and Parameter Description**:
+  This command sanitizes a string while preserving characters specified in an external file.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--allow-file <FILE>`: Path to a file containing characters to allow.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created with the content `MGOIWWu8M6Tz8e` at the path `/test_data/allow_string_allow_file_4.txt`.
+  **2. Command**:
+  `sanitext --string 'rgAma1W9G5 with some unicode «ταΒьℓσ»' --allow-file /test_data/allow_string_allow_file_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "rgAma1W9G5 with some unicode \"tabls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists at `/test_data/allow_string_allow_file_4.txt` containing standard ASCII characters.
+  - Command Behavior Analysis: The tool reads the specified file to build an allowlist. The characters in the file are all standard ASCII and do not match any of the non-ASCII characters in the input string. Therefore, the allowlist has no effect, and the standard sanitization of `«ταΒьℓσ»` to `"tabls"` is performed.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --detect --allow-emoji`
+- **Function and Parameter Description**:
+  This command combines detection mode with the emoji allowlist. It should only detect characters, and the allowlist flag should have no effect on the detection output.
+  - `--string <TEXT>`: The input string to be analyzed.
+  - `--detect`: Enables detection-only mode.
+  - `--allow-emoji`: A flag to allow emojis (which is ignored in detect mode).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `sanitext --string 'tozrEYn6W with some unicode «ταΒьℓσ»' --detect --allow-emoji`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Detected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The `--detect` flag is present, so the tool's only job is to identify and report non-ASCII characters. The `--allow-emoji` flag is irrelevant to the detection process and is ignored. The output is the standard list of detected characters.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --detect --allow-chars "<chars>"`
+- **Function and Parameter Description**:
+  This command combines detection mode with a character allowlist. It should only detect characters, and the allowlist flag should have no effect on the detection output.
+  - `--string <TEXT>`: The input string to be analyzed.
+  - `--detect`: Enables detection-only mode.
+  - `--allow-chars <TEXT>`: A string of characters to allow (which is ignored in detect mode).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `sanitext --string 'blWqeMoW with some unicode «ταΒьℓσ»' --detect --allow-chars 'BPQOZM'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Detected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The `--detect` flag takes precedence. The tool identifies all non-ASCII characters and reports them. The `--allow-chars` flag is meant for sanitization, not detection, so it is ignored. The output is the standard list of detected characters.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --detect --allow-file <file>`
+- **Function and Parameter Description**:
+  This command combines detection mode with a file-based allowlist. It should only detect characters, and the allowlist flag should have no effect on the detection output.
+  - `--string <TEXT>`: The input string to be analyzed.
+  - `--detect`: Enables detection-only mode.
+  - `--allow-file <FILE>`: Path to a file with characters to allow (which is ignored in detect mode).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file is created at `/test_data/allow_detect_string_detect_allow_file_4.txt`.
+  **2. Command**:
+  `sanitext --string 'aVSJIunQ with some unicode «ταΒьℓσ»' --detect --allow-file /test_data/allow_detect_string_detect_allow_file_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Detected: [('«', 'LEFT-POINTING DOUBLE ANGLE QUOTATION MARK'), ('τ', 'GREEK SMALL LETTER TAU'), ('α', 'GREEK SMALL LETTER ALPHA'), ('Β', 'CYRILLIC CAPITAL LETTER BE'), ('ь', 'CYRILLIC CAPITAL LETTER SOFT SIGN'), ('ℓ', 'SCRIPT SMALL L'), ('σ', 'GREEK SMALL LETTER SIGMA'), ('»', 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK')]\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists at the specified path.
+  - Command Behavior Analysis: The `--detect` flag ensures the tool only reports non-ASCII characters. The `--allow-file` flag is ignored because detection is independent of any allowlists. The tool does not need to read the file. The output is the standard list of detected characters.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `sanitext --string "<text>" --allow-chars "<chars>" --allow-emoji`
+- **Function and Parameter Description**:
+  This command sanitizes a string, applying an allowlist from both a string and the emoji category.
+  - `--string <TEXT>`: The input string to be processed.
+  - `--allow-chars <TEXT>`: A string containing characters to preserve.
+  - `--allow-emoji`: A flag to also preserve emojis.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `sanitext --string '688I8ACntqNqrc with some unicode «ταΒьℓσ»' --allow-chars 'HαwcγSe' --allow-emoji`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "688I8ACntqNqrc with some unicode \"tαbls\"\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool is given an allowlist `'HαwcγSe'`. It processes the non-ASCII part of the input, `«ταΒьℓσ»`. It checks each character against the allowlist. The character `α` is in the allowlist, so it is preserved. The other characters (`«`, `τ`, `Β`, `ь`, `ℓ`, `σ`, `»`) are not in the allowlist and are transliterated as before. This results in the substring `"tαbls"`. The `--allow-emoji` flag has no effect as there are no emojis. The final sanitized string is printed.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

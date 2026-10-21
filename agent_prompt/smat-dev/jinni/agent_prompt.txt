@@ -1,0 +1,327 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: jinni
+**Repository Name**: jinni
+**Core Functionality Description**:
+The core function of this CLI tool is to process project files and consolidate their content into a single, structured text output. It is designed to gather the context of a software project by traversing specified directories or files.
+
+The tool intelligently filters which files to include. By default, it respects rules found in `.gitignore` files to exclude irrelevant content like build artifacts or data files. It also has its own built-in filters to exclude dotfiles and other common non-source files.
+
+The output format concatenates the content of each included file. Each file's content is wrapped in a code block and preceded by a header indicating its relative path, like ````path=src/app.py`.
+
+The tool provides several command-line options to customize its behavior:
+- Users can specify one or more target paths to process.
+- It can be instructed to only list the paths of the files that would be included, rather than their content.
+- The output can be written to a file instead of standard output.
+- Advanced filtering options allow for including or excluding files and directories based on keywords, paths, and patterns.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `jinni --no-copy <path>`
+- **Function and Parameter Description**:
+  - This is the basic command to process a project directory.
+  - `paths...`: One or more paths to project directories or files to analyze. In this sample, it's a single directory `/test_data/proj`.
+  - `--no-copy`: This flag ensures the output is only printed to standard output and not copied to the system clipboard. All provided samples use this flag, so you should implement the behavior of printing to stdout.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following directories are created: `/test_data/proj/src`, `/test_data/proj/docs`, `/test_data/proj/tests`, `/test_data/proj/data`, `/test_data/output_dir`.
+  The following files are created with content:
+  - `/test_data/proj/main.py`: `print("hello world from main")`
+  - `/test_data/proj/src/app.py`: `import os\n\nclass App: pass`
+  - `/test_data/proj/docs/README.md`: `# Project Documentation`
+  - `/test_data/proj/tests/test_app.py`: `def test_app(): assert True`
+  - `/test_data/proj/data/data.csv`: `id,value\n1,a\n2,b`
+  - `/test_data/proj/.gitignore`: `data/\n*.log\n__pycache__/`
+  - `/test_data/proj/src/evil.txt`: `\r\n`
+  **2. Command**:
+  `jinni --no-copy /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=src/evil.txt\n\r\n\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {
+          "/test_data/proj/src/evil.txt": {
+              "type": "MOD",
+              "content": "\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory `/test_data/proj` is set up with various files and subdirectories. A `.gitignore` file is present, instructing to ignore the `data/` directory. A file `src/evil.txt` contains Windows-style line endings (`\r\n`).
+  - Command Behavior Analysis: The tool is executed on the `/test_data/proj` directory. It recursively scans for files. It correctly reads and respects the `.gitignore` file, as `data/data.csv` is not included in the output. It includes `.py` and `.md` files. It also includes `evil.txt`. The output is sent to `stdout`, with each file's content formatted with a ````path=...``` header. The file paths in the headers are relative to the target directory `/test_data/proj`.
+  - Final State Changes (fs_diff): The tool modifies the file `src/evil.txt` in place, changing its content from `\r\n` to `\n`. This indicates the tool performs some form of text file normalization on read/write. This is a critical side effect to implement.
+
+#### Command Category: `jinni --no-copy <path1> <path2>`
+- **Function and Parameter Description**:
+  - This command demonstrates processing multiple, specific target paths simultaneously.
+  - `paths...`: In this case, two paths are provided: `/test_data/proj/src` and `/test_data/proj/docs`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the previous sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy /test_data/proj/src /test_data/proj/docs`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool is explicitly told to process only the `src` and `docs` directories. It correctly limits its scan to these two targets, finding and processing `src/app.py` and `docs/README.md`. Other files like `main.py` and `tests/test_app.py` are ignored because they are not under the specified target paths. The output paths are relative to the common ancestor of the targets, which is `/test_data/proj`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --list-only <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates the file listing functionality.
+  - `--list-only`: This flag changes the output format. Instead of file contents, the tool should print only the relative paths of the files it would include, one path per line.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up similarly to the first sample, with the addition of a file with a special name:
+  - `/test_data/proj/src/!@#$.tmp`: `special name`
+  **2. Command**:
+  `jinni --no-copy --list-only /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "main.py\ndocs/README.md\nsrc/app.py\ntests/test_app.py\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory with various files, including a `.gitignore` and a file with a special name (`!@#$.tmp`).
+  - Command Behavior Analysis: The tool scans the project directory. It respects `.gitignore` (ignoring `data/`). It also appears to have built-in rules to ignore files like `!@#$.tmp`, as it is not in the output list. The `--list-only` flag causes the tool to print a newline-separated list of the relative paths of the files it decided to include.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --output <file> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates redirecting the output to a file.
+  - `--output <file>`: Specifies a file path where the output should be written.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --output /test_data/output_dir/out_4.txt /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Output successfully written to /test_data/output_dir/out_4.txt\n",
+      "fs_diff": {
+          "/test_data/output_dir/out_4.txt": {
+              "type": "ADD",
+              "content": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool processes the project directory as usual. However, instead of printing the consolidated context to `stdout`, it writes the entire string to the file specified by the `--output` flag. It then prints a confirmation message to `stdout`.
+  - Final State Changes (fs_diff): A new file, `/test_data/output_dir/out_4.txt`, is created. Its content is the full consolidated context string that would have otherwise been printed to `stdout`.
+
+#### Command Category: `jinni --no-copy --root <dir> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates how to change the root for calculating relative paths in the output.
+  - `--root <dir>`: Specifies the directory to be considered the project root. Output paths will be relative to this directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --root /test_data /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=proj/main.py\nprint(\"hello world from main\")\n```\n\n\n```path=proj/docs/README.md\n# Project Documentation\n```\n\n\n```path=proj/src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=proj/tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool processes the target path `/test_data/proj`. The `--root` flag is set to `/test_data`. As a result, the paths in the ````path=...``` headers are now relative to `/test_data`, so they appear as `proj/main.py`, `proj/docs/README.md`, etc.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --size-limit-mb <MB> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates the file size limiting feature.
+  - `--size-limit-mb <MB>`: Sets a maximum size for files to be included. Files larger than this limit are skipped.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --size-limit-mb 0 /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "WARNING:jinni.file_processor:File /test_data/proj/main.py (30 bytes) exceeds size limit of 0.00MB. Skipping.\nWARNING:jinni.file_processor:File /test_data/proj/docs/README.md (23 bytes) exceeds size limit of 0.00MB. Skipping.\nWARNING:jinni.file_processor:File /test_data/proj/src/app.py (26 bytes) exceeds size limit of 0.00MB. Skipping.\nWARNING:jinni.file_processor:File /test_data/proj/tests/test_app.py (27 bytes) exceeds size limit of 0.00MB. Skipping.\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The size limit is set to `0`. The tool identifies the files to be processed, but before reading each one, it checks its size. Since all files are larger than 0 bytes, they are all skipped. For each skipped file, a warning message is printed to `stdout`. The final output contains only these warnings.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --overrides <file> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates using a custom rule file.
+  - `--overrides <file>`: Specifies a file containing inclusion/exclusion rules. When this is used, other rule sources like `.contextfiles` are ignored.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`), with the addition of a rule file:
+  - `/test_data/override.rules`: `\t` (a single tab character)
+  **2. Command**:
+  `jinni --no-copy --overrides /test_data/override.rules /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project directory with a `.gitignore` file and a separate `override.rules` file.
+  - Command Behavior Analysis: The tool is instructed to use the `override.rules` file. This file contains only a tab, which is not a meaningful rule. The output is identical to the default run, which means the `.gitignore` file is still being respected (the `data/` directory is excluded). This implies that `--overrides` does not disable `.gitignore` processing, but it likely takes precedence over or replaces other rule files like `.contextfiles` (which are not present in this sample).
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --not <keyword> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates a directory exclusion filter.
+  - `--not <keyword>`: Excludes directories whose names match the provided keyword.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --not '../../etc/passwd' /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool is asked to exclude any directory named `'../../etc/passwd'`. Since no such directory exists within the project, the filter has no effect. The output is identical to the default run. This demonstrates the behavior when a `--not` filter does not match any directories.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --not-in <path:keywords> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates a scoped exclusion filter.
+  - `--not-in <path:keywords>`: Excludes files/directories with specific keywords within a given path.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --not-in 'src:app' /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool is given the rule `--not-in 'src:app'`. The output shows that `src/app.py` is still included. This indicates that the matching logic for this filter is specific and was not met by this rule. For example, it might only match full directory names, and since `app` is part of a filename (`app.py`) and not a directory, it is not excluded. The implementation should replicate this specific non-matching behavior.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --not-files <pattern> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates a file pattern exclusion filter.
+  - `--not-files <pattern>`: Excludes files matching the given glob pattern.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --not-files 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n\n\n```path=tests/test_app.py\ndef test_app(): assert True\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool is asked to exclude files matching a very long, nonsensical pattern. Since no files match this pattern, the filter has no effect. The output is identical to the default run. This demonstrates the behavior for a non-matching `--not-files` filter.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --keep-only <modules> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates an inclusion-only filter.
+  - `--keep-only <modules>`: A comma-separated list of directories to keep. All other paths are excluded.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --keep-only src,docs /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=docs/README.md\n# Project Documentation\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool is instructed to only keep files within the `src` and `docs` directories. It correctly processes the project and filters the results, including only `docs/README.md` and `src/app.py`. Files at the root (`main.py`) and in other directories (`tests/`) are excluded.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jinni --no-copy --not <keyword> --not-files <pattern> <path>`
+- **Function and Parameter Description**:
+  - This command demonstrates combining multiple different exclusion filters.
+  - `--not 'tests'`: Excludes the `tests` directory.
+  - `--not-files '*.md'`: Excludes all files ending with `.md`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up identically to the first sample (excluding `evil.txt`).
+  **2. Command**:
+  `jinni --no-copy --not 'tests' --not-files '*.md' /test_data/proj`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "```path=main.py\nprint(\"hello world from main\")\n```\n\n\n```path=src/app.py\nimport os\n\nclass App: pass\n```\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A standard project structure is available.
+  - Command Behavior Analysis: The tool applies both filters simultaneously. The `--not 'tests'` filter removes `tests/test_app.py` from consideration. The `--not-files '*.md'` filter removes `docs/README.md`. The `.gitignore` is still active, removing `data/data.csv`. The final output correctly contains only the remaining files: `main.py` and `src/app.py`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

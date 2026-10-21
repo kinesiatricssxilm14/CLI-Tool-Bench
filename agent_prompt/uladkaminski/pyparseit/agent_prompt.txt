@@ -1,0 +1,274 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: pyparseit
+**Repository Name**: pyparseit
+**Core Functionality Description**:
+This is a command-line tool designed to parse Markdown content from either files or strings. Its primary function is to extract code snippets (blocks enclosed in triple backticks). The tool can filter these snippets by a specific programming language. The extracted code can be displayed on the standard output or saved to a specified output file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `pyparseit <file>`
+- **Function and Parameter Description**:
+  - This command parses a Markdown file to extract all code snippets.
+  - `input`: A positional argument specifying the path to the input Markdown file.
+  - When no other options are provided, the tool finds all fenced code blocks, regardless of their specified language, and prints them to the standard output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/input_file_input_no_filter_4.md` with the following content:
+  ```markdown
+  4DNzhDXFGryeAXLEcRUWxPhc
+
+  ```go
+  line_0 = R35mFKXqOCq3oma8VN;
+  line_1 = 0wlnU5pLNQ99J8khuDZq;
+  line_2 = Y9YprNuLkkj47AD7YzF;
+  line_3 = lFOHsBq1;
+  line_4 = ck1gU0evhX1QoIbyB;
+  ```
+  ClpV2yKpDwIkNoulcFy1
+
+  ```python
+  line_0 = 0NOPvDlxTsb5d1pKaG;
+  line_1 = s9xGD6;
+  line_2 = 3x705kY5cKI6;
+  ```
+  IexPGLhjNd9wOgOVtUJih06vSCl0PP6D
+
+  ```rust
+  line_0 = J8l6ZRoWiNZhPtEJ;
+  line_1 = 4ETlhAHnB0w;
+  line_2 = rznL0Yet0PyPw1WFqza9;
+  ```
+  7u320VZI7VYUXGonZFhIKA
+  ```
+  **2. Command**:
+  `pyparseit /test_data/input_file_input_no_filter_4.md`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n--- Code Snippet 1 (go) ---\n\nline_0 = R35mFKXqOCq3oma8VN;\nline_1 = 0wlnU5pLNQ99J8khuDZq;\nline_2 = Y9YprNuLkkj47AD7YzF;\nline_3 = lFOHsBq1;\nline_4 = ck1gU0evhX1QoIbyB;\n\n--- Code Snippet 2 (python) ---\n\nline_0 = 0NOPvDlxTsb5d1pKaG;\nline_1 = s9xGD6;\nline_2 = 3x705kY5cKI6;\n\n--- Code Snippet 3 (rust) ---\n\nline_0 = J8l6ZRoWiNZhPtEJ;\nline_1 = 4ETlhAHnB0w;\nline_2 = rznL0Yet0PyPw1WFqza9;\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single Markdown file at `/test_data/input_file_input_no_filter_4.md`, which includes code snippets for `go`, `python`, and `rust`.
+  - Command Behavior Analysis: The command takes the file path as an argument. The tool reads this file, identifies all three fenced code blocks, and extracts their language and content. It then formats each snippet with a header like `--- Code Snippet N (language) ---` and prints the formatted results sequentially to `stdout`.
+  - Final State Changes (fs_diff): There are no changes to the file system. The operation is read-only.
+
+#### Command Category: `pyparseit <file> -l <lang>`
+- **Function and Parameter Description**:
+  - This command parses a Markdown file and extracts code snippets only for a specific language.
+  - `input`: A positional argument for the input Markdown file path.
+  - `-l, --language`: An option to specify the programming language to filter by. Only snippets matching this language will be extracted.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/input_file_input_with_lang_4.md` with the following content:
+  ```markdown
+  sgWXPrACmnz6emqUavx6s0ellIJCoLB
+
+  ```javascript
+  line_0 = IEqEr8DzJ6Z;
+  line_1 = oujnJImedYUt;
+  line_2 = RNnku1BWOu6p0bBMcge;
+  ```
+  SyPIqWcMpRJvKhc4PL7oUAQQhmkep4LA
+
+  ```python
+  line_0 = LjZv9pdXob;
+  line_1 = aj9RMKHX9hjySw30qbae;
+  line_2 = Z79yCJuoA;
+  line_3 = rW58s7Fv2qTBRpR;
+  line_4 = ThoQCRgusYxxVKUI;
+  ```
+  1dYczxu09qVq7q813i5COgG4nBT8z32HiKh5NuH7FT
+
+  ```IMNLl1
+  line_0 = QeOIlTAVn7pDV;
+  line_1 = LxLrPrg;
+  line_2 = rEysdr7wC;
+  line_3 = XDHALuigRIDcl;
+  line_4 = 5OcPiXHjZdG1cVcJSr1;
+  ```
+  VgMLhJMxxI3YmUgtaQEV
+  ```
+  **2. Command**:
+  `pyparseit -l 'DEXm' /test_data/input_file_input_with_lang_4.md`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a Markdown file with `javascript` and `python` code snippets, along with another block with an unknown language tag.
+  - Command Behavior Analysis: The tool is instructed to parse the file and extract only code snippets tagged with the language `'DEXm'`. It scans the file but finds no code blocks matching this language specifier.
+  - Final State Changes (fs_diff): As a result, nothing is printed to `stdout`, and the exit code is 0, indicating successful execution with no matching results. No file system changes occur.
+
+#### Command Category: `pyparseit -s <string>`
+- **Function and Parameter Description**:
+  - This command parses a Markdown string provided directly as an argument to extract all code snippets.
+  - `-s, --string`: A flag indicating that the `input` argument is a raw Markdown string, not a file path.
+  - `input`: A positional argument containing the Markdown content as a string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/input_string_input_no_filter_3.md` to facilitate passing a multi-line string to the command. Its content is:
+  ```markdown
+  b2UMGjO3FzCvE2bB
+
+  ```python
+  line_0 = 04yhiB;
+  ```
+  9BdAMri39Hm8YDDo0UVonrl36rTHO
+
+  ```json
+  line_0 = CUBp1gtWxs3Y9F4XNa;
+  line_1 = JUpU5K;
+  line_2 = jE8Ooug3vcckROdsv;
+  line_3 = 8EoMUqZH;
+  line_4 = ZQotiv;
+  ```
+  athWuV5VMFjnI
+
+  ```go
+  line_0 = Dkg0u7njfCccrkd;
+  line_1 = 9Hq91oGgCUbe5RM;
+  ```
+  97AJxkPoEyQYHxWPzd0i2pPlpUfhiy9OLXP8qosom
+  ```
+  **2. Command**:
+  `pyparseit -s "$(cat /test_data/input_string_input_no_filter_3.md)"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\n--- Code Snippet 1 (python) ---\n\nline_0 = 04yhiB;\n\n--- Code Snippet 2 (json) ---\n\nline_0 = CUBp1gtWxs3Y9F4XNa;\nline_1 = JUpU5K;\nline_2 = jE8Ooug3vcckROdsv;\nline_3 = 8EoMUqZH;\nline_4 = ZQotiv;\n\n--- Code Snippet 3 (go) ---\n\nline_0 = Dkg0u7njfCccrkd;\nline_1 = 9Hq91oGgCUbe5RM;\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists, but it's only used to supply a string to the command via `cat`. The tool itself does not interact with the file system for input.
+  - Command Behavior Analysis: The `-s` flag tells the tool to interpret the positional argument as a string of Markdown content. The tool parses this string, finds all three code snippets (`python`, `json`, `go`), and prints them to `stdout` in the standard formatted way.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `pyparseit -s <string> -l <lang>`
+- **Function and Parameter Description**:
+  - This command parses a Markdown string and extracts code snippets filtered by a specific language.
+  - `-s, --string`: A flag indicating the `input` is a raw Markdown string.
+  - `-l, --language`: An option to specify the programming language to filter by.
+  - `input`: A positional argument containing the Markdown content as a string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/input_string_input_with_lang_2.md` to provide the string content. It contains:
+  ```markdown
+  iRZWVoqzcTKZakIZDnWhJNq94aiZGY
+
+  ```rust
+  line_0 = oiYAhVmQcxkeJ;
+  line_1 = VmVBE;
+  line_2 = zXXohxHUu1DQh;
+  ```
+  7A6jx2kZVhG
+
+  ```bash
+  line_0 = ZL2klR5tWX740Ro;
+  line_1 = Qsn0UKVRZUfxrUgHv;
+  line_2 = Lgnb0txs6b0nTPbY;
+  ```
+  BajL8ROagD418CEZdGG7Ase5us
+
+  ```bash
+  line_0 = ec4eWhpklU7;
+  line_1 = 8vFtWmC;
+  line_2 = WyecQJxi;
+  ```
+  kI7kvixF5W82z4iR1E0C1w5EmcrOfowM
+  ```
+  **2. Command**:
+  `pyparseit -s -l 'python' "$(cat /test_data/input_string_input_with_lang_2.md)"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file with `rust` and `bash` snippets is created to be used as string input.
+  - Command Behavior Analysis: The tool receives a string containing `rust` and `bash` snippets via the command line. It is instructed via the `-s` flag to treat the input as a string and via the `-l 'python'` option to only extract snippets for the language `python`. Since no `python` snippets are present in the input string, the tool correctly produces no output.
+  - Final State Changes (fs_diff): The operation is read-only and makes no changes to the file system.
+
+#### Command Category: `pyparseit <file> -o <outfile>`
+- **Function and Parameter Description**:
+  - This command parses a Markdown file, extracts all code snippets, and saves them to an output file instead of printing to standard output.
+  - `input`: A positional argument for the input Markdown file path.
+  - `-o, --output`: An option to specify the path to the output file where extracted snippets should be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file is created at `/test_data/input_file_input_with_output_4.md` with the following content:
+  ```markdown
+  Om3SpyH07fx2iqDg2OXpNxhr6B7hgF0FSEmW
+
+  ```go
+  line_0 = LdtwhFU;
+  line_1 = HDNpqJ;
+  line_2 = 7aMqqU;
+  line_3 = fldpX7ADs;
+  ```
+  MvIYaxwfXFgX6Hb
+
+  ```XO79
+  line_0 = EyX1S5huHAm;
+  line_1 = 3oDyhaGYSH1m5;
+  line_2 = z3dCRlPqv1cr;
+  line_3 = VEazzpZYG5pcuyWFpW;
+  line_4 = 5cxy7EmjpvRUpHa;
+  ```
+  zCVd4tR0Nq5Nqm
+  ```
+  **2. Command**:
+  `pyparseit -o /test_data/output_file_input_with_output_4.txt /test_data/input_file_input_with_output_4.md`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Extracted code snippets saved to /test_data/output_file_input_with_output_4.txt\n",
+      "fs_diff": {
+          "/test_data/output_file_input_with_output_4.txt": {
+              "type": "ADD",
+              "content": "\n--- Code Snippet 1 (go) ---\nline_0 = LdtwhFU;\nline_1 = HDNpqJ;\nline_2 = 7aMqqU;\nline_3 = fldpX7ADs;\n\n--- Code Snippet 2 (XO79) ---\nline_0 = EyX1S5huHAm;\nline_1 = 3oDyhaGYSH1m5;\nline_2 = z3dCRlPqv1cr;\nline_3 = VEazzpZYG5pcuyWFpW;\nline_4 = 5cxy7EmjpvRUpHa;\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input Markdown file `/test_data/input_file_input_with_output_4.md`. The output file does not exist yet.
+  - Command Behavior Analysis: The tool parses the input file and extracts all code snippets (`go` and `XO79`). Because the `-o` option is present, instead of printing to `stdout`, it writes the formatted snippets to the specified path `/test_data/output_file_input_with_output_4.txt`. After successfully writing the file, it prints a confirmation message to `stdout`.
+  - Final State Changes (fs_diff): A new file is created at `/test_data/output_file_input_with_output_4.txt`. The `fs_diff` shows this file's `ADD` status and its content, which is the formatted output of the extracted code snippets.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

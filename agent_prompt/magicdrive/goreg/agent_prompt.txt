@@ -1,0 +1,368 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: go-import-formatter
+**Repository Name**: go-import-formatter
+**Core Functionality Description**:
+This is a CLI tool for formatting Go import statements while maintaining a stable order. It organizes imports into four distinct groups: Standard Library, Third-Party Libraries, Organization Modules, and Local Project Imports.
+
+The tool can read a target Go file, reformat its import block, and either print the formatted content to standard output or write it back to the original file. Its behavior can be customized through command-line flags or a `goreg.toml` configuration file. Key features include defining custom prefixes for local and organization modules, specifying a custom order for import groups, and other formatting adjustments. The tool can also be instructed to ignore the configuration file via an environment variable.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `goreg <file-name.go>`
+- **Function and Parameter Description**:
+  - This is the basic command to format a Go source file.
+  - It takes one argument: the path to the target Go file (`<file-name.go>`).
+  - By default, it formats the imports and prints the entire modified file content to `stdout`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_BASIC_3.go` is created with a disorganized import block.
+  ```go
+  package main
+
+  import (
+  	"gopkg.in/yaml.v2"
+  	u "github.com/myorg/utils" // utility package
+  	"github.com/myorg/models"
+  	"github.com/spf13/cobra"
+  	"github.com/gin-gonic/gin"
+  	"io/ioutil"
+  	"github.com/myorg/utils"
+  	"os"
+  	"myproject/module/db"
+  	"net/http"
+  	"myproject/module/api"
+  	"math/rand"
+  	"fmt"
+  )
+
+  func main() {
+  	fmt.Println("hello world")
+  }
+  ```
+  **2. Command**:
+  `go-import-formatter /test_data/fuzz_test_BASIC_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_test_BASIC_3.go` contains a mix of standard library, third-party, and aliased imports in a jumbled order. Duplicate imports exist.
+  - Command Behavior Analysis: The tool processes the file. It removes duplicate imports (e.g., `github.com/myorg/utils` appears twice in input, once with an alias). It then categorizes imports. By default, without `--local` or `--organization` flags, it seems to group standard library imports first, followed by third-party imports. Imports with aliases are grouped last. Within each group, imports are sorted alphabetically. A blank line separates the groups. The formatted code is printed to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system, as the `-w` flag was not used.
+
+#### Command Category: `goreg --write <file-name.go>`
+- **Function and Parameter Description**:
+  - Formats a Go source file and writes the changes back to the file itself.
+  - `--write` (or `-w`): A flag that enables in-place file modification.
+  - `<file-name.go>`: The path to the target Go file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_WRITE_1.go` is created with disorganized imports.
+  **2. Command**:
+  `go-import-formatter --write /test_data/fuzz_test_WRITE_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/fuzz_test_WRITE_1.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_test_WRITE_1.go` exists with unsorted imports.
+  - Command Behavior Analysis: The tool performs the same import formatting logic as the basic command. However, because the `--write` flag is present, it does not print anything to `stdout`.
+  - Final State Changes (fs_diff): The `fs_diff` shows that the original file `/test_data/fuzz_test_WRITE_1.go` has been modified (`MOD`). Its content is replaced with the version containing the formatted import block.
+
+#### Command Category: `goreg --local <local_module> <file-name.go>`
+- **Function and Parameter Description**:
+  - Formats a file while treating certain imports as "local" to the project.
+  - `--local <local_module>` (or `-l`): Specifies a module path prefix. Any import starting with this prefix will be categorized as a "local" import.
+  - `<file-name.go>`: The path to the target Go file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_LOCAL_1.go` is created.
+  **2. Command**:
+  `go-import-formatter --local myproject/module /test_data/fuzz_test_LOCAL_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file contains imports like `myproject/module/api` and `myproject/module/db`.
+  - Command Behavior Analysis: The `--local myproject/module` flag tells the tool that any import path starting with `myproject/module` is a local import. The output shows a new group at the end, separated by a blank line, containing `myproject/module/api` and `myproject/module/db`, sorted alphabetically. This demonstrates the creation of a distinct "local" group.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `goreg --organization <org_path> <file-name.go>`
+- **Function and Parameter Description**:
+  - Formats a file while treating certain imports as belonging to an "organization".
+  - `--organization <org_path>` (or `-n`): Specifies a module path prefix. Any import starting with this prefix will be categorized as an "organization" import.
+  - `<file-name.go>`: The path to the target Go file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_ORGANIZATION_4.go` is created.
+  **2. Command**:
+  `go-import-formatter --organization github.com/myorg /test_data/fuzz_test_ORGANIZATION_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\n\t\"github.com/myorg/models\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file contains imports like `github.com/myorg/models` and `github.com/myorg/utils`.
+  - Command Behavior Analysis: The `--organization github.com/myorg` flag identifies imports with this prefix. The output shows that `github.com/myorg/models` and `github.com/myorg/utils` are now in their own "organization" group, which by default appears after third-party imports.
+  - Final State Changes (fs_diff): No file system changes occur.
+
+#### Command Category: `goreg --local <local_module> --organization <org_path> <file-name.go>`
+- **Function and Parameter Description**:
+  - Combines the `--local` and `--organization` flags to categorize imports into all four groups.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_LOCAL_AND_ORG_4.go` is created.
+  **2. Command**:
+  `go-import-formatter --local myproject/module --organization github.com/myorg /test_data/fuzz_test_LOCAL_AND_ORG_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\n\t\"github.com/myorg/models\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: With both flags, the tool correctly separates imports into standard, third-party, organization (`github.com/myorg/...`), and local (`myproject/module/...`) groups. The default order appears to be: standard, third-party, organization, local, with aliased imports having their own grouping rules.
+
+#### Command Category: `goreg --order <group_order> <file-name.go>`
+- **Function and Parameter Description**:
+  - Specifies a custom order for the import groups.
+  - `--order <group_order>` (or `-o`): A comma-separated string defining the desired group order. The supported group names are `std`, `thirdparty`, `organization`, and `local`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_ORDER_1.go` is created.
+  **2. Command**:
+  `go-import-formatter --order local,std,thirdparty,organization /test_data/fuzz_test_ORDER_1.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The command attempts to set a custom order. However, the `--local` and `--organization` flags are not provided, so the tool cannot identify the "local" and "organization" groups. As a result, the `--order` flag has no effect, and the tool falls back to its default grouping and ordering behavior, mixing the unidentified local/org imports with other groups. The agent must replicate this behavior: the `--order` flag is only effective when the corresponding groups can be identified via other flags like `--local` and `--organization`.
+
+#### Command Category: `goreg --minimize-group <file-name.go>`
+- **Function and Parameter Description**:
+  - Modifies grouping behavior for aliased imports.
+  - `--minimize-group` (or `-m`): Prevents separating import groups when an alias is present.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_MINIMIZE_GROUP_3.go` is created.
+  **2. Command**:
+  `go-import-formatter --minimize-group /test_data/fuzz_test_MINIMIZE_GROUP_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\t_ \"github.com/lib/pq\" // postgres driver\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: Without this flag, aliased imports are often put in their own block separated by newlines. With `--minimize-group`, the output shows that aliased imports like `_ "github.com/lib/pq"` and `u "github.com/myorg/utils"` are now included in the same block as other third-party imports, without a separating newline.
+
+#### Command Category: `goreg --sort-include-alias <file-name.go>`
+- **Function and Parameter Description**:
+  - Modifies sorting behavior for aliased imports.
+  - `--sort-include-alias` (or `-a`): Sorts imports with aliases alphabetically along with other imports in their group.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_SORT_INCLUDE_ALIAS_4.go` is created.
+  **2. Command**:
+  `go-import-formatter --sort-include-alias /test_data/fuzz_test_SORT_INCLUDE_ALIAS_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\t\"github.com/myorg/models\"\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: By default, aliased imports might be grouped separately or at the end. With this flag, the output shows that the aliased imports (`_ "github.com/lib/pq"`, `u "github.com/myorg/utils"`) are sorted alphabetically based on their path within the third-party group, alongside non-aliased imports.
+
+#### Command Category: `goreg --remove-import-comment <file-name.go>`
+- **Function and Parameter Description**:
+  - A flag intended to remove comments from import statements.
+  - `--remove-import-comment` (or `-r`): Specifies that comments in the import block should be removed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_REMOVE_IMPORT_COMMENT_4.go` is created with a commented import: `u "github.com/myorg/utils" // utility package`.
+  **2. Command**:
+  `go-import-formatter --remove-import-comment /test_data/fuzz_test_REMOVE_IMPORT_COMMENT_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: **Crucially**, despite the flag's name (`--remove-import-comment`), the sample output clearly shows that the comment `// utility package` is preserved. The agent must replicate this exact behavior. The flag should be implemented, but it should not cause same-line import comments to be removed from the output.
+
+#### Command Category: `goreg --minimize-group --sort-include-alias --remove-import-comment <file-name.go>`
+- **Function and Parameter Description**:
+  - A combination of all formatting flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_ALL_FORMAT_FLAGS_2.go` is created.
+  **2. Command**:
+  `go-import-formatter --minimize-group --sort-include-alias --remove-import-comment /test_data/fuzz_test_ALL_FORMAT_FLAGS_2.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t_ \"github.com/lib/pq\" // postgres driver\n\t\"github.com/myorg/models\"\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The output reflects the combined effects: aliased imports are not in a separate block (`--minimize-group`), they are sorted alphabetically with others (`--sort-include-alias`), and their comments are preserved (the non-effect of `--remove-import-comment`).
+
+#### Command Category: `goreg --write --local <local_module> --organization <org_path> --order <group_order> <file-name.go>`
+- **Function and Parameter Description**:
+  - A complex command combining in-place writing, group identification, and custom ordering.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_COMPLEX_COMBO_4.go` is created.
+  **2. Command**:
+  `go-import-formatter --write --local myproject/module --organization github.com/myorg --order organization,thirdparty,local,std /test_data/fuzz_test_COMPLEX_COMBO_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/fuzz_test_COMPLEX_COMBO_4.go": {
+              "type": "MOD",
+              "content": "package main\n\nimport (\n\t\"github.com/myorg/models\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"net/http\"\n\t\"os\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This sample shows the correct usage of `--order`. Because `--local` and `--organization` are provided, the tool can identify all groups. The final file content reflects the specified order: `organization`, then `thirdparty`, then `local`, then `std`. The `--write` flag causes the file to be modified in place.
+
+#### Command Category: `goreg <file-name.go> # with goreg.toml`
+- **Function and Parameter Description**:
+  - Demonstrates the tool's ability to be configured via a `goreg.toml` file. The tool should automatically search for and use this file in the current directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_CONFIG_FILE_4.go` is created.
+  - A configuration file `/test_data/goreg.toml` is created with the following content:
+  ```toml
+  [import]
+  local_module = "myproject/module"
+  organization_module = "github.com/myorg"
+  order = "local,organization,thirdparty,std"
+  [format]
+  minimize_group = true
+  sort_include_alias = true
+  remove_import_comment = true
+  ```
+  **2. Command**:
+  `go-import-formatter /test_data/fuzz_test_CONFIG_FILE_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: Even though no flags are passed, the tool reads `goreg.toml`. However, the output does not match the `order` specified in the config file (`local,organization,thirdparty,std`). Instead, it seems to follow a different, possibly default, order. This indicates a complex interaction or bug. The agent must replicate this specific outcome: the presence of the config file is acknowledged, some settings (like identifying groups) might be used, but others (like `order`) are ignored in this context. The comment is also preserved, despite `remove_import_comment = true`.
+
+#### Command Category: `goreg --local <local_module> <file-name.go> # with goreg.toml`
+- **Function and Parameter Description**:
+  - Demonstrates the interaction between command-line flags and the `goreg.toml` configuration file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_CONFIG_FILE_OVERRIDE_3.go` is created.
+  - A configuration file `/test_data/goreg.toml` is created with the same content as the previous example.
+  **2. Command**:
+  `go-import-formatter --local myproject/module /test_data/fuzz_test_CONFIG_FILE_OVERRIDE_3.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/myorg/utils\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\t_ \"github.com/lib/pq\" // postgres driver\n\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: A `goreg.toml` exists that specifies `local_module`, `organization_module`, and a custom `order`. The command line also specifies `--local`. The output shows that the `local` group is correctly identified. However, the `organization_module` and `order` from the config file are ignored. This suggests that providing an import-related flag on the command line might cause the tool to ignore the entire `[import]` section of the config file and use defaults for any values not specified on the command line.
+
+#### Command Category: `goreg <file-name.go> # with GOREG_NOT_USE_CONFIGFILE`
+- **Function and Parameter Description**:
+  - Demonstrates disabling the configuration file via an environment variable.
+  - `GOREG_NOT_USE_CONFIGFILE`: If this environment variable is set to any non-empty string, the tool will not search for or use `goreg.toml`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A Go source file `/test_data/fuzz_test_ENV_VAR_DISABLE_CONFIG_4.go` is created.
+  - A configuration file `/test_data/goreg.toml` is created with `[import]\norganization_module = "github.com/should_be_ignored"`.
+  - The environment variable `GOREG_NOT_USE_CONFIGFILE` is set to a non-empty value (e.g., "1").
+  **2. Command**:
+  `go-import-formatter /test_data/fuzz_test_ENV_VAR_DISABLE_CONFIG_4.go`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "package main\n\nimport (\n\t\"fmt\"\n\t\"io/ioutil\"\n\t\"math/rand\"\n\t\"myproject/module/api\"\n\t\"myproject/module/db\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"github.com/myorg/models\"\n\t\"github.com/spf13/cobra\"\n\t\"gopkg.in/yaml.v2\"\n\n\tu \"github.com/myorg/utils\" // utility package\n\tu \"github.com/myorg/utils\" // utility package\n)\n\nfunc main() {\n\tfmt.Println(\"hello world\")\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: Although a `goreg.toml` file exists that would define an organization module, the `GOREG_NOT_USE_CONFIGFILE` environment variable causes it to be ignored. The output reflects the default formatting behavior, where `github.com/myorg/utils` is not treated as a separate organization group. This confirms the environment variable correctly disables the config file.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

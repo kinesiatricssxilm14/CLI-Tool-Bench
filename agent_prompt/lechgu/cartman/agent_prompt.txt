@@ -1,0 +1,311 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: cartman
+**Repository Name**: cartman
+**Core Functionality Description**:
+A simple local Certificate Authority (CA) tool. It can initialize a self-signed root CA and issue leaf certificates signed by that CA. Leaf certificates can be configured with specific DNS names and/or IP addresses, making it suitable for securing network traffic in development and test environments.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `cartman init`
+- **Function and Parameter Description**:
+  The `init` command initializes a new Certificate Authority (CA). It creates a `.cartman` directory in the current working directory, containing the root CA's private key (`key.pem`) and the self-signed certificate (`cert.pem`). By default, the certificate's Common Name is "cartman" and it is valid for 3560 days.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The working directory is cleaned by removing any existing `.cartman` directory.
+  **2. Command**:
+  `cartman init  && if [ -f .cartman/cert.pem ]; then openssl x509 -in .cartman/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cartman\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:f6:1a:a2:ba:cc:a8:bb:9d:f9:e5:ca:e0:09:33:\n                    ... [omitted 65 bytes of public key data] ...\n                    ae:73:a1:86:be:1f:ac\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Certificate Sign, CRL Sign\n            X509v3 Basic Constraints: critical\n                CA:TRUE, pathlen:0\n            X509v3 Subject Key Identifier: \n                28:ED:ED:B4:46:09:A0:F5:89:A0:A2:0D:B4:5B:FA:6E:09:64:11:57\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:66:02:31:00:e9:8a:03:ee:27:33:ef:ae:af:15:7f:55:f5:\n        ... [omitted 64 bytes of signature data] ...\n        ef:ec:0f:59:bf:e7:1b:8f:44:15:a7:e3:70:69\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is in a state where the `.cartman` directory does not exist.
+  - Command Behavior Analysis: The `cartman init` command is executed. It should not produce any `stdout` or `stderr`. It is expected to create a directory named `.cartman` and, within it, generate two files: `key.pem` (the private key) and `cert.pem` (the public certificate). The subsequent `openssl` command confirms the existence and content of `.cartman/cert.pem`. The `stdout` shown is the output of this `openssl` verification command, detailing the generated certificate's properties.
+  - Final State Changes (fs_diff): Although `fs_diff` is empty, the logic requires the creation of the `.cartman` directory with `cert.pem` and `key.pem` inside. The certificate should have `CN=cartman` as its subject and issuer.
+
+#### Command Category: `cartman init --force`
+- **Function and Parameter Description**:
+  This is identical to `cartman init`, but includes the `--force` flag. This flag ensures that if the `.cartman` directory already exists, it will be overwritten without error.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The working directory is cleaned by removing any existing `.cartman` directory.
+  **2. Command**:
+  `cartman init --force && if [ -f .cartman/cert.pem ]; then openssl x509 -in .cartman/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cartman\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:a3:bd:0a:f1:e2:31:04:a2:f7:0f:e2:c9:17:e1:\n                    ... [omitted 65 bytes of public key data] ...\n                    1c:16:81:27:eb:9a:de\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Certificate Sign, CRL Sign\n            X509v3 Basic Constraints: critical\n                CA:TRUE, pathlen:0\n            X509v3 Subject Key Identifier: \n                57:D3:3B:A4:9E:A6:9E:30:0B:C0:5E:E4:94:B9:21:94:58:8F:E2:90\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:66:02:31:00:cd:dc:23:5e:ed:57:14:0d:c2:82:c7:71:da:\n        ... [omitted 64 bytes of signature data] ...\n        cc:b9:57:21:08:ea:33:42:b1:75:8a:8f:48:22\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `.cartman` directory does not exist.
+  - Command Behavior Analysis: The command behaves identically to the basic `init` command in this case. The `--force` flag's primary purpose is to handle pre-existing directories, which is not the state here, but the flag must be accepted by the program. The tool creates the `.cartman` directory and its contents.
+  - Final State Changes (fs_diff): The tool must create the `.cartman` directory containing `cert.pem` and `key.pem`.
+
+#### Command Category: `cartman init --name <name>`
+- **Function and Parameter Description**:
+  Initializes a new CA. The `--name` (or `-n`) parameter allows specifying the `Common Name (CN)` for the root certificate's Subject and Issuer fields.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The working directory is cleaned by removing any existing `.cartman` directory.
+  **2. Command**:
+  `cartman init --name 5XE7csvZioi2Gy6 && if [ -f .cartman/cert.pem ]; then openssl x509 -in .cartman/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=5XE7csvZioi2Gy6\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=5XE7csvZioi2Gy6\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:45:bc:34:f7:e2:2c:43:6d:16:b7:a3:d1:eb:fe:\n                    ... [omitted 65 bytes of public key data] ...\n                    75:3f:f3:15:64:ce:6d\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Certificate Sign, CRL Sign\n            X509v3 Basic Constraints: critical\n                CA:TRUE, pathlen:0\n            X509v3 Subject Key Identifier: \n                80:54:2E:B4:42:FD:DB:14:BC:68:BE:69:42:96:AD:BD:41:5D:19:7A\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:66:02:31:00:ca:1c:dd:b7:ac:c8:ff:b1:16:99:56:fb:cc:\n        ... [omitted 64 bytes of signature data] ...\n        ce:10:03:6b:d3:26:f3:70:45:f5:67:8d:12:4b\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `.cartman` directory does not exist.
+  - Command Behavior Analysis: The command creates the `.cartman` directory and its contents. The crucial difference is that the generated `cert.pem` must have its `Issuer` and `Subject` Common Name fields set to the value provided by the `--name` flag, which is `5XE7csvZioi2Gy6` in this sample.
+  - Final State Changes (fs_diff): The tool must create `.cartman/cert.pem` and `.cartman/key.pem`. The certificate must reflect the custom `CN`.
+
+#### Command Category: `cartman init --validity-days <days>`
+- **Function and Parameter Description**:
+  Initializes a new CA. The `--validity-days` (or `-d`) parameter allows specifying the validity period of the root certificate in days.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The working directory is cleaned by removing any existing `.cartman` directory.
+  **2. Command**:
+  `cartman init --validity-days 7259 && if [ -f .cartman/cert.pem ]; then openssl x509 -in .cartman/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cartman\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:69:46:db:54:a4:f5:d7:5d:48:f2:ab:b6:06:5c:\n                    ... [omitted 65 bytes of public key data] ...\n                    f8:af:b7:13:05:19:e5\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Certificate Sign, CRL Sign\n            X509v3 Basic Constraints: critical\n                CA:TRUE, pathlen:0\n            X509v3 Subject Key Identifier: \n                E3:1B:97:A7:EF:58:81:46:0F:E0:92:52:26:CD:16:D1:65:5C:A0:8E\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:31:00:8e:51:5a:10:f8:bc:af:50:6f:b9:02:47:33:\n        ... [omitted 63 bytes of signature data] ...\n        d8:bb:c6:c9:05:03:94:5a:e3:af:da:a5:86\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `.cartman` directory does not exist.
+  - Command Behavior Analysis: The command creates the `.cartman` directory and its contents. The generated `cert.pem` must have a validity period of 7259 days from the time of creation. The default `CN=cartman` is used.
+  - Final State Changes (fs_diff): The tool must create `.cartman/cert.pem` and `.cartman/key.pem`. The certificate's validity period must match the specified number of days.
+
+#### Command Category: `cartman init --force --name <name> --validity-days <days>`
+- **Function and Parameter Description**:
+  Initializes a new CA, combining all previously shown options: `--force` to overwrite, `--name` to set the CN, and `--validity-days` to set the duration.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The working directory is cleaned by removing any existing `.cartman` directory.
+  **2. Command**:
+  `cartman init --force --name zKQwv2F5NwPSm2 --validity-days 2776 && if [ -f .cartman/cert.pem ]; then openssl x509 -in .cartman/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=zKQwv2F5NwPSm2\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=zKQwv2F5NwPSm2\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:c7:3e:b9:f4:8a:54:90:de:9d:00:a6:c6:73:eb:\n                    ... [omitted 65 bytes of public key data] ...\n                    6c:10:5b:80:74:10:d7\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Certificate Sign, CRL Sign\n            X509v3 Basic Constraints: critical\n                CA:TRUE, pathlen:0\n            X509v3 Subject Key Identifier: \n                B7:43:BF:4F:E7:BB:46:6A:88:C4:23:6F:12:DE:95:7B:27:DE:2A:81\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:66:02:31:00:e6:eb:07:e1:02:9f:b0:f5:27:cf:80:53:68:\n        ... [omitted 64 bytes of signature data] ...\n        7e:9d:cc:c5:96:0d:fe:9c:81:83:68:52:68:14\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `.cartman` directory does not exist.
+  - Command Behavior Analysis: The command creates the `.cartman` directory and its contents. The generated `cert.pem` must have its `CN` set to `zKQwv2F5NwPSm2` and its validity period set to 2776 days. The `--force` flag is also accepted.
+  - Final State Changes (fs_diff): The tool must create `.cartman/cert.pem` and `.cartman/key.pem` with the specified CN and validity.
+
+#### Command Category: `cartman issue --name <name> --dns <dns>`
+- **Function and Parameter Description**:
+  The `issue` command generates a new leaf certificate signed by the root CA.
+  - `--name` (required): Specifies the `Common Name (CN)` for the certificate and also determines the name of the output directory.
+  - `--dns`: Specifies a DNS name to be included in the certificate's Subject Alternative Name (SAN) extension.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  First, a new CA is initialized by running `cartman init`. Any pre-existing certificate directory (`cert_llcxex`) is also removed.
+  **2. Command**:
+  `cartman issue --name cert_llcxex --dns vbgcp.shiuhazb.azwdenj.pmjmlbo.net && if [ -f cert_llcxex/cert.pem ]; then openssl x509 -in cert_llcxex/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_llcxex\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:74:19:eb:33:5a:45:03:52:a0:ec:86:0d:a9:12:\n                    ... [omitted 65 bytes of public key data] ...\n                    05:4e:21:ba:c9:dd:86\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                19:30:1F:06:7B:0D:47:26:08:AC:29:D5:28:EE:58:12:98:38:E5:E5\n            X509v3 Subject Alternative Name: \n                DNS:vbgcp.shiuhazb.azwdenj.pmjmlbo.net\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:30:2a:6a:c5:ed:e1:b7:49:e2:e8:49:5b:1d:d4:d0:\n        ... [omitted 63 bytes of signature data] ...\n        ae:80:ba:7b:5c:e7:a3:f6:4d:a1:e2:aa:98\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`. The directory `cert_llcxex` does not exist.
+  - Command Behavior Analysis: The `cartman issue` command reads the root CA from `.cartman`. It creates a new directory named `cert_llcxex`. Inside this directory, it generates a new key (`key.pem`) and a new certificate (`cert.pem`). This new certificate must have its `Subject CN` set to `cert_llcxex`, be signed by the root CA, and include the specified DNS name in its SAN extension. The default validity for leaf certificates is 356 days.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_llcxex` and place the new `cert.pem` and `key.pem` files inside it.
+
+#### Command Category: `cartman issue --name <name> --ip <ip>`
+- **Function and Parameter Description**:
+  Issues a leaf certificate.
+  - `--name` (required): Specifies the CN and output directory name.
+  - `--ip`: Specifies an IP address to be included in the certificate's SAN extension.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_znhfuuum --ip 78.26.222.89 && if [ -f cert_znhfuuum/cert.pem ]; then openssl x509 -in cert_znhfuuum/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_znhfuuum\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:31:ba:9c:51:db:ef:f9:d2:5c:6d:20:71:87:b0:\n                    ... [omitted 65 bytes of public key data] ...\n                    67:a6:d7:4c:8f:55:6d\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                38:27:B4:26:C8:20:22:A1:5E:E4:7E:81:71:FC:AB:6C:C3:20:AD:D4\n            X509v3 Subject Alternative Name: \n                IP Address:78.26.222.89\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:66:02:31:00:c3:a7:29:34:fa:c5:24:53:67:11:27:ee:9e:\n        ... [omitted 64 bytes of signature data] ...\n        cb:1d:f8:a4:90:c2:c9:c2:38:57:d0:fa:30:da\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`. The directory `cert_znhfuuum` does not exist.
+  - Command Behavior Analysis: Similar to the `--dns` example, the command creates a directory `cert_znhfuuum` with a key and certificate. The certificate's SAN extension must contain the specified IP address `78.26.222.89`.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_znhfuuum` with `cert.pem` and `key.pem` inside. The certificate's SAN must include the specified IP.
+
+#### Command Category: `cartman issue --name <name> --dns <dns> --ip <ip>`
+- **Function and Parameter Description**:
+  Issues a leaf certificate with both a DNS name and an IP address in its SAN extension.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_oopofqls --dns rizjta.mmjefu.pdje.flpnz.org --ip 161.145.137.190 && if [ -f cert_oopofqls/cert.pem ]; then openssl x509 -in cert_oopofqls/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_oopofqls\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:fb:63:54:3d:70:85:13:15:ba:6d:93:35:0d:fd:\n                    ... [omitted 65 bytes of public key data] ...\n                    7c:29:fc:70:2b:7a:87\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                43:EC:10:5A:FA:A0:FE:74:21:E2:5E:77:1B:EF:C5:78:2B:F6:F2:E3\n            X509v3 Subject Alternative Name: \n                DNS:rizjta.mmjefu.pdje.flpnz.org, IP Address:161.145.137.190\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:64:02:30:33:1c:bb:eb:c6:cc:0f:34:20:99:a3:11:8b:bd:\n        ... [omitted 62 bytes of signature data] ...\n        c2:ed:85:6f:30:9f:a8:3a:79:33:fe:de\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`.
+  - Command Behavior Analysis: The command creates a directory `cert_oopofqls` with a key and certificate. The certificate's SAN extension must contain both the specified DNS name and the IP address.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_oopofqls` with `cert.pem` and `key.pem`. The certificate's SAN must include both the DNS name and IP address.
+
+#### Command Category: `cartman issue --name <name> --dns <dns1> --dns <dns2>`
+- **Function and Parameter Description**:
+  Issues a leaf certificate. The `--dns` flag can be repeated to include multiple DNS names in the SAN extension.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_xsfpzzmw --dns bel.fhsbdy.avgzwdlj.mvyuo.org --dns hjjqhay.tfmla.wyxxq.org --dns uxmgrx.uoeoec.tfw.todzqjg.com && if [ -f cert_xsfpzzmw/cert.pem ]; then openssl x509 -in cert_xsfpzzmw/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_xsfpzzmw\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:4d:bc:9c:f0:a3:64:f2:19:e0:24:21:f8:65:f8:\n                    ... [omitted 65 bytes of public key data] ...\n                    b3:36:73:dc:19:d2:88\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                E2:FF:CF:EE:99:9E:A0:E0:9C:55:8C:25:92:EB:C3:2C:8B:06:84:33\n            X509v3 Subject Alternative Name: \n                DNS:bel.fhsbdy.avgzwdlj.mvyuo.org, DNS:hjjqhay.tfmla.wyxxq.org, DNS:uxmgrx.uoeoec.tfw.todzqjg.com\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:30:24:7f:d5:54:c7:24:9b:22:51:75:4c:ee:3a:03:\n        ... [omitted 63 bytes of signature data] ...\n        74:99:55:27:32:3c:94:21:36:9b:c5:56:ee\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`.
+  - Command Behavior Analysis: The command must accept multiple `--dns` flags. It creates a directory `cert_xsfpzzmw` with a key and certificate. The certificate's SAN extension must contain all three DNS names provided on the command line.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_xsfpzzmw` with `cert.pem` and `key.pem`. The certificate's SAN must include all specified DNS names.
+
+#### Command Category: `cartman issue --name <name> --ip <ip1> --ip <ip2>`
+- **Function and Parameter Description**:
+  Issues a leaf certificate. The `--ip` flag can be repeated to include multiple IP addresses in the SAN extension.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_snjivbae --ip 184.251.4.101 --ip 110.166.42.49 --ip 51.198.87.72 && if [ -f cert_snjivbae/cert.pem ]; then openssl x509 -in cert_snjivbae/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_snjivbae\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:16:5c:e5:b5:13:8c:20:65:80:6b:c2:a3:fc:ea:\n                    ... [omitted 65 bytes of public key data] ...\n                    ed:18:65:5b:77:5f:1f\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                B2:21:C1:4A:CD:9A:39:28:84:55:35:90:FC:BF:FC:A2:4F:D0:BC:DF\n            X509v3 Subject Alternative Name: \n                IP Address:184.251.4.101, IP Address:110.166.42.49, IP Address:51.198.87.72\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:31:00:fe:ed:f5:80:29:9d:d4:50:c8:17:9e:98:33:\n        ... [omitted 63 bytes of signature data] ...\n        a6:37:67:15:d6:eb:78:bf:52:5b:c8:ed:a3\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`.
+  - Command Behavior Analysis: The command must accept multiple `--ip` flags. It creates a directory `cert_snjivbae` with a key and certificate. The certificate's SAN extension must contain all three IP addresses provided on the command line.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_snjivbae` with `cert.pem` and `key.pem`. The certificate's SAN must include all specified IP addresses.
+
+#### Command Category: `cartman issue --name <name> --dns <dns> --validity-days <days>`
+- **Function and Parameter Description**:
+  Issues a leaf certificate with a custom validity period.
+  - `--validity-days`: Specifies the validity period of the leaf certificate in days.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_hcoofsyz --validity-days 393 --dns qjrsb.wuzd.riapkqb.io && if [ -f cert_hcoofsyz/cert.pem ]; then openssl x509 -in cert_hcoofsyz/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_hcoofsyz\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:23:24:d0:67:12:a0:d3:9f:38:8f:a0:16:8a:fb:\n                    ... [omitted 65 bytes of public key data] ...\n                    ac:3d:51:6c:e9:19:d1\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                BC:4A:58:0B:C1:A3:70:22:36:0A:29:1E:3A:85:49:ED:9B:2F:94:40\n            X509v3 Subject Alternative Name: \n                DNS:qjrsb.wuzd.riapkqb.io\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:30:31:1b:b8:60:5e:d1:47:21:f0:8f:31:b4:6d:a0:\n        ... [omitted 63 bytes of signature data] ...\n        6b:9d:a4:bf:7a:68:2c:a0:f8:a5:d7:fd:7d\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`.
+  - Command Behavior Analysis: The command creates a directory `cert_hcoofsyz` with a key and certificate. The certificate must have a validity period of 393 days from the time of creation, instead of the default.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_hcoofsyz` with `cert.pem` and `key.pem`. The certificate's validity must be 393 days.
+
+#### Command Category: `cartman issue --name <name> --dns <dns> --force`
+- **Function and Parameter Description**:
+  Issues a leaf certificate.
+  - `--force`: If the output directory (named after the `--name` parameter) already exists, it will be overwritten.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_mixxraa --force --dns wqfe.pgjtopcn.nfpbptr.vifqprvw.com && if [ -f cert_mixxraa/cert.pem ]; then openssl x509 -in cert_mixxraa/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_mixxraa\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:e3:6d:58:fd:d5:a1:34:de:cf:29:80:6f:aa:eb:\n                    ... [omitted 65 bytes of public key data] ...\n                    73:d7:2c:12:f8:a4:9d\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                B1:62:CE:92:C8:64:BA:75:4C:D5:34:1A:C2:35:16:43:76:17:63:30\n            X509v3 Subject Alternative Name: \n                DNS:wqfe.pgjtopcn.nfpbptr.vifqprvw.com\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:64:02:30:57:df:79:12:f1:b3:32:c9:6d:be:b3:ef:24:79:\n        ... [omitted 62 bytes of signature data] ...\n        a8:2f:c6:08:a3:9a:d1:18:a7:03:68:bd\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`. The directory `cert_mixxraa` does not exist.
+  - Command Behavior Analysis: The command behaves identically to the basic `issue` command in this case. The `--force` flag's primary purpose is to handle pre-existing directories, which is not the state here, but the flag must be accepted by the program.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_mixxraa` with `cert.pem` and `key.pem`.
+
+#### Command Category: `cartman issue --name <name> --dns <dns> --ip <ip> --validity-days <days> --force`
+- **Function and Parameter Description**:
+  Issues a leaf certificate, combining all available options: `--name`, `--dns`, `--ip`, `--validity-days`, and `--force`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A new CA is initialized via `cartman init`.
+  **2. Command**:
+  `cartman issue --name cert_yuzvin --force --validity-days 994 --dns phvvdqr.sbxtc.nbnswacl.scyfyzkh.io --ip 158.167.209.180 && if [ -f cert_yuzvin/cert.pem ]; then openssl x509 -in cert_yuzvin/cert.pem -text -noout; fi`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Certificate:\n    Data:\n        Version: 3 (0x2)\n        Serial Number: [REDACTED]Signature Algorithm: [REDACTED]Issuer: CN=cartman\n        Validity\n            Not Before: [REDACTED]\n            Not After : [REDACTED]\n        Subject: CN=cert_yuzvin\n        Subject Public Key Info:\n            Public Key Algorithm: id-ecPublicKey\n                Public-Key: (384 bit)\n                pub:\n                    04:c4:a1:4c:91:03:fe:84:be:78:4f:b5:4c:d7:ff:\n                    ... [omitted 65 bytes of public key data] ...\n                    0d:b2:1e:23:22:29:77\n                ASN1 OID: secp384r1\n                NIST CURVE: P-384\n        X509v3 extensions:\n            X509v3 Key Usage: critical\n                Digital Signature, Key Encipherment\n            X509v3 Extended Key Usage: \n                TLS Web Server Authentication, TLS Web Client Authentication\n            X509v3 Basic Constraints: critical\n                CA:FALSE\n            X509v3 Authority Key Identifier: \n                AE:55:17:C2:9F:B4:95:6C:8F:EA:93:58:1E:DD:D8:C1:39:1E:41:81\n            X509v3 Subject Alternative Name: \n                DNS:phvvdqr.sbxtc.nbnswacl.scyfyzkh.io, IP Address:158.167.209.180\n    Signature Algorithm: [REDACTED]Signature Value:\n        30:65:02:31:00:83:7a:d9:f7:9f:1c:be:2e:7f:71:f4:14:b4:\n        ... [omitted 63 bytes of signature data] ...\n        76:27:ea:46:bc:b8:ee:eb:53:73:23:b6:ad\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A CA exists at `.cartman`.
+  - Command Behavior Analysis: The command must correctly parse and apply all provided flags. It creates a directory `cert_yuzvin` containing a key and certificate. The certificate must have a validity of 994 days and its SAN extension must include both the specified DNS name and IP address.
+  - Final State Changes (fs_diff): The tool must create the directory `cert_yuzvin` with `cert.pem` and `key.pem`. The certificate must reflect all specified options.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

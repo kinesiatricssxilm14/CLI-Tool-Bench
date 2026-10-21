@@ -1,0 +1,287 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on a new, from-scratch requirement document.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: md-to-epub
+**Repository Name**: md-to-epub
+**Core Functionality Description**:
+The user wants a CLI tool that converts a directory of Markdown files into a single, well-formatted EPUB ebook.
+
+The tool should be able to:
+- Recursively scan a source directory (a "vault") for Markdown files (`.md`).
+- Map the folder hierarchy to EPUB chapter structure, automatically generating chapter titles from folder names.
+- Process Markdown files by converting wikilinks (e.g., `[[note2]]`) into standard relative links.
+- Handle embedded attachments (e.g., `![[image.png]]`), copying them into the final EPUB.
+- Allow for customization of the book's metadata, such as title and author.
+- Provide options to include or exclude attachments, and to keep or remove tags (e.g., `#project`).
+- Generate detailed logs for debugging purposes.
+
+**Crucial External Dependency**: The tool's core functionality relies on the **`pandoc`** command-line utility. The agent must assume `pandoc` is pre-installed and available in the system's PATH. The implementation should generate and execute `pandoc` commands to create the final EPUB file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `md-to-epub <vault_path> <output_epub_path>`
+- **Function and Parameter Description**:
+  This is the basic command to convert a directory of markdown notes into an EPUB file.
+  - `vault_path`: The first positional argument, specifying the path to the source directory (the "vault") containing markdown files.
+  - `output_epub_path`: The second positional argument, specifying the path and filename for the generated EPUB file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is set up with a directory named `/test_data/vault_BASIC_2` containing the following files:
+  - `/test_data/vault_BASIC_2/note1.md`: A markdown file with a tag and a wikilink to another note.
+    ```markdown
+    # Note 1
+
+    This is a test note with a tag #project and a link to [[note2]].
+    ```
+  - `/test_data/vault_BASIC_2/subfolder/note2.md`: A markdown file in a subfolder, containing an embedded image.
+    ```markdown
+    ## Note 2
+
+    This note is in a subfolder and includes an image: ![[image.png]]
+    ```
+  - `/test_data/vault_BASIC_2/subfolder/image.png`: A binary image file.
+  **2. Command**:
+  `md-to-epub /test_data/vault_BASIC_2 /test_data/output_BASIC_2.epub`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:21:45,157 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:21:45,158 - INFO - Title: 'Obsidian Vault' Author: '' Include Attachments: True, Include Tags: False\n2026-03-17 06:21:45,158 - INFO - Scanning vault: /test_data/vault_X/image.png\n2026-03-17 06:21:45,158 - INFO - Found Markdown file: subfolder/note2.md\n2026-03-17 06:21:45,158 - INFO - Created temporary directory for content: /temp_epub_content\n2026-03-17 06:21:45,158 - INFO - Processing attachments...\n2026-03-17 06:21:45,158 - INFO - Copied attachment 'subfolder/image.png' to '/temp_epub_content/attachments/ba33f318_image.png'\n2026-03-17 06:21:45,158 - INFO - Processing Markdown files and directories...\n2026-03-17 06:21:45,158 - INFO - Preprocessing Markdown file: /test_data/vault_X/note1.md\n2026-03-17 06:21:45,159 - INFO - Removing Obsidian tags.\n2026-03-17 06:21:45,159 - INFO - Processed Markdown file 'note1.md' and saved to '/temp_epub_content/note1.md'\n2026-03-17 06:21:45,159 - INFO - Added directory heading for 'subfolder' to '/temp_epub_content/_dir_subfolder.md'\n2026-03-17 06:21:45,159 - INFO - Preprocessing Markdown file: /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:21:45,160 - INFO - Removing Obsidian tags.\n2026-03-17 06:21:45,160 - INFO - Processed Markdown file 'subfolder/note2.md' and saved to '/temp_epub_content/subfolder_note2.md'\n2026-03-17 06:21:45,160 - INFO - Executing Pandoc command: pandoc -s --toc -o /test_data/output_X.epub --metadata=title:Obsidian Vault --metadata=author: --resource-path=/temp_epub_content /temp_epub_content/note1.md /temp_epub_content/_dir_subfolder.md /temp_epub_content/subfolder_note2.md\n2026-03-17 06:21:45,260 - INFO - Conversion completed successfully: /test_data/output_X.epub\n2026-03-17 06:21:45,261 - INFO - Cleaned up temporary directory: /temp_epub_content\n\u2705 Conversion completed successfully!\n\ud83d\udcd6 EPUB created: /test_data/output_X.epub\n\u26a0\ufe0f  Check warning.log for any warnings or issues\n",
+      "fs_diff": {
+          "/warning.log": {
+              "type": "ADD",
+              "content": ""
+          },
+          "/test_data/output_BASIC_2.epub": {
+              "type": "ADD",
+              "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\ufffd2q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\ufffd2q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a simple note structure with a root note, a subfolder, a note within the subfolder, and an image referenced by the sub-note.
+  - Command Behavior Analysis: The tool performs a conversion using default settings. The logs show the following steps:
+    1.  It starts, logging the default book title "Obsidian Vault" and an empty author. It confirms attachments will be included and tags will be removed.
+    2.  It scans the vault and finds all files.
+    3.  It creates a temporary directory to stage processed files.
+    4.  It copies the `image.png` into a temporary `attachments` subfolder, renaming it with a hash to avoid name collisions.
+    5.  It processes `note1.md`, removing the `#project` tag, and saves the result to the temp directory.
+    6.  It creates a new markdown file `_dir_subfolder.md` in the temp directory to serve as a chapter heading for the `subfolder`.
+    7.  It processes `note2.md`, removing tags and updating the image link `![[image.png]]` to point to the new hashed path in the temp `attachments` folder.
+    8.  It constructs and executes a `pandoc` command, passing the processed markdown files in order, along with metadata for the title and author, and specifying the temp directory as the resource path so `pandoc` can find the image.
+    9.  After `pandoc` succeeds, it logs completion and removes the temporary directory.
+    10. Finally, it prints a user-friendly success message.
+  - Final State Changes (fs_diff): The command successfully creates the target `output_BASIC_2.epub` file, which is a binary EPUB package. It also creates an empty `warning.log` file, indicating a clean run.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --title <title>`
+- **Function and Parameter Description**:
+  This command converts a vault and sets a custom title for the resulting EPUB book.
+  - `vault_path`, `output_epub_path`: Same as the basic command.
+  - `--title <title>`: An option to specify the book's title. If not provided, it defaults to "Obsidian Vault".
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Similar to the basic test, a vault is created at `/test_data/vault_WITH_TITLE_1` with `note1.md`, `subfolder/note2.md`, and `subfolder/image.png`.
+  **2. Command**:
+  `md-to-epub /test_data/vault_WITH_TITLE_1 /test_data/output_WITH_TITLE_1.epub --title "6J4D8vz"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:24:07,756 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:24:07,757 - INFO - Title: '6J4D8vz' Author: '' Include Attachments: True, Include Tags: False\n...[omitted similar log lines]...\n2026-03-17 06:24:07,758 - INFO - Executing Pandoc command: pandoc -s --toc -o /test_data/output_X.epub --metadata=title:6J4D8vz --metadata=author: --resource-path=/temp_epub_content /temp_epub_content/note1.md /temp_epub_content/_dir_subfolder.md /temp_epub_content/subfolder_note2.md\n...[omitted similar log lines]...\n\u2705 Conversion completed successfully!\n\ud83d\udcd6 EPUB created: /test_data/output_X.epub\n\u26a0\ufe0f  Check warning.log for any warnings or issues\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_WITH_TITLE_1.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\u00033q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\u00033q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The logic is identical to the basic command, with one key difference: the `--title` option is used. The initial log correctly reflects the custom title "6J4D8vz". Crucially, this custom title is passed to the `pandoc` command via the `--metadata=title:6J4D8vz` flag, which embeds it into the final EPUB file's metadata.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --author <author>`
+- **Function and Parameter Description**:
+  This command converts a vault and sets a custom author for the resulting EPUB book.
+  - `vault_path`, `output_epub_path`: Same as the basic command.
+  - `--author <author>`: An option to specify the book's author.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_WITH_AUTHOR_4` with the standard set of files.
+  **2. Command**:
+  `md-to-epub /test_data/vault_WITH_AUTHOR_4 /test_data/output_WITH_AUTHOR_4.epub --author "rJUDMvnSad5Fh"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:29:11,796 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:29:11,796 - INFO - Title: 'Obsidian Vault' Author: 'rJUDMvnSad5Fh' Include Attachments: True, Include Tags: False\n...[omitted similar log lines]...\n2026-03-17 06:29:11,799 - INFO - Executing Pandoc command: pandoc -s --toc -o /test_data/output_X.epub --metadata=title:Obsidian Vault --metadata=author:rJUDMvnSad5Fh --resource-path=/temp_epub_content /temp_epub_content/note1.md /temp_epub_content/_dir_subfolder.md /temp_epub_content/subfolder_note2.md\n...[omitted similar log lines]...\n\u2705 Conversion completed successfully!\n\ud83d\udcd6 EPUB created: /test_data/output_X.epub\n\u26a0\ufe0f  Check warning.log for any warnings or issues\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_WITH_AUTHOR_4.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\ufffd3q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\ufffd3q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: Similar to the `--title` command, the `--author` option provides metadata for the book. The initial log reflects the custom author "rJUDMvnSad5Fh". This value is then passed to the `pandoc` command via the `--metadata=author:rJUDMvnSad5Fh` flag for embedding into the EPUB.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --title <title> --author <author>`
+- **Function and Parameter Description**:
+  This command combines the `--title` and `--author` options to set both metadata fields.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_WITH_TITLE_AUTHOR_4` with the standard set of files.
+  **2. Command**:
+  `md-to-epub /test_data/vault_WITH_TITLE_AUTHOR_4 /test_data/output_WITH_TITLE_AUTHOR_4.epub --title "h7fH3B2x7pcphRd3" --author "AqyJVwQrTwbcRyy"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:32:10,892 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:32:10,892 - INFO - Title: 'h7fH3B2x7pcphRd3' Author: 'AqyJVwQrTwbcRyy' Include Attachments: True, Include Tags: False\n...[omitted similar log lines]...\n2026-03-17 06:32:10,895 - INFO - Executing Pandoc command: pandoc -s --toc -o /test_data/output_X.epub --metadata=title:h7fH3B2x7pcphRd3 --metadata=author:AqyJVwQrTwbcRyy --resource-path=/temp_epub_content /temp_epub_content/note1.md /temp_epub_content/_dir_subfolder.md /temp_epub_content/subfolder_note2.md\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_WITH_TITLE_AUTHOR_4.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\u00054q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\u00054q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This demonstrates the combined use of metadata flags. The logs and the final `pandoc` command show that both the custom title and author are correctly captured and passed to `pandoc` simultaneously.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --no-attachments`
+- **Function and Parameter Description**:
+  This command converts a vault but explicitly excludes any attachments (like images) from the final EPUB.
+  - `--no-attachments`: A boolean flag that, when present, prevents the tool from processing and including attachment files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_NO_ATTACHMENTS_2` with the standard set of files, including an image.
+  **2. Command**:
+  `md-to-epub /test_data/vault_NO_ATTACHMENTS_2 /test_data/output_NO_ATTACHMENTS_2.epub --no-attachments`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:34:03,412 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:34:03,412 - INFO - Title: 'Obsidian Vault' Author: '' Include Attachments: False, Include Tags: False\n2026-03-17 06:34:03,412 - INFO - Scanning vault: /test_data/vault_X/image.png\n2026-03-17 06:34:03,413 - INFO - Found Markdown file: subfolder/note2.md\n2026-03-17 06:34:03,413 - INFO - Created temporary directory for content: /temp_epub_content\n2026-03-17 06:34:03,413 - INFO - Processing Markdown files and directories...\n2026-03-17 06:34:03,413 - INFO - Preprocessing Markdown file: /test_data/vault_X/note1.md\n2026-03-17 06:34:03,413 - INFO - Removing Obsidian tags.\n2026-03-17 06:34:03,413 - INFO - Processed Markdown file 'note1.md' and saved to '/temp_epub_content/note1.md'\n2026-03-17 06:34:03,413 - INFO - Added directory heading for 'subfolder' to '/temp_epub_content/_dir_subfolder.md'\n2026-03-17 06:34:03,414 - INFO - Preprocessing Markdown file: /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:34:03,414 - WARNING - Attachment found but not mapped: image.png\n2026-03-17 06:34:03,414 - INFO - Removing Obsidian tags.\n2026-03-17 06:34:03,414 - INFO - Processed Markdown file 'subfolder/note2.md' and saved to '/temp_epub_content/subfolder_note2.md'\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_NO_ATTACHMENTS_2.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000A4q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000A4q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The `--no-attachments` flag alters the processing flow significantly. The log shows "Include Attachments: False". The step "Processing attachments..." is skipped entirely. When processing `note2.md`, which contains `![[image.png]]`, the tool logs a "WARNING - Attachment found but not mapped: image.png" because it's not supposed to include it. The link is likely removed or left as-is, resulting in a broken link in the final EPUB, which is the expected behavior for this flag. The `pandoc` command is executed without any special handling for resources.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --include-tags`
+- **Function and Parameter Description**:
+  This command converts a vault but keeps the original tags (e.g., `#project`) in the text instead of removing them.
+  - `--include-tags`: A boolean flag that, when present, preserves tags in the markdown content. By default, they are removed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_INCLUDE_TAGS_2` with the standard set of files. `note1.md` contains a `#project` tag.
+  **2. Command**:
+  `md-to-epub /test_data/vault_INCLUDE_TAGS_2 /test_data/output_INCLUDE_TAGS_2.epub --include-tags`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:37:00,512 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:37:00,512 - INFO - Title: 'Obsidian Vault' Author: '' Include Attachments: True, Include Tags: True\n...[omitted similar log lines]...\n2026-03-17 06:37:00,513 - INFO - Preprocessing Markdown file: /test_data/vault_X/note1.md\n2026-03-17 06:37:00,513 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n2026-03-17 06:37:00,514 - INFO - Preprocessing Markdown file: /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:37:00,514 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_INCLUDE_TAGS_2.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\ufffd4q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\ufffd4q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The `--include-tags` flag changes how markdown content is processed. The initial log shows "Include Tags: True". Instead of "Removing Obsidian tags," the log now states "Keeping Obsidian tags." This means the regex or function that would normally strip out `#tag` patterns is skipped, and the tags are preserved in the temporary markdown files passed to `pandoc`.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --verbose`
+- **Function and Parameter Description**:
+  This command enables verbose logging, providing more detailed, debug-level information about the conversion process.
+  - `--verbose` or `-v`: A boolean flag to enable detailed logging output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_VERBOSE_4` with the standard set of files.
+  **2. Command**:
+  `md-to-epub /test_data/vault_VERBOSE_4 /test_data/output_VERBOSE_4.epub --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:40:51,717 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n...[omitted similar log lines]...\n2026-03-17 06:40:51,723 - INFO - Preprocessing Markdown file: /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:40:51,723 - DEBUG - Attempting to resolve path: image.png from /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:40:51,723 - DEBUG - Resolved to relative path: /test_data/vault_X/subfolder/image.png\n2026-03-17 06:40:51,723 - DEBUG - Updated attachment path from 'image.png' to 'attachments/ba33f318_image.png'\n2026-03-17 06:40:51,723 - INFO - Removing Obsidian tags.\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_VERBOSE_4.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\u00195q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\u00195q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: The `--verbose` flag controls the logging level. The `stdout` now includes `DEBUG` level messages in addition to the standard `INFO` messages. These debug logs provide deeper insight into internal operations, such as the exact paths being resolved for attachments. The core conversion logic remains the same as the basic case.
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --no-attachments --include-tags`
+- **Function and Parameter Description**:
+  This command demonstrates combining the `--no-attachments` and `--include-tags` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_NO_ATTACHMENTS_AND_TAGS_2` with the standard files.
+  **2. Command**:
+  `md-to-epub /test_data/vault_NO_ATTACHMENTS_AND_TAGS_2 /test_data/output_NO_ATTACHMENTS_AND_TAGS_2.epub --no-attachments --include-tags`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:42:38,889 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:42:38,890 - INFO - Title: 'Obsidian Vault' Author: '' Include Attachments: False, Include Tags: True\n...[omitted similar log lines]...\n2026-03-17 06:42:38,890 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n2026-03-17 06:42:38,891 - WARNING - Attachment found but not mapped: image.png\n2026-03-17 06:42:38,891 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_NO_ATTACHMENTS_AND_TAGS_2.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000S5q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000S5q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This shows the combined effect of two flags. The logs correctly show "Include Attachments: False, Include Tags: True". Consequently, the tool logs "Keeping Obsidian tags" (preserving tags) and also logs a "WARNING - Attachment found but not mapped" (ignoring the image).
+
+#### Command Category: `md-to-epub <vault_path> <output_epub_path> --title <title> --author <author> --no-attachments --include-tags --verbose`
+- **Function and Parameter Description**:
+  This command shows the use of all available flags simultaneously, providing full customization.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A vault is created at `/test_data/vault_ALL_FLAGS_4` with the standard files.
+  **2. Command**:
+  `md-to-epub /test_data/vault_ALL_FLAGS_4 /test_data/output_ALL_FLAGS_4.epub --title "EZQLI12xc8ug" --author "amH8nYmA" --no-attachments --include-tags --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 06:47:04,599 - INFO - Starting conversion of Obsidian vault '/test_data/vault_X/test_data/output_X.epub'\n2026-03-17 06:47:04,599 - INFO - Title: 'EZQLI12xc8ug' Author: 'amH8nYmA' Include Attachments: False, Include Tags: True\n...[omitted similar log lines]...\n2026-03-17 06:47:04,600 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n2026-03-17 06:47:04,601 - DEBUG - Attempting to resolve path: image.png from /test_data/vault_X/subfolder/note2.md\n2026-03-17 06:47:04,601 - DEBUG - Resolved to relative path: /test_data/vault_X/subfolder/image.png\n2026-03-17 06:47:04,601 - WARNING - Attachment found but not mapped: image.png\n2026-03-17 06:47:04,601 - INFO - Keeping Obsidian tags.\n...[omitted similar log lines]...\n2026-03-17 06:47:04,601 - INFO - Executing Pandoc command: pandoc -s --toc -o /test_data/output_X.epub --metadata=title:EZQLI12xc8ug --metadata=author:amH8nYmA --resource-path=/temp_epub_content /temp_epub_content/note1.md /temp_epub_content/_dir_subfolder.md /temp_epub_content/subfolder_note2.md\n...[omitted similar log lines]...\n",
+      "fs_diff": {
+          "/warning.log": { "type": "ADD", "content": "" },
+          "/test_data/output_ALL_FLAGS_4.epub": { "type": "ADD", "content": "PK\u0003\u0004\u0014\u0000\u0002\b\u0000\u0000\ufffd5q\\oa\ufffd,\u0014\u0000\u0000\u0000\u0014\u0000\u0000\u0000\b\u0000\u0000\u0000mimetypeapplication/epub+zipPK\u0003\u0004\u0014\u0000\u0002\b\b\u0000\ufffd5q\\ZF\ufffd/\ufffd\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0016\u0000\u0000\u0000META-INF/container.xml...[TRUNCATED]" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Command Behavior Analysis: This is the most complex case, demonstrating the interplay of all options.
+    1.  The initial log correctly reflects all settings: custom title, custom author, no attachments, and include tags.
+    2.  The `--verbose` flag enables `DEBUG` logs, showing path resolution details.
+    3.  The `--no-attachments` flag triggers the "Attachment found but not mapped" warning.
+    4.  The `--include-tags` flag triggers the "Keeping Obsidian tags" log.
+    5.  The custom title and author are correctly passed to the final `pandoc` command.
+    This sample serves as a comprehensive test for the correct handling and combination of all implemented boolean flags and string options.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

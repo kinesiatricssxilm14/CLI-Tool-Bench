@@ -1,0 +1,184 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: graphtty
+**Repository Name**: graphtty
+**Core Functionality Description**:
+A CLI tool that renders a directed graph from a JSON file as ASCII/Unicode art in the terminal. The tool reads a JSON file specifying nodes and edges, and generates a text-based visual representation. It supports options for using plain ASCII characters, hiding node types, applying color themes, and controlling the layout dimensions like width, depth, and breadth.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `graphtty <file>`
+- **Function and Parameter Description**:
+  This is the basic command. It reads a graph definition from a specified JSON file and renders it to the standard output using Unicode box-drawing characters and a default theme.
+  - `file`: A positional argument specifying the path to the graph JSON file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_basic_4.json` is created at `/test_data/graph_basic_4.json`. The file defines a graph with a `nodes` array and an `edges` array. Each node has an `id`, `name`, `type`, and an optional `description`. Each edge has a `source` and `target` (referencing node IDs) and an optional `label`.
+  **2. Command**:
+  `graphtty /test_data/graph_basic_4.json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "  \u250c u8Fw \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c ctQZ5 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c PEs6s1S \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510      \u250c aK3XUv5lPT \u2500\u2500\u2510             \u250c 3M5w \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510           \u250c k7NRW5tSs \u2500\u2500\u2510    \u250c MxGrY \u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2502 bx1cfcShLYKo \u2502    \u2502 xndDM9CZcqJh9MKUy \u2502    \u2502           zwJhoPV1AycGdrqmVeV           \u2502      \u2502   n82dHgIx   \u2502             \u2502 LhKSL6JOnUMGVB \u2502           \u2502  Gi2TFhIZ   \u2502    \u2502 Hxb4ajkInuf \u2502\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2502 Lodoy8ODNlyiWQfaNl41SovK3HG7oz7EPFYvkfb \u2502      \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518             \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518           \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                                \u2502              \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518              \u2502                             \u2502 Z3H12iMr6\n                                \u25bc                                                                       \u25bc                             \u25bc\n                         \u250c TzHSSVLbV \u2500\u2500\u2510                                                      \u250c 9dGLz3V3k \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c 62rysx8n9d \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                         \u2502 ESKkHUoSLi  \u2502                                                      \u2502 WCC3YGW1MNBp9PuhJ \u2502    \u2502        3okgW9Ce0e9LB        \u2502\n                         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                                                      \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2502 mwFxMPzRf0Qh3SZvQE46lNBX25f \u2502\n                                                                                                                       \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single JSON file at `/test_data/graph_basic_4.json`. This file describes a directed graph with 10 nodes and 3 edges. Some nodes have an optional `description` field.
+  - Command Behavior Analysis: The `graphtty` tool is executed with the path to the JSON file. The tool parses the JSON, identifies the nodes and edges, and determines their relationships. It then applies a layout algorithm to position the nodes and edges in a 2D text grid. The output shows that nodes are rendered as boxes containing their `type` on the top border and their `name` inside. If a `description` is present, it's also displayed inside the box. Edges are rendered as lines with arrows (`▼`) connecting the boxes. Edge `label`s are printed alongside the connecting lines. The rendering uses Unicode box-drawing characters.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, indicating that the tool is read-only and does not modify the file system. It only prints the resulting graph to standard output.
+
+#### Command Category: `graphtty <file> --theme <theme>`
+- **Function and Parameter Description**:
+  Renders a graph from a JSON file with a specified color theme.
+  - `file`: Path to the graph JSON file.
+  - `-t, --theme THEME`: Specifies the color theme to use for rendering. The sample uses `dracula`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_theme_4.json` is created at `/test_data/graph_theme_4.json`, defining a graph with 4 nodes and 3 edges.
+  **2. Command**:
+  `graphtty /test_data/graph_theme_4.json --theme dracula`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "                  \u250c 1LuPpE8 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                      \u250c IQXnl \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                  \u2502 PWgIHpaTfl829pG \u2502                      \u2502 pcPlx9rLFNEjxoCF \u2502\n                  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                      \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2514\u2500\u2500\u2500HDzAkjkwDn\u2500\u2500\u2500\u2500\u2500\u2510\n                 \u25bc                            \u25bc\n  \u250c UMzQ2e \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c F0DF0G2r \u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2502        VyptLxNsqfVJ         \u2502    \u2502 qKzm56klhu3DVR \u2502\n  \u2502 WSB1f02WFFzSXjAD3U1keNFrEGA \u2502    \u2502   bOtpsGR8ni   \u2502\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file describing a graph is present.
+  - Command Behavior Analysis: The command is similar to the basic one, but with the `--theme dracula` option. This instructs the tool to apply a specific color scheme to the output. While the provided `stdout` sample is plain text, the implementation should generate ANSI escape codes to color the different elements of the graph (boxes, text, lines) according to the `dracula` theme's color palette. The layout and structure of the graph remain the same.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `graphtty <file> --ascii`
+- **Function and Parameter Description**:
+  Renders a graph using plain ASCII characters instead of Unicode.
+  - `file`: Path to the graph JSON file.
+  - `--ascii`: Use plain ASCII characters (`+`, `-`, `|`, `<`, `>`) for drawing instead of Unicode box-drawing characters.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_ascii_1.json` is created at `/test_data/graph_ascii_1.json`.
+  **2. Command**:
+  `graphtty /test_data/graph_ascii_1.json --ascii`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "  + JFF6V --+       + hYpmHn -----+       + bZT0rH -------------+    + wQL880sA9 --+    + rFh9tI6NZ -----+\n  | hhVqrm  |       | RMFVTAH8BM9 |       | npfw7gPilulUALelSBW <----|   RpcehsV   |----| rk6HFwOyTq1j8t |---+\n  +---------+       +------+------+       +----------+----------+    +-------------+    +----------------+   |\n                           | DJThdWMLR               |                                                       |\n                           v                         v                                                       |\n                    + O1AU24Wj0 --+      + z5P1FJ6d9 -----------+                                            |\n                    | il0qlzfHvU  |      |      adQjziOfLb      |                                            |\n                    +------+------+      | F1Z85ySYZs38zPJPqNHU |                                            |\n                           | myC6fLnb    +-----------+----------+                                            |\n                           v                         | 59nhlYMyd                                             | TI8C73BM\n                 + I5P8WdA ---------+                v                                                       |\n                 | Lm7cTZFY7WlmbOpH |        + crOoCn -------+                                               |\n                 +------------------+        | odKkiCl1ZWno5 |                                               |\n                                             +-------+-------+                                               |\n                                                     |                                                       |\n                                                     v                                                       |\n                                               + o40ol ---+                                                  |\n                                               | NGw1Zjja +--------------------------------------------------+\n                                               +----------+\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file describing a graph is present.
+  - Command Behavior Analysis: The `--ascii` flag modifies the rendering output. Instead of using Unicode characters like `┌`, `─`, `│`, and `▼`, the tool uses their plain ASCII equivalents like `+`, `-`, `|`, and `v`/`<`/`>`. The underlying layout logic is the same, only the character set for drawing is different.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `graphtty <file> --no-types`
+- **Function and Parameter Description**:
+  Renders a graph without displaying the node type labels.
+  - `file`: Path to the graph JSON file.
+  - `--no-types`: Hides the node type labels that normally appear on the top border of the node boxes.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_no_types_2.json` is created at `/test_data/graph_no_types_2.json`.
+  **2. Command**:
+  `graphtty /test_data/graph_no_types_2.json --no-types`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                          \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2502 Z5LVivd9kQQ \u25c0\u2500\u2500\u2500\u2500\u2502 RIuYasr8CCanmX42v \u2502\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502 cMeHjb9IVYia \u2502\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                          \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518      \u2502\n         \u2514\u250055BNxsu\u2500\u2510           \u2514\u2500\u2500\u2500\u2500\u2500\u2500C6nGqeQ\u2500\u2500\u2500\u2500\u2500\u2500\u2510                        \u2502 QgpEa3N     \u2502\n                   \u25bc                               \u25bc                        \u25bc             \u2502\n  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502\n  \u2502           38MUfogUfS            \u2502    \u2502 pK2bmqdw8Rz3uXL7f \u2502    \u2502 45lVEzDOfiGPhnlMy \u2502   \u2502\n  \u2502 kMCX6prqqIc0HMRr40rOSDRAq81Ii2S \u251c\u2500\u2500\u2500\u2500\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\u2500\u2500\u2500\u2500\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\u2500\u2500\u2500\u2518\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518              \u2502\n                   \u2514\u2500\u2500\u2500\u2500\u250025TwV\u2500\u2500\u2500\u2500\u2500\u2500\u2510\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                                    \u25bc\n                                \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                                \u2502 CFJXB \u2502\n                                \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file describing a graph is present.
+  - Command Behavior Analysis: The `--no-types` flag alters the content of the rendered node boxes. By default, the `type` from the JSON is shown on the top border of the box. With this flag, the type is omitted, and the top border becomes a simple line. The `name` and `description` are still rendered inside the box.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `graphtty <file> --width <N>`
+- **Function and Parameter Description**:
+  Renders a graph, constraining the output to a maximum width.
+  - `file`: Path to the graph JSON file.
+  - `-w, --width WIDTH`: Sets the maximum output width in columns. If a node's content is wider than the available space within the box, it should be wrapped, as seen in the sample output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_width_2.json` is created at `/test_data/graph_width_2.json`.
+  **2. Command**:
+  `graphtty /test_data/graph_width_2.json --width 109`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "  \u250c DOpQA47 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c XOCMSyw \u2500\u2500\u2510    \u250c 9esaL1UFRK \u2500\u2500\u2510    \u250c vCGnS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510             \u250c OIySm \u2500\u2500\u2510    \u250c z3cC6oK \u2500\u2500\u2510\n  \u2502  6vwiyNqhe5ufDja   \u2502    \u2502  oefeEk   \u2502    \u2502  ECH4DEFjfu  \u2502    \u2502 uGbuDKIQlvav4 \u25c0\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502  f0Yau  \u2502\u2500\u2500\u2500\u2500\u2502 dFxJeBsR4 \u2502\u2500\u2500\u2500\u2510\n  \u2502 5WKUxiyx1Z7CYDI9Ok \u2502    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518             \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518   \u2502\n  \u2502 nrk4D1K2JdzdGnbpa6 \u2502                             \u2514\u2500\u2500\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\u2500\u2500\u2500\u2500\u2500\u2510                                              \u2502\n  \u2502         iK         \u2502                                \u25bc                      \u25bc                                              \u2502\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                        \u250c hl1LTCbU \u2500\u2500\u2500\u2500\u2510    \u250c 8ehiXd \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                                    \u2502\n                                                \u2502 JKqnjODLDf21 \u2502    \u2502 qbSnGNaTYclU6s9V3  \u2502                                    \u2502\n                                                \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2502 s4fm4IyvDcl7P2kasK \u2502                                    \u2502 C4f\n                                                                    \u2502      Y4nvWzNt      \u2502                                    \u2502\n                                                                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                                    \u2502\n                                                                               \u2502                                              \u2502\n                                                                               \u25bc                                              \u2502\n                                                                    \u250c iAiCSpXb \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                                   \u2502\n                                                                    \u2502 4zZ9nG88t3NKvalWs0L \u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                                                                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file describing a graph is present.
+  - Command Behavior Analysis: The `--width 109` flag tells the tool that the total width of the output canvas should not exceed 109 columns. This affects both the layout algorithm (which might try to arrange nodes more vertically) and the rendering of individual nodes. As seen in the sample, the long `description` text for nodes `DOpQA47` and `8ehiXd` is automatically wrapped into multiple lines to fit within the calculated box width.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `graphtty <file> --max-depth <N>`
+- **Function and Parameter Description**:
+  Renders a graph, limiting the traversal to a maximum depth.
+  - `file`: Path to the graph JSON file.
+  - `-d, --max-depth MAX_DEPTH`: Sets the maximum graph depth (number of layers from the root nodes) to render.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_max_depth_1.json` is created at `/test_data/graph_max_depth_1.json`.
+  **2. Command**:
+  `graphtty /test_data/graph_max_depth_1.json --max-depth 4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "                     \u250c eljGx5Ix \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                    \u250c sK7qjkKn \u2500\u2500\u2500\u2500\u2500\u2500\u2510                                                 \u250c Av10rMDCO6 \u2500\u2500\u2510\n                     \u2502 54VhYuuDdQq9zCHW1G \u2502                    \u2502 Pz90U6bBCHnuzU \u2502                                                 \u2502  J8GkHBoVD   \u2502\n                     \u2502    hTrOQVu0fVK     \u2502                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                                                 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                     \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                    \u250c\u2500xlGX8\u2500\u2500\u2518\u2500\u2500SA5\u2500\u2500\u2510\n                  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2514\u2500\u2500\u2500\u2500\u2500YSl\u2500\u2500\u2500\u2500\u2500\u2510                \u25bc                \u25bc\n                  \u25bc                           \u25bc           \u250c uP2Ld \u2500\u2500\u2510    \u250c RqbIvWxtx \u2500\u2500\u2510\n  \u250c 3xdw \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c fLxiPNZE \u2500\u2500\u2500\u2510    \u2502  vCw9O  \u2502    \u2502    i8SX4    \u2502\n  \u2502       S85KPNxFfUzDBs3Bj       \u2502    \u2502 n6M49SFziVD \u2502    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n  \u2502 lilZ1V7CHExVYDCCNTGNyjAuQcY2e \u2502    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                   HwNZEX9\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                                       \u25bc                                   \u25bc\n                                                          \u250c hdj9WyIZE7 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c FHDNT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                                                          \u2502            hRS8ng             \u2502    \u2502      mtjsJeIT2yG9CXiq       \u2502\n                                                          \u2502 hHFxZpxAurE8lPkUfgqOmNyAhy2rC \u2502    \u2502 dMsS8sVxyCJ5rwTfXyrsg0sG4O2 \u2502\n                                                          \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                                                                                                              \u2502 6bAa\n                                                                                                              \u25bc\n                                                                                                     \u250c OfPripk \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                                                                                                     \u2502 18BwGlDZRK9fSdE \u2502\n                                                                                                     \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file describing a graph is present.
+  - Command Behavior Analysis: The `--max-depth 4` flag instructs the layout algorithm to only consider nodes and edges up to a certain "distance" from the initial nodes. In a layered graph drawing, this limits the number of vertical layers displayed. The sample output shows a graph with 4 distinct vertical levels of nodes. Any nodes that would appear at a depth greater than 4 are omitted from the output.
+  - Final State Changes (fs_diff): No file system changes.
+
+#### Command Category: `graphtty <file> --max-breadth <N>`
+- **Function and Parameter Description**:
+  Renders a graph, limiting the number of nodes that can appear in any single layer.
+  - `file`: Path to the graph JSON file.
+  - `-b, --max-breadth MAX_BREADTH`: Sets the maximum number of nodes per layer in the graph layout.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A JSON file named `graph_max_breadth_1.json` is created at `/test_data/graph_max_breadth_1.json`.
+  **2. Command**:
+  `graphtty /test_data/graph_max_breadth_1.json --max-breadth 2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "            \u250c AA6I \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510                      \u250c OUDQ9p \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n            \u2502 9Tg935riCCBVUqEK1KWe \u2502                      \u2502 fPpfaJcbZHOnZPtCa \u2502\n            \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518                      \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             UT9mWpRk2Y\u2500\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n             \u25bc                     \u25bc\n  \u250c 5z7fr1Sny \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u250c ytiOkK \u2500\u2500\u2510\n  \u2502 kK8WAkwIrVOSi5JQNfo \u2502    \u2502  AB7kpI  \u25c0\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n  \u2502   36qwpdB1fXJdZUN   \u2502    \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518                \u2502\n  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518          \u2502 dQGc                \u2502\n                                   \u2502                     \u2502\n                                   \u25bc                     \u2502\n                \u250c 4JSWFvy \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   \u2502\n                \u2502            Q69CBfJC4bKO            \u2502   \u2502\n                \u2502 PmU74Pdk2f57mMUe9glGCSEaxuc5HlvkAl \u2502   \u2502\n                \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518   \u2502\n                                   \u2502                     \u2502\n                                   \u25bc                     \u2502\n                  \u250c 1jlVxOi \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    \u2502 tgtAt2t\n                  \u2502              wiaen              \u2502    \u2502\n                  \u2502 guISfdwPzGnNnMPjXq2PTdp2UViRIuu \u2502    \u2502\n                  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518    \u2502\n                                   \u2502\u2502                    \u2502\n                                   \u2514\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502\u2500\u2500\u2510\n                         \u250c SK62Ats26 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510          \u2502  \u2502\n                         \u2502 voEqSeO0gJzP4liNNn \u2502          \u2502  \u2502 kjnd6\n                         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518          \u2502  \u2502\n                                    \u250

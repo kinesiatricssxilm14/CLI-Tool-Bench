@@ -1,0 +1,310 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: `yescrypt_crack`
+**Repository Name**: `yescrypt_crack`
+**Core Functionality Description**:
+This is a command-line tool for cracking yescrypt hashes. It takes a file containing one or more yescrypt hashes and a wordlist (from a file or standard input) and attempts to find the corresponding plain-text passwords. It supports multi-threading to speed up the process and can output cracked pairs to a specified file or to standard output. The tool also provides periodic status updates during the cracking process.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `yescrypt_crack -h <hash_file> -w <wordlist_file>`
+- **Function and Parameter Description**:
+  - This command initiates the hash cracking process.
+  - `-h {hash_file}`: Specifies the path to the file containing the yescrypt hash(es) to be cracked.
+  - `-w {wordlist_file}`: Specifies the path to the wordlist file containing potential passwords.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_W_2.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_W_2.txt` with content: `uvShbeb9S6\nenBi6\nQ2kcgsr\n9lYQzDvI1G\nWc9ORQq0lR\nousgQYjV0\nvN0w\ntaFqcL\nNyYwEEsvGI\nXtavbz97G9\ngPO7a9Z6A\ncmEUZZ\nsk7fB\npnb7zdFF\ncyclone123\nQS3fUCgZVZ\nymF7w6W\nCY0NUtn\nZntOf31\nWWzrbktF\nD6Ta`
+  **2. Command**:
+  `yescrypt_crack -w /test_data/wordlist_H_W_2.txt -h /test_data/hash_H_W_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n[TIMESTAMP] Finished\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a hash file with one yescrypt hash and a wordlist file with multiple password candidates.
+  - Command Behavior Analysis: The tool starts, prints a banner, and displays a summary of the inputs (hash file path, wordlist path, number of hashes, and default number of CPU threads). It then begins processing, indicated by a "Working..." message. It iterates through the wordlist, hashing each word and comparing it to the target hash. Upon finding a match, it prints the cracked pair in the format `hash:password` to standard output. Finally, it prints a summary of the cracking job, including the number of cracked hashes, total hashes, average speed, and elapsed time.
+  - Final State Changes (fs_diff): No changes are made to the file system. All results are printed to `stdout`.
+
+#### Command Category: `yescrypt_crack -h <hash_file> -w <wordlist_file> -o <output_file>`
+- **Function and Parameter Description**:
+  - This command cracks hashes and saves the results to a file.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-w {wordlist_file}`: Specifies the wordlist file.
+  - `-o {output_file}`: Specifies the file to which the cracked hash-password pairs should be written.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_W_O_4.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_W_O_4.txt` with content: `iDdpAyxO\nVNmDA9dZ\nOU9h\nr4oejYrq\nmQRdu6lp0\nS92GgWdq3\n93sI142\nDcMAw\njDoRf\nOKg6j5f\nOMcACe\nIAKRLqL\nirbb3lT1\n9jz49Hq7\ncyclone123\njVh6\nLJnW9\nrkGT7\njoWU\nySmGdB\nWOPz`
+  **2. Command**:
+  `yescrypt_crack -w /test_data/wordlist_H_W_O_4.txt -o /test_data/output_H_W_O_4.txt -h /test_data/hash_H_W_O_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n\n[TIMESTAMP] Finished\n",
+      "fs_diff": {
+          "/test_data/output_H_W_O_4.txt": {
+              "type": "ADD",
+              "content": "$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present. The output file does not exist.
+  - Command Behavior Analysis: The tool operates similarly to the base case, printing a banner and status information to `stdout`. However, because the `-o` flag is provided, the cracked hash-password pair is not printed to `stdout`.
+  - Final State Changes (fs_diff): A new file, `/test_data/output_H_W_O_4.txt`, is created. It contains the successfully cracked hash and its corresponding password, in the format `hash:password`, followed by a newline.
+
+#### Command Category: `yescrypt_crack -h <hash_file> -w <wordlist_file> -t <threads>`
+- **Function and Parameter Description**:
+  - This command specifies the number of CPU threads to use for cracking.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-w {wordlist_file}`: Specifies the wordlist file.
+  - `-t {threads}`: Sets the number of concurrent CPU threads for the cracking process.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_W_T_1.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_W_T_1.txt` with content: `V9WL\nG2GAkM\nCZ8e8y9\nSILKqzep\nDNvu37PAa5\nToFwYAYJHN\nxMaYn\nxbYsrW\n3qmA2Ivj\nQA8qwNM2yZ\nsd914KLMP\nu40bj\nFtB1XBDRN3\nc5PvDYz\nIAk9ZAPa\nidvKay\nc3Go\n7mr6u4yqT\ncyclone123\nEd2bLug\nxWbx4Q9a`
+  **2. Command**:
+  `yescrypt_crack -w /test_data/wordlist_H_W_T_1.txt -h /test_data/hash_H_W_T_1.txt -t '4'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Finished\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present.
+  - Command Behavior Analysis: The `-t '4'` flag instructs the tool to use 4 CPU threads. This is reflected in the summary information printed to `stdout` under "CPU Threads". The cracking process is then parallelized across the specified number of threads to improve performance. The cracked pair is printed to `stdout` as no `-o` flag is used.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `yescrypt_crack -h <hash_file> -w <wordlist_file> -s <seconds>`
+- **Function and Parameter Description**:
+  - This command sets an interval for printing status updates.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-w {wordlist_file}`: Specifies the wordlist file.
+  - `-s {seconds}`: Sets the interval in seconds at which to print a status line (`Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_W_S_2.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_W_S_2.txt` with content: `TTVzS1nk\n1QX7QVj\n01Mwluh0\nRJNC80i\nw5npm\nObVyO8D0fL\nWk7Ti\nnPMI6RBq\n1jbR9V\nSi3wlMIRPX\nXH5C\nF3deOt\nfmlcOwEMEY\n137Vh\neKWxVt\nWeT8\nwL1c\nrE7S\nuhH4YkEkZ\nJlxWpsg\ncyclone123`
+  **2. Command**:
+  `yescrypt_crack -w /test_data/wordlist_H_W_S_2.txt -s '3' -h /test_data/hash_H_W_S_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n\n[TIMESTAMP] Finished\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present.
+  - Command Behavior Analysis: The `-s '3'` flag causes the tool to print a status update line to `stdout` periodically during the cracking process (approximately every 3 seconds, though the exact timing depends on execution). This provides real-time feedback on progress. The sample output shows multiple "Cracked:" status lines, demonstrating this feature. The final cracked pair is also printed to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `yescrypt_crack -h <hash_file> -w <wordlist_file> -o <output_file> -t <threads> -s <seconds>`
+- **Function and Parameter Description**:
+  - This command combines all options: specifying an output file, thread count, and status update interval.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-w {wordlist_file}`: Specifies the wordlist file.
+  - `-o {output_file}`: Specifies the output file for results.
+  - `-t {threads}`: Sets the number of CPU threads.
+  - `-s {seconds}`: Sets the status update interval.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_W_O_T_S_3.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_W_O_T_S_3.txt` with content: `MPuSCop\nZ69kS\nXcPx\nlOvXeItwig\n7pC8HMOs4M\nWYpzlW\nsx4QF1ty\nn6q45ceev\nlvkxmeE\nacpf5Z\nFjDCF2jEB\nWEekMOvW\ndoCrQQ\n1OdUtoOJ\ncyclone123\nc5Y44\nLgX2shd4\nvwHQ\noT1vs\nWEfsAx\nOFVxoRpm`
+  **2. Command**:
+  `yescrypt_crack -w /test_data/wordlist_H_W_O_T_S_3.txt -t '1' -o /test_data/output_H_W_O_T_S_3.txt -h /test_data/hash_H_W_O_T_S_3.txt -s '3'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n\n[TIMESTAMP] Finished\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n",
+      "fs_diff": {
+          "/test_data/output_H_W_O_T_S_3.txt": {
+              "type": "ADD",
+              "content": "$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present. The output file does not exist.
+  - Command Behavior Analysis: The tool combines all functionalities. It uses 1 thread (`-t '1'`), prints status updates periodically (`-s '3'`), and writes the final result to an output file (`-o`). The `stdout` shows the banner, initial summary (reflecting the specified thread count), periodic status updates, and a final summary. The cracked pair itself is not printed to `stdout`.
+  - Final State Changes (fs_diff): A new file, `/test_data/output_H_W_O_T_S_3.txt`, is created containing the cracked `hash:password` pair.
+
+#### Command Category: `cat <wordlist_file> | yescrypt_crack -h <hash_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates reading the wordlist from standard input (`stdin`) instead of a file.
+  - `cat <wordlist_file> |`: Pipes the content of the wordlist file to the tool's `stdin`.
+  - `-h {hash_file}`: Specifies the hash file. The `-w` flag is omitted, signaling the tool to read from `stdin`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_STDIN_2.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_STDIN_2.txt` with content: `sLpykyjNv\nerac3\nXy8osg5w\nwPLXPXp9\npRobV\n2K3U2DRK08\nDdvFo\nHd7wKZ\nfaLDaG8znn\ncyclone123\n1fO8f047x\nc2JX6iuChP\nyod5PaA\nA8qwj\nreNbVo\nmlpN1lSsa\nerEpYp7M\nsMEUaZmqV\nbPTzpDBQq\nGvYhQZfvJA\nxLRBVsW`
+  **2. Command**:
+  `cat /test_data/wordlist_H_STDIN_2.txt | yescrypt_crack -s '1' -h /test_data/hash_H_STDIN_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present.
+  - Command Behavior Analysis: The `-w` flag is omitted, so the tool reads passwords from `stdin`. The `cat` command provides this input. The summary line for "Wordlist" should indicate that input is from `stdin` (e.g., by not printing a filename or printing a placeholder like `stdin`). The rest of the behavior, including status updates (`-s '1'`) and printing the result to `stdout`, is the same as in previous examples.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `cat <wordlist_file> | yescrypt_crack -h <hash_file> -o <output_file>`
+- **Function and Parameter Description**:
+  - Reads wordlist from `stdin` and writes results to a file.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-o {output_file}`: Specifies the output file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_STDIN_O_4.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_STDIN_O_4.txt` with content: `9bhU0baO\nNjym0\n00Z5\nE8yNkI\nqzS0lkyr\nPf76\nSF0q4kXD\nwio3C\nXshjRC\nvFgUFuc8M\nskxmLFT9\nhY4oyagJd\nt9cbaOI\ndNLloQChJt\nz4cfOR\n0AFHP3kWN\nzVmM\ncyclone123\nsD6vAF23Bs\n3ZPNeK\nimhAcv`
+  **2. Command**:
+  `cat /test_data/wordlist_H_STDIN_O_4.txt | yescrypt_crack -s '4' -o /test_data/output_H_STDIN_O_4.txt -h /test_data/hash_H_STDIN_O_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n[TIMESTAMP] Finished\n",
+      "fs_diff": {
+          "/test_data/output_H_STDIN_O_4.txt": {
+              "type": "ADD",
+              "content": "$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present. The output file does not exist.
+  - Command Behavior Analysis: The tool reads the wordlist from `stdin` and, upon finding a match, writes the result to the file specified by `-o`. Status information is printed to `stdout`, but the cracked pair is not.
+  - Final State Changes (fs_diff): The output file `/test_data/output_H_STDIN_O_4.txt` is created with the cracked `hash:password` pair.
+
+#### Command Category: `cat <wordlist_file> | yescrypt_crack -h <hash_file> -t <threads>`
+- **Function and Parameter Description**:
+  - Reads wordlist from `stdin` and uses a specified number of threads.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-t {threads}`: Sets the number of CPU threads.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_STDIN_T_3.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_STDIN_T_3.txt` with content: `ZV43D\nU4pN6zaOCH\ntFEdQ\nfNDPU9bpAB\nTT6vM\nIwjazNElr\nyCvG7OZxrw\n3xCLnxClF\nf2ePo\n4jV3YYjG\npvLC\ncyclone123\nZoct\nHZtxr2\nDPJH3adS\nEbguIGe\nwb89w0f7\nXZPemuw\nFkDtQkH\nNzmzyU\n1oJUu8UxVw`
+  **2. Command**:
+  `cat /test_data/wordlist_H_STDIN_T_3.txt | yescrypt_crack -t '2' -s '1' -h /test_data/hash_H_STDIN_T_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n\n[TIMESTAMP] Finished\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present.
+  - Command Behavior Analysis: The tool reads the wordlist from `stdin` and performs the cracking using 2 threads (`-t '2'`). The "CPU Threads" line in the `stdout` summary should reflect this. The cracked pair is printed to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `cat <wordlist_file> | yescrypt_crack -h <hash_file> -s <seconds>`
+- **Function and Parameter Description**:
+  - Reads wordlist from `stdin` and provides periodic status updates.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-s {seconds}`: Sets the status update interval.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_STDIN_S_2.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_STDIN_S_2.txt` with content: `PKfmCZ\nvATaJqJb6\nGP91V\nA1pIfE6\nzH8IBawa\nTf72KAm\n1kOpvrkMf\nFD63IqSa6\nbcxNFtz\n3ynd\ny0W5\nk0uH\nSHWB2q\nDdyU\nevwwY\nUwAgqraG4v\n5Ru2H67y\nIl4whOC\ncyclone123\n5qcIDl1f\nQQUWT6`
+  **2. Command**:
+  `cat /test_data/wordlist_H_STDIN_S_2.txt | yescrypt_crack -s '1' -h /test_data/hash_H_STDIN_S_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present.
+  - Command Behavior Analysis: The tool reads the wordlist from `stdin` and prints status updates every second (`-s '1'`). The `stdout` shows these periodic updates along with the final cracked pair.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `cat <wordlist_file> | yescrypt_crack -h <hash_file> -o <output_file> -t <threads> -s <seconds>`
+- **Function and Parameter Description**:
+  - A combination of all options while reading the wordlist from `stdin`.
+  - `-h {hash_file}`: Specifies the hash file.
+  - `-o {output_file}`: Specifies the output file.
+  - `-t {threads}`: Sets the number of CPU threads.
+  - `-s {seconds}`: Sets the status update interval.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/hash_H_STDIN_O_T_S_1.txt` with content: `$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.`
+  - `/test_data/wordlist_H_STDIN_O_T_S_1.txt` with content: `EMqt2cp\n9ikNE4vIk\nEVg7ly6\nm3QhSf\nqH0XpL0fgQ\nOP4ToF\n0p3G1\n3miAIN\nistNV\nKxgasm3T\nMvdg\nTR1cUD\nr1b6JZ66\nIibpe\nukERwKuLP\nyWDRqh\nh6ewqWCp\ncyclone123\ntIznAOxy\n5YDl\nTOH25oNSi`
+  **2. Command**:
+  `cat /test_data/wordlist_H_STDIN_O_T_S_1.txt | yescrypt_crack -o /test_data/output_H_STDIN_O_T_S_1.txt -s '1' -t '4' -h /test_data/hash_H_STDIN_O_T_S_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": " -------------------------------------------------- \n|                Yescrypt Cracker                |\n -------------------------------------------------- \n\nHash file: [HASH_FILE]\nTotal Hashes: [N]\nCPU Threads: [N]\nWordlist: [WORDLIST_FILE]\n[TIMESTAMP] Working...\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n[TIMESTAMP] Cracked: [N]/[M] [SPEED] h/s [ELAPSED_TIME]\n\n[TIMESTAMP] Finished\n",
+      "fs_diff": {
+          "/test_data/output_H_STDIN_O_T_S_1.txt": {
+              "type": "ADD",
+              "content": "$y$j9T$z7lNWyBfW4ZruGHCsFzDz/$Sz1GtrDDnsf0KfUE8mQHNJqGyG32TDWC287DdU97dz.:cyclone123\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A hash file and a wordlist file are present. The output file does not exist.
+  - Command Behavior Analysis: The tool reads the wordlist from `stdin`, uses 4 threads, prints status updates every second, and writes the final result to the specified output file. The `stdout` reflects the thread count and periodic updates but does not contain the cracked pair.
+  - Final State Changes (fs_diff): The output file `/test_data/output_H_STDIN_O_T_S_1.txt` is created and contains the cracked `hash:password` pair.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,273 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: reqt
+**Repository Name**: reqt
+**Core Functionality Description**:
+This is a CLI tool for project planning and requirement management using a single Markdown file as the source of truth. The tool allows users to initialize a project structure, and then manage hierarchical items (e.g., features, requirements) directly from the command line. Key functionalities include adding, deleting, editing, and restructuring items (promoting/demoting). The tool automatically handles numbering and hierarchy updates within the Markdown file. It can also generate a separate README.md file based on the contents of the project's main Markdown file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `reqt init <project_name>`
+- **Function and Parameter Description**:
+  - `init`: Initializes a new project.
+  - `<project_name>`: The name of the project. This will be used for the main markdown and JSON backup files.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No preparation script is needed. The command is run in an empty directory.
+  **2. Command**:
+  `reqt init 'W8lqQwbVHCUWD'`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Created .reqt directory in /\n✅ Created config.reqt.json\n✅ Created itemTemplate.reqt.json\n✅ Created W8lqQwbVHCUWD.reqt.json\n✅ Created W8lqQwbVHCUWD.reqt.md\n✅ ReqText project initialized successfully in .reqt\n",
+    "fs_diff": {
+        "/W8lqQwbVHCUWD.reqt.md": {
+            "type": "ADD",
+            "content": "<!-- reqt_id: 2026-03-17T02:33:46.504Z-4a4129a4 --start-->\n\n# 0: W8lqQwbVHCUWD \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDETAILS\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nexclude\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:33:46.504Z-4a4129a4 --end-->"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is initially empty.
+  - Command Behavior Analysis: The `init` command takes a project name as an argument. It creates a hidden directory `.reqt` and several files within it (though their content is not specified in the sample, their creation is announced in `stdout`). Crucially, it also creates a markdown file in the root directory named `<project_name>.reqt.md`.
+  - Final State Changes (fs_diff): A new file `W8lqQwbVHCUWD.reqt.md` is created. This file contains a single, top-level requirement item (outline number `0`) whose title is the project name. The item is formatted in Markdown with special HTML comments acting as delimiters and field markers (`<!-- reqt_id: ... -->`, `<!-- reqt_status_field-->`, etc.). The initial status is `PLANNED` and it is marked to be excluded from README generation.
+
+#### Command Category: `reqt clean`
+- **Function and Parameter Description**:
+  - `clean`: Ensures all items in the project's markdown file have a valid `reqt_id`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is first initialized with the command `reqt init 'fuzz_project'`.
+  **2. Command**:
+  `reqt clean && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Clean complete: No changes were necessary. All items already have valid reqt_ID_ID fields.\n<!-- reqt_id: 2026-03-17T02:38:06.281Z-b4ce34ed --start-->\n\n# 0: fuzz_project \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDETAILS\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nexclude\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:38:06.281Z-b4ce34ed --end-->",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project file `fuzz_project.reqt.md` exists, containing one valid item created by `reqt init`.
+  - Command Behavior Analysis: The `clean` command is executed. It scans the project's markdown file. Since the existing item is valid and has a `reqt_id`, the tool reports that no changes were necessary.
+  - Final State Changes (fs_diff): There are no changes to the file system, as confirmed by the empty `fs_diff` and the `stdout` message.
+
+#### Command Category: `reqt add-item <item_name>`
+- **Function and Parameter Description**:
+  - `add-item`: Adds a new item to the end of the project.
+  - `<item_name>`: The title for the new item.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is first initialized with the command `reqt init 'fuzz_project'`.
+  **2. Command**:
+  `reqt add-item '../../etc/passwd' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Added item: ../../etc/passwd\n<!-- reqt_id: 2026-03-17T02:38:46.618Z-f5cf4e72 --start-->\n\n# 0: fuzz_project \n... [omitted content of initial item] ...\n<!-- reqt_id: 2026-03-17T02:38:46.618Z-f5cf4e72 --end-->\n\n<!-- reqt_id: 2026-03-17T02:38:47.164Z-781a7a0b --start-->\n\n## 1: ../../etc/passwd \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:38:47.164Z-781a7a0b --end-->",
+    "fs_diff": {
+        "/fuzz_project.reqt.md": {
+            "type": "MOD",
+            "content": "<!-- reqt_id: 2026-03-17T02:38:46.618Z-f5cf4e72 --start-->\n\n# 0: fuzz_project \n... [omitted content of initial item] ...\n<!-- reqt_id: 2026-03-17T02:38:46.618Z-f5cf4e72 --end-->\n\n<!-- reqt_id: 2026-03-17T02:38:47.164Z-781a7a0b --start-->\n\n## 1: ../../etc/passwd \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:38:47.164Z-781a7a0b --end-->"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The `fuzz_project.reqt.md` file contains only the root item (outline `0`).
+  - Command Behavior Analysis: The `add-item` command appends a new item to the file. It correctly assigns the next available top-level outline number (`1`) and uses a level 2 Markdown heading (`##`). The new item is created from a template with default values like `PLANNED` status and placeholder `DESCRIPTION`.
+  - Final State Changes (fs_diff): The `fuzz_project.reqt.md` file is modified to include a new item block at the end. The new item has the title `'../../etc/passwd'`, outline number `1`, and is structured similarly to the initial item but with different default values for some fields (e.g., `README` is `README`, not `exclude`).
+
+#### Command Category: `reqt add-after <outline_number> <title>`
+- **Function and Parameter Description**:
+  - `add-after`: Adds a new item after a specified existing item.
+  - `<outline_number>`: The outline number of the item to add after.
+  - `<title>`: The title for the new item.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt add-after '2' 'wrWUJBhWw4y4z8MWJ0Uv' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Added item 'wrWUJBhWw4y4z8MWJ0Uv' after outline #2\n... [omitted content of items 0, 1, and 2] ...\n\n<!-- reqt_id: 2026-03-17T02:43:43.440Z-c443c5d2 --start-->\n\n## 3: wrWUJBhWw4y4z8MWJ0Uv \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:43:43.440Z-c443c5d2 --end-->",
+    "fs_diff": {
+        "/fuzz_project.reqt.md": {
+            "type": "MOD",
+            "content": "... [omitted content of items 0, 1, and 2] ...\n\n<!-- reqt_id: 2026-03-17T02:43:43.440Z-c443c5d2 --start-->\n\n## 3: wrWUJBhWw4y4z8MWJ0Uv \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:43:43.440Z-c443c5d2 --end-->"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file contains items `0`, `1` (Item One), and `2` (Item Two).
+  - Command Behavior Analysis: The command inserts a new item after item `2`. The tool parses the file, locates item `2`, and inserts the new item block. It then re-calculates the outline numbers for all items. The new item is inserted at the same hierarchy level and becomes item `3`.
+  - Final State Changes (fs_diff): The markdown file is updated to include the new item `wrWUJBhWw4y4z8MWJ0Uv` with outline number `3`, placed after item `2`.
+
+#### Command Category: `reqt delete <outline_number>`
+- **Function and Parameter Description**:
+  - `delete`: Deletes an item by its outline number.
+  - `<outline_number>`: The outline number of the item to delete.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt delete '1' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Deleting item with outline 1...\n✅ Deleted item with outline #1\n<!-- reqt_id: 2026-03-17T02:47:38.917Z-89279b13 --start-->\n\n# 0: fuzz_project \n... [omitted content of item 0] ...\n<!-- reqt_id: 2026-03-17T02:47:38.917Z-89279b13 --end-->\n\n<!-- reqt_id: 2026-03-17T02:47:39.348Z-3c793847 --start-->\n\n## 1: Item Two \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:47:39.348Z-3c793847 --end-->",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file contains items `0`, `1` (Item One), and `2` (Item Two).
+  - Command Behavior Analysis: The command targets item `1` for deletion. The tool removes the entire block for 'Item One'. After deletion, it must re-process the entire file to update the outline numbers of the remaining items.
+  - Final State Changes (fs_diff): The block for 'Item One' is removed. 'Item Two', which was originally item `2`, is re-numbered to `1`, and its heading is updated from `## 2: Item Two` to `## 1: Item Two`.
+
+#### Command Category: `reqt make-children <outline_number>`
+- **Function and Parameter Description**:
+  - `make-children`: Demotes an item (and its children) to become a child of the preceding item.
+  - `<outline_number>`: The outline number of the item to demote.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt make-children '2' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Made item (and its children) with outline #2 a child of the previous item.\n... [omitted content of items 0 and 1] ...\n\n<!-- reqt_id: 2026-03-17T02:50:22.359Z-a673c7b3 --start-->\n\n### 1.1: Item Two \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:50:22.359Z-a673c7b3 --end-->",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file contains sibling items `1` (Item One) and `2` (Item Two).
+  - Command Behavior Analysis: The command targets item `2` and makes it a child of the preceding item (`1`). The tool must re-calculate the outline number and the markdown heading level.
+  - Final State Changes (fs_diff): 'Item Two' is no longer a sibling of 'Item One'. Its outline number changes from `2` to `1.1`, and its heading level increases from `##` to `###`, indicating it is now a sub-item of item `1`.
+
+#### Command Category: `reqt make-sibling <outline_number>`
+- **Function and Parameter Description**:
+  - `make-sibling`: Promotes an item (and its children) to become a sibling of its parent.
+  - `<outline_number>`: The outline number of the item to promote.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized with two items, and then item `2` is made a child of item `1`, resulting in items `1` and `1.1`.
+  **2. Command**:
+  `reqt make-sibling '1.1' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "✅ Made item (and its children) with outline #1.1 a sibling of the previous item.\n... [omitted content of items 0 and 1] ...\n\n<!-- reqt_id: 2026-03-17T02:52:39.727Z-1b909776 --start-->\n\n## 2: Item Two \n<!-- reqt_status_field-->\n**Status:**\nPLANNED\n\n <!-- reqt_Desc_field-->\n**Description**\n\nDESCRIPTION\n\n<!-- reqt_Accept_field-->\n**Acceptance:**\n\nACCEPTANCE\n\n<!-- reqt_README_field-->\n**README:**\n\nREADME\n\n<!-- Make Content \"exclude\" to exclude from README generation -->\n---\n<!-- reqt_id: 2026-03-17T02:52:39.727Z-1b909776 --end-->",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file contains item `1` (Item One) and its child `1.1` (Item Two).
+  - Command Behavior Analysis: The command targets item `1.1` and promotes it. The tool re-calculates its position in the hierarchy, making it a sibling of its former parent (`1`).
+  - Final State Changes (fs_diff): 'Item Two' is promoted. Its outline number changes from `1.1` back to `2`, and its heading level decreases from `###` to `##`, indicating it is now a top-level sibling of item `1`.
+
+#### Command Category: `reqt edit-title <outline_number> <new_title>`
+- **Function and Parameter Description**:
+  - `edit-title`: Edits the title of an item by its outline number.
+  - `<outline_number>`: The outline number of the item to edit.
+  - `<new_title>`: The new title for the item.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt edit-title '1' 'p5Z0ylkTjZWLPocDJj' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Title for outline 1 updated to: p5Z0ylkTjZWLPocDJj\n... [omitted content of item 0] ...\n\n<!-- reqt_id: 2026-03-17T02:53:35.908Z-fbdcd740 --start-->\n\n## 1: p5Z0ylkTjZWLPocDJj \n... [omitted rest of item 1 content and item 2] ...",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file contains item `1` with the title 'Item One'.
+  - Command Behavior Analysis: The command finds item `1` and replaces its title in the Markdown heading.
+  - Final State Changes (fs_diff): The heading for item `1` is changed from `## 1: Item One` to `## 1: p5Z0ylkTjZWLPocDJj`. The rest of the file remains the same.
+
+#### Command Category: `reqt set-status <outline_number> <status>`
+- **Function and Parameter Description**:
+  - `set-status`: Sets the status of an item.
+  - `<outline_number>`: The outline number of the item to modify.
+  - `<status>`: The new status value (e.g., PLANNED, REJECTED).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt set-status '1' 'REJECTED' && cat fuzz_project.reqt.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Status for outline 1 updated to: REJECTED\n... [omitted content of item 0] ...\n\n<!-- reqt_id: 2026-03-17T02:57:12.586Z-248bcf87 --start-->\n\n## 1: Item One \n<!-- reqt_status_field-->\n**Status:**\nREJECTED\n\n <!-- reqt_Desc_field-->\n... [omitted rest of item 1 content and item 2] ...",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Item `1` has a status of `PLANNED`.
+  - Command Behavior Analysis: The command locates item `1` and finds the `reqt_status_field` block. It then replaces the content within that block with the new status.
+  - Final State Changes (fs_diff): Inside the block for item `1`, the text under `**Status:**` is changed from `PLANNED` to `REJECTED`.
+
+#### Command Category: `reqt generate-readme`
+- **Function and Parameter Description**:
+  - `generate-readme`: Generates a `README.md` file from the project's markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A project is initialized, and two items (`Item One`, `Item Two`) are added.
+  **2. Command**:
+  `reqt generate-readme && cat README.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "README.md generated successfully.\n# Item One\n\nREADME\n\n## Item Two\n\nREADME\n\n---\nREADME.md generated by **reqt v0.2.1** on [TIMESTAMP]\n\n[Support Link]\n",
+    "fs_diff": {
+        "/README.md": {
+            "type": "ADD",
+            "content": "# Item One\n\nREADME\n\n## Item Two\n\nREADME\n\n---\nREADME.md generated by **reqt v0.2.1** on 2026-03-17T02:58:39.280Z\n\n[Support Link]\n"
+        }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The project file `fuzz_project.reqt.md` contains three items: the root project item (`0`), 'Item One' (`1`), and 'Item Two' (`2`). The root item is marked with `README: exclude`. The other two items have `README: README`.
+  - Command Behavior Analysis: The command parses the project file. It ignores any item where the `README` field is `exclude`. For all other items, it extracts their title, hierarchy, and the content of their `README` field. It then constructs a new `README.md` file.
+  - Final State Changes (fs_diff): A new file, `README.md`, is created. Its content is composed of the titles and README content of items `1` and `2`, respecting their hierarchy (though both are top-level here). A footer is appended with the tool name, version, a timestamp, and a support link.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

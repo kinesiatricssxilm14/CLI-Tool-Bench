@@ -1,0 +1,467 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: toon
+**Repository Name**: toon
+**Core Functionality Description**:
+This project involves creating a command-line tool for converting data between JSON and a custom format called TOON (Token-Oriented Object Notation). TOON is a compact data format that uses indentation for structure, similar to YAML, and a CSV-like format for tabular data.
+
+The core functionality of the CLI tool is to:
+1.  **Encode**: Convert JSON data into TOON format. The tool should automatically detect the need to encode when the input file has a `.json` extension.
+2.  **Decode**: Convert TOON data back into JSON format. The tool should automatically detect the need to decode when the input file has a `.toon` extension.
+3.  **Handle Standard I/O**: Read input from `stdin` and write output to `stdout` when the input argument is `-`.
+4.  **Customization**: Allow users to customize the encoding process, including setting the indentation size, the delimiter for arrays (comma, tab, or pipe), and adding a special marker to array length indicators.
+5.  **Forced Mode**: Provide flags to explicitly force encoding (`--encode`) or decoding (`--decode`), overriding the automatic detection based on file extension.
+6.  **Validation Control**: Offer an option to disable strict validation (`--no-strict`) when decoding.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `toon <input.json>`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command.
+  - **`input`**: A positional argument specifying the path to the input file. In this case, it's a `.json` file. The tool should automatically detect the file extension and perform an encoding operation (JSON to TOON).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_basic_2.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 5,
+        "author": "ZGDK9nH7Az"
+      },
+      "items": [
+        {
+          "id": 49,
+          "name": "oHwQQmbz4",
+          "active": false
+        },
+        {
+          "id": 158,
+          "name": "3htQeg8",
+          "active": true
+        }
+      ],
+      "tags": [
+        "xKYHriv",
+        "NW3",
+        "47la5Sf",
+        "qhzRml"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_basic_2.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 5\n  author: ZGDK9nH7Az\nitems[2,]{id,name,active}:\n  49,oHwQQmbz4,false\n  158,3htQeg8,true\ntags[4]: xKYHriv,NW3,47la5Sf,qhzRml\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single JSON file at `/test_data/input_encode_basic_2.json`.
+  - Command Behavior Analysis: The `toon` command is executed with the path to the JSON file. The tool should read this file, identify from its `.json` extension that it needs to perform an encoding operation, convert the JSON content into the TOON format, and print the resulting TOON string to standard output. The default indentation is 2 spaces, and the default delimiter is a comma.
+  - Final State Changes (fs_diff): The `fs_diff` is empty, which means the command does not create, modify, or delete any files on the filesystem. All output is directed to `stdout`.
+
+#### Command Category: `toon <input.json> --encode`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.json` file.
+  - **`--encode` or `-e`**: A flag that explicitly forces the tool to perform an encoding operation (JSON to TOON), overriding any automatic detection.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_force_2.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 5,
+        "author": "IjI5Gs"
+      },
+      "items": [
+        {
+          "id": 58,
+          "name": "sbTWXlvG6",
+          "active": false
+        },
+        {
+          "id": 108,
+          "name": "ewv1z",
+          "active": false
+        }
+      ],
+      "tags": [
+        "H1r",
+        "XMbQ",
+        "nVB",
+        "NY8"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_force_2.json --encode`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 5\n  author: IjI5Gs\nitems[2,]{id,name,active}:\n  58,sbTWXlvG6,false\n  108,ewv1z,false\ntags[4]: H1r,XMbQ,nVB,NY8\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file at `/test_data/input_encode_force_2.json`.
+  - Command Behavior Analysis: The tool is invoked with a file path and the `--encode` flag. This flag explicitly tells the tool to treat the input as JSON and convert it to TOON. The tool reads the file, performs the conversion, and prints the TOON-formatted string to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The operation is non-destructive and outputs only to `stdout`.
+
+#### Command Category: `toon <input.json> --delimiter "\t"`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.json` file.
+  - **`--delimiter "\t"`**: An option to specify the delimiter character for arrays. In this case, it's a tab character. This affects both primitive and tabular arrays in the TOON output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_delimiter_tab_2.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 2,
+        "author": "7oX5ZW"
+      },
+      "items": [
+        {
+          "id": 41,
+          "name": "xoPSyx",
+          "active": true
+        },
+        {
+          "id": 188,
+          "name": "UlVEiNnS",
+          "active": true
+        }
+      ],
+      "tags": [
+        "rdrCVa",
+        "frqVJ",
+        "wcWOAds"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_delimiter_tab_2.json --delimiter "\t"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 2\n  author: 7oX5ZW\nitems[2\t]{id\tname\tactive}:\n  41\txoPSyx\ttrue\n  188\tUlVEiNnS\ttrue\ntags[3\t]: rdrCVa\tfrqVJ\twcWOAds\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file at `/test_data/input_encode_delimiter_tab_2.json`.
+  - Command Behavior Analysis: The tool reads the JSON file and encodes it to TOON format. The `--delimiter "\t"` argument instructs the encoder to use a tab character (`\t`) to separate items in arrays. This is visible in the output for both the tabular array (`items`) and the primitive array (`tags`), where tabs separate both the header fields and the data values.
+  - Final State Changes (fs_diff): `fs_diff` is empty, indicating all output was sent to `stdout`.
+
+#### Command Category: `toon <input.json> --delimiter "|"`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.json` file.
+  - **`--delimiter "|"`**: An option to specify the delimiter character for arrays. In this case, it's a pipe character.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_delimiter_pipe_1.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 2,
+        "author": "9nHA2"
+      },
+      "items": [
+        {
+          "id": 89,
+          "name": "xIQACd",
+          "active": true
+        },
+        {
+          "id": 130,
+          "name": "8PSl5",
+          "active": false
+        }
+      ],
+      "tags": [
+        "0XH9Kvr",
+        "26fUI",
+        "SFGfzj",
+        "T6qMo5R"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_delimiter_pipe_1.json --delimiter "|"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 2\n  author: 9nHA2\nitems[2|]{id|name|active}:\n  89|xIQACd|true\n  130|8PSl5|false\ntags[4|]: 0XH9Kvr|26fUI|SFGfzj|T6qMo5R\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file at `/test_data/input_encode_delimiter_pipe_1.json`.
+  - Command Behavior Analysis: Similar to the previous example, the tool encodes a JSON file to TOON. The `--delimiter "|"` argument causes the pipe character (`|`) to be used as the separator for array elements and tabular headers. The output reflects this change.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The output is written to `stdout`.
+
+#### Command Category: `toon <input.json> --indent <N>`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.json` file.
+  - **`--indent <N>`**: An option to specify the number of spaces for each level of indentation in the TOON output. In this sample, `N` is 6.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_indent_3.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 3,
+        "author": "ZPyadRG0Gf"
+      },
+      "items": [
+        {
+          "id": 2,
+          "name": "v0tgL4yN",
+          "active": false
+        },
+        {
+          "id": 116,
+          "name": "qKE59",
+          "active": true
+        }
+      ],
+      "tags": [
+        "H0YB",
+        "UEVDky",
+        "chu4Nut",
+        "oO7Co"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_indent_3.json --indent 6`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n      version: 3\n      author: ZPyadRG0Gf\nitems[2,]{id,name,active}:\n      2,v0tgL4yN,false\n      116,qKE59,true\ntags[4]: H0YB,UEVDky,chu4Nut,oO7Co\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file at `/test_data/input_encode_indent_3.json`.
+  - Command Behavior Analysis: The tool encodes the JSON file to TOON. The `--indent 6` argument overrides the default indentation (which is 2). As a result, all nested elements in the TOON output are indented by 6 spaces per level.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The output is written to `stdout`.
+
+#### Command Category: `toon <input.json> --length-marker`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.json` file.
+  - **`--length-marker`**: A flag that, when present, adds a `#` prefix to the array length indicators in the TOON output (e.g., `[#3]` instead of `[3]`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_encode_length_marker_2.json`
+  - **File Content**:
+    ```json
+    {
+      "metadata": {
+        "version": 4,
+        "author": "VS1Dc"
+      },
+      "items": [
+        {
+          "id": 82,
+          "name": "URxQs",
+          "active": false
+        },
+        {
+          "id": 123,
+          "name": "wVqFxQM2",
+          "active": true
+        }
+      ],
+      "tags": [
+        "KISe",
+        "VOA",
+        "5g6v3Ik",
+        "g6TDaJ5"
+      ]
+    }
+    ```
+  **2. Command**:
+  `toon /test_data/input_encode_length_marker_2.json --length-marker`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 4\n  author: VS1Dc\nitems[#2,]{id,name,active}:\n  82,URxQs,false\n  123,wVqFxQM2,true\ntags[#4]: KISe,VOA,5g6v3Ik,g6TDaJ5\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file at `/test_data/input_encode_length_marker_2.json`.
+  - Command Behavior Analysis: The tool encodes the JSON file to TOON. The `--length-marker` flag instructs the encoder to prefix array lengths with a `#`. The output shows `items[#2,]{...}` and `tags[#4]: ...`, demonstrating this feature.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The output is written to `stdout`.
+
+#### Command Category: `toon <input.toon>`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command.
+  - **`input`**: A positional argument specifying the path to the input file. In this case, it's a `.toon` file. The tool should automatically detect the file extension and perform a decoding operation (TOON to JSON).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_decode_basic_4.toon`
+  - **File Content**:
+    ```
+    users[2,]{id,name}:
+      1,Alice
+      2,Bob
+    ```
+  **2. Command**:
+  `toon /test_data/input_decode_basic_4.toon`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"name\": \"Alice\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Bob\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a TOON file at `/test_data/input_decode_basic_4.toon`.
+  - Command Behavior Analysis: The `toon` command is executed with the path to the TOON file. The tool should read this file, identify from its `.toon` extension that it needs to perform a decoding operation, parse the TOON content, convert it into the equivalent JSON structure, and print the resulting formatted JSON string to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The operation is non-destructive and outputs only to `stdout`.
+
+#### Command Category: `toon <input.toon> --decode`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.toon` file.
+  - **`--decode` or `-d`**: A flag that explicitly forces the tool to perform a decoding operation (TOON to JSON), overriding any automatic detection.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_decode_force_4.toon`
+  - **File Content**:
+    ```
+    users[2,]{id,name}:
+      1,Alice
+      2,Bob
+    ```
+  **2. Command**:
+  `toon /test_data/input_decode_force_4.toon --decode`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"name\": \"Alice\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Bob\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a TOON file at `/test_data/input_decode_force_4.toon`.
+  - Command Behavior Analysis: The tool is invoked with a file path and the `--decode` flag. This flag explicitly tells the tool to treat the input as TOON and convert it to JSON. The tool reads the file, performs the conversion, and prints the JSON-formatted string to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The operation is non-destructive and outputs only to `stdout`.
+
+#### Command Category: `toon <input.toon> --no-strict`
+- **Function and Parameter Description**:
+  - **`toon <input>`**: The main command with a path to a `.toon` file.
+  - **`--no-strict`**: A flag to disable strict validation during the decoding process. This might allow parsing of malformed TOON that would otherwise cause an error.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following file is created before the command is executed:
+  - **File Path**: `/test_data/input_decode_no_strict_4.toon`
+  - **File Content**:
+    ```
+    users[2,]{id,name}:
+      1,Alice
+      2,Bob
+    ```
+  **2. Command**:
+  `toon /test_data/input_decode_no_strict_4.toon --no-strict`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"name\": \"Alice\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Bob\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a TOON file at `/test_data/input_decode_no_strict_4.toon`.
+  - Command Behavior Analysis: The tool is instructed to decode the TOON file with strict validation disabled. In this specific sample, the input TOON is well-formed, so the output is identical to a standard decode. However, the implementation must include the logic for this flag, which would relax parsing rules (e.g., ignore array length mismatches).
+  - Final State Changes (fs_diff): `fs_diff` is empty. The output is written to `stdout`.
+
+#### Command Category: `echo <json> | toon -`
+- **Function and Parameter Description**:
+  - **`toon -`**: When the input argument is a hyphen (`-`), the tool must read its input from the standard input stream (`stdin`) instead of a file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No files are created. The input is provided via a pipe.
+  **2. Command**:
+  `echo '{"metadata": {"version": 2, "author": "CI0U32"}, "items": [{"id": 47, "name": "S7ED3d", "active": true}, {"id": 179, "name": "et7xbbemac", "active": false}], "tags": ["x4IJ", "m74D", "kP26uC", "LqrTV"]}' | toon -`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "metadata:\n  version: 2\n  author: CI0U32\nitems[2,]{id,name,active}:\n  47,S7ED3d,true\n  179,et7xbbemac,false\ntags[4]: x4IJ,m74D,kP26uC,LqrTV\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: A JSON string is piped to the `toon` command's standard input. The `toon -` command reads this `stdin` stream. Since no file extension is available, the tool must infer the operation. In this case, it appears to default to encoding when the input looks like JSON. It converts the piped JSON data to TOON format and prints the result to `stdout`.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The entire operation happens via standard streams.
+
+#### Command Category: `echo <toon> | toon -`
+- **Function and Parameter Description**:
+  - **`toon -`**: Reads input from `stdin`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No files are created. The input is provided via a pipe.
+  **2. Command**:
+  `echo 'users[2,]{id,name}:\n  1,Alice\n  2,Bob' | toon -`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"name\": \"Alice\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Bob\"\n    }\n  ]\n}\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: A TOON string is piped to the `toon` command's standard input. The `toon -` command reads this `stdin` stream. Since no file extension is available, the tool must infer the operation. It correctly identifies the input as TOON format and performs a decoding operation, converting it to JSON. The resulting JSON is printed to `stdout`. The logic for auto-detection when reading from `stdin` must be robust enough to distinguish between JSON and TOON input.
+  - Final State Changes (fs_diff): `fs_diff` is empty. The operation uses standard streams exclusively.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

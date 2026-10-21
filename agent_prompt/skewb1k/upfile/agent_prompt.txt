@@ -1,0 +1,282 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: upfile
+Repository Name: upfile
+Core Functionality Description:
+A CLI tool for syncing files across multiple projects. It helps manage shared configuration files by identifying each file by a unique filename associated with an "upstream" version (the source of truth). Users can add multiple instances of the same file across different projects (called "entries"). These entries can be pushed to the upstream to update the source of truth, and pulled or synced from it to keep all project files consistent. Supported operations include adding files to tracking, listing tracked files and their status, pushing changes, pulling/syncing changes, viewing diffs, removing entries, dropping tracked files entirely, renaming files, showing upstream content, and checking directory status.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: upfile add <path>... && upfile list
+- Function and Parameter Description:
+  - `add <path>...`: Start tracking the specified file(s).
+  - `list [<filename>...]`: List tracked files and their entries' status.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories `/test_data/proj1` and `/test_data/proj2`. Mounts an initial file `/test_data/proj1/file_0.txt` with some content.
+2. Command:
+`upfile add /test_data/non_existent.txt; upfile add /test_data/proj1/file_0.txt; upfile add /test_data/proj1/file_0.txt; upfile list`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "cannot add '/test_data/non_existent.txt': open /test_data/non_existent.txt: no such file or directory\ncannot add '/test_data/proj1/file_0.txt': file already tracked\nfile_0.txt\n  /test_data/proj1/file_0.txt  Up-to-date\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system has a valid file `file_0.txt` in `proj1` and no tracked upstream data.
+  - Command Behavior Analysis: The CLI attempts to add a non-existent file (fails with error message), adds a valid file (succeeds, initializes upstream), attempts to add the same valid file again (fails with "already tracked" message), and finally lists the tracked files showing `file_0.txt` as "Up-to-date".
+  - Final State Changes (fs_diff): No external file system changes outside the CLI's internal metadata storage.
+##### Command Category: upfile push <path> && upfile list
+- Function and Parameter Description:
+  - `push <path>...`: Push tracked file(s) to the upstream.
+  - `list`: List tracked files and entries status.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories `/test_data/proj1` and `/test_data/proj2`. Mounts `file_3.txt` in both directories with identical initial content "version1".
+2. Command:
+`upfile add /test_data/proj1/file_3.txt && upfile add /test_data/proj2/file_3.txt && echo 'XGoI6OzEzN6I' > /test_data/proj1/file_3.txt && upfile push /test_data/proj1/file_3.txt && upfile list`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "file_3.txt\n  /test_data/proj1/file_3.txt  Up-to-date\n  /test_data/proj2/file_3.txt  Modified\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/file_3.txt": {
+            "type": "MOD",
+            "content": "XGoI6OzEzN6I\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two identical files exist in different projects. Both are added to tracking.
+  - Command Behavior Analysis: The file in `proj1` is modified externally. The `push` command updates the upstream version with the new content from `proj1`. The `list` command then shows `proj1`'s file as "Up-to-date" (since it matches upstream) and `proj2`'s file as "Modified" (since it now differs from the updated upstream).
+  - Final State Changes (fs_diff): The file in `proj1` was modified by the shell `echo` command. The CLI updated its internal upstream state.
+##### Command Category: upfile pull <filename> --yes && cat <file_to_verify>
+- Function and Parameter Description:
+  - `pull <filename>... [--flags]`: Pull file(s) from upstream to update local entries. `--yes` auto-confirms prompts.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `config_1.json` in both `proj1` and `proj2` with identical JSON content.
+2. Command:
+`upfile add /test_data/proj1/config_1.json && upfile add /test_data/proj2/config_1.json && echo '{"edh6G": "nEt5iiAdFm", ... [omitted] ... "active": true}' > /test_data/proj1/config_1.json && upfile push /test_data/proj1/config_1.json && upfile pull config_1.json --yes && cat /test_data/proj2/config_1.json`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "{\"dvftfYXHtq\": \"CS6GENVhMUEsz2\", \"b9CL8fFNsq\": \"vyD2Fq7i5Pwt2z3DUO\", \"H0TDz13\": \"7aeClldfNdGs\", \"id\": 359, \"active\": true}",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/config_1.json": {
+            "type": "MOD",
+            "content": "{\"edh6G\": \"nEt5iiAdFm\", \"SS2AcyET\": \"VHxQMseLG9KQjsur2auu\", \"yQUkv1a8m\": \"FxhMjBPn5VLjH3BmMSP\", \"n1diVcFha\": \"E9F2BY9q8PdN0kE3QG\", \"id\": 79, \"active\": true}\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two identical JSON files are tracked.
+  - Command Behavior Analysis: `proj1`'s file is modified and pushed to upstream. Then `pull` is executed on `config_1.json`. Wait, the `cat` output shows the original content for `proj2`'s file, meaning `pull` might only pull to the current directory or requires specific context, or the sample implies `pull` updates the local file if it's out of sync, but the `cat` output shows `proj2` was NOT updated to the new content. Ah, looking closely at the `cat` output, it prints the original content. This implies `pull` might only update the entry in the current working directory, or the `fs_diff` shows `proj2` was not modified.
+  - Final State Changes (fs_diff): Only `proj1`'s file is modified (by the `echo` command). `proj2` remains unchanged.
+##### Command Category: upfile sync <filename> --yes && cat <file_to_verify>
+- Function and Parameter Description:
+  - `sync <filename> [--flags]`: Sync all entries of a file with upstream. `--yes` auto-confirms.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `config_2.json` in both `proj1` and `proj2` with identical JSON content.
+2. Command:
+`upfile add /test_data/proj1/config_2.json && upfile add /test_data/proj2/config_2.json && echo '{"TDUhS": "cZgr1OzC6X3Wh", ... [omitted] ...}' > /test_data/proj1/config_2.json && upfile push /test_data/proj1/config_2.json && upfile sync config_2.json --yes && cat /test_data/proj2/config_2.json`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "{\"TDUhS\": \"cZgr1OzC6X3Wh\", \"kKzLPCx9E5\": \"E7oUoOsLtO\", \"lZIImt\": \"TbnkYH4wdoDINtDIo6lk\", \"zpEII7TNqU\": \"qByGW6X0J8Q1RWapAa\", \"id\": 447, \"active\": false}\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/config_2.json": {
+            "type": "MOD",
+            "content": "{\"TDUhS\": \"cZgr1OzC6X3Wh\", \"kKzLPCx9E5\": \"E7oUoOsLtO\", \"lZIImt\": \"TbnkYH4wdoDINtDIo6lk\", \"zpEII7TNqU\": \"qByGW6X0J8Q1RWapAa\", \"id\": 447, \"active\": false}\n"
+        },
+        "/test_data/proj2/config_2.json": {
+            "type": "MOD",
+            "content": "{\"TDUhS\": \"cZgr1OzC6X3Wh\", \"kKzLPCx9E5\": \"E7oUoOsLtO\", \"lZIImt\": \"TbnkYH4wdoDINtDIo6lk\", \"zpEII7TNqU\": \"qByGW6X0J8Q1RWapAa\", \"id\": 447, \"active\": false}\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two identical JSON files are tracked.
+  - Command Behavior Analysis: `proj1`'s file is modified and pushed to upstream. Then `sync` is executed. Unlike `pull`, `sync` updates all tracked entries of that filename to match the upstream. The `cat` output confirms `proj2` now has the updated content.
+  - Final State Changes (fs_diff): Both `proj1` (via `echo`) and `proj2` (via `sync`) are modified to contain the new JSON content.
+##### Command Category: upfile diff <path>
+- Function and Parameter Description:
+  - `diff <path>`: Compare a local file with its upstream version.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `diff_me_3.txt` with "initial content".
+2. Command:
+`upfile add /test_data/proj1/diff_me_3.txt && echo 'V8O4vxA2KDv94HWG2I' > /test_data/proj1/diff_me_3.txt && upfile diff /test_data/proj1/diff_me_3.txt`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "diff --git a/tmp/upfile-diff-1916126604.tmp b/test_data/proj1/diff_me_3.txt\nindex cbc4e2e..95556dd 100644\n--- a/tmp/upfile-diff-1916126604.tmp\n+++ b/test_data/proj1/diff_me_3.txt\n@@ -1 +1 @@\n-initial content\n\\ No newline at end of file\n+V8O4vxA2KDv94HWG2I\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/diff_me_3.txt": {
+            "type": "MOD",
+            "content": "V8O4vxA2KDv94HWG2I\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: File is tracked with "initial content".
+  - Command Behavior Analysis: The local file is modified. The `diff` command compares the upstream version (likely extracted to a temp file) with the current local file, outputting a standard unified diff format.
+  - Final State Changes (fs_diff): The local file is modified by the `echo` command.
+##### Command Category: upfile remove <path> && upfile list
+- Function and Parameter Description:
+  - `remove <path>`: Remove a specific entry from the tracked list.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `rem_file_4.txt` in both `proj1` and `proj2`.
+2. Command:
+`upfile add /test_data/proj1/rem_file_4.txt && upfile add /test_data/proj2/rem_file_4.txt && upfile remove /test_data/proj1/rem_file_4.txt && upfile list`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "rem_file_4.txt\n  /test_data/proj2/rem_file_4.txt  Up-to-date\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two entries of the same file are tracked.
+  - Command Behavior Analysis: The `remove` command untracks the `proj1` entry. The `list` command subsequently only shows the `proj2` entry. The upstream data and the actual file on disk are not deleted.
+  - Final State Changes (fs_diff): No changes to the actual files on disk.
+##### Command Category: upfile drop <filename> --yes && upfile list
+- Function and Parameter Description:
+  - `drop <filename>... [--flags]`: Remove tracked file(s) upstream and all its entries. `--yes` auto-confirms.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `drop_file_4.txt`.
+2. Command:
+`upfile add /test_data/proj1/drop_file_4.txt && upfile drop drop_file_4.txt --yes && upfile list`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file is tracked.
+  - Command Behavior Analysis: The `drop` command completely removes the file from tracking (both upstream and all entries). The `list` command returns empty output.
+  - Final State Changes (fs_diff): No changes to the actual files on disk.
+##### Command Category: upfile rename <old> <new> && upfile list <new>
+- Function and Parameter Description:
+  - `rename <old> <new>`: Rename all entries of a file and its upstream identifier.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `old_name_0.cfg`.
+2. Command:
+`upfile add /test_data/proj1/old_name_0.cfg && upfile rename old_name_0.cfg sanitized_empty_name && upfile list sanitized_empty_name`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "sanitized_empty_name\n  /test_data/proj1/sanitized_empty_name  Up-to-date\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/sanitized_empty_name": {
+            "type": "ADD",
+            "content": "config"
+        },
+        "/test_data/proj1/old_name_0.cfg": {
+            "type": "DEL",
+            "content": "N/A"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file named `old_name_0.cfg` is tracked.
+  - Command Behavior Analysis: The `rename` command renames the upstream identifier AND physically renames the tracked files on disk. The `list` command shows the new name.
+  - Final State Changes (fs_diff): The original file is deleted (`DEL`) and a new file with the new name is created (`ADD`) with the same content.
+##### Command Category: upfile show <filename>
+- Function and Parameter Description:
+  - `show <filename>`: Show the upstream version of a file.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `show_me_4.yml` with content "key: value".
+2. Command:
+`upfile add /test_data/proj1/show_me_4.yml && upfile show show_me_4.yml`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "key: value",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file is tracked.
+  - Command Behavior Analysis: The `show` command prints the content of the upstream version of the specified filename to stdout.
+  - Final State Changes (fs_diff): No file system changes.
+##### Command Category: upfile status <dir>
+- Function and Parameter Description:
+  - `status [<dir>]`: Print the status of tracked files in the specified directory.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts `status_file_4.txt` with content "v1".
+2. Command:
+`upfile add /test_data/proj1/status_file_4.txt && echo 'v2' > /test_data/proj1/status_file_4.txt && upfile status /test_data/proj1`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "/test_data/proj1/status_file_4.txt  Modified\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/proj1/status_file_4.txt": {
+            "type": "MOD",
+            "content": "v2\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file is tracked.
+  - Command Behavior Analysis: The file is modified locally. The `status` command checks the specified directory and reports that the tracked file inside it is "Modified" compared to upstream.
+  - Final State Changes (fs_diff): The file is modified by the `echo` command.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

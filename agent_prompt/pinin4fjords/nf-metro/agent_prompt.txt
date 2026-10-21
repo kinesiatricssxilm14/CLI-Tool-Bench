@@ -1,0 +1,493 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: nf-metro
+**Repository Name**: nf-metro
+**Core Functionality Description**:
+The core functionality of this tool is to generate metro-map-style SVG diagrams from Mermaid graph definitions that are extended with special `%%metro` directives. The tool is designed to visualize workflows as transit-style maps.
+
+It provides the following capabilities:
+- **Render**: Converts a `.mmd` definition file into an SVG image, with options to control theme, dimensions, spacing, animation, and more.
+- **Validate**: Checks a `.mmd` file for syntax and structural errors without generating an SVG.
+- **Info**: Parses a `.mmd` file and prints a summary of its components, such as sections, lines, and stations.
+- **Convert**: Transforms a graph definition from a different, simpler format into the tool's specialized `.mmd` format.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `nf-metro validate <file>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro validate`
+  - Purpose: Validates a Mermaid metro map definition file (`.mmd`). It checks for errors but does not produce any output files.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file to validate.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_VALIDATE_4.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: so4hKuZ5znrixN9fswA7
+                %%metro line: ccc_afe | rawBzxHLZgaEUcfTnwbBcyXJxbPsZb | #dad9f8
+                subgraph section_1 [Section One]
+                    d_fbbc_c[Node 1] -->|ccc_afe| eee_aa_c[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro validate /test_data/input_nfmetro_VALIDATE_4.mmd`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nValid: 0 stations, 0 edges, 1 lines, 0 sections\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains one `.mmd` file. This file defines a graph with one line and one subgraph. However, the nodes within the subgraph are only referenced on an edge, not defined independently.
+  - Command Behavior Analysis: The `validate` command parses the input file. It detects that the `section_1` subgraph is effectively empty because no nodes are explicitly defined within its block. It prints a `UserWarning` to standard output about this. Then, it prints a summary of the parsed (and now empty) graph structure, confirming it is "Valid". The process exits successfully.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted.
+
+#### Command Category: `nf-metro info <file>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro info`
+  - Purpose: Shows a detailed summary of a parsed Mermaid metro map definition, including title, style, and counts of various elements.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file to inspect.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_INFO_4.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: Ex3jNdjOHBNw3gOE
+                %%metro line: cead_fcaec | ruaubft9SBaUUoz3rs9gucXHCuLH | #8460c9
+                subgraph section_1 [Section One]
+                    abacfb_[Node 1] -->|cead_fcaec| ceddabe[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro info /test_data/input_nfmetro_INFO_4.mmd`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nTitle: Ex3jNdjOHBNw3gOE\nStyle: dark\nStations: 0\nEdges: 0\nLines: 1\n  ruaubft9SBaUUoz3rs9gucXHCuLH (#8460c9): 0 stations\nSections: 0\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains one `.mmd` file with a structure similar to the `validate` example.
+  - Command Behavior Analysis: The `info` command parses the file, also noting the empty section and printing the same `UserWarning`. It then prints a detailed, multi-line summary of the parsed map components to standard output. This includes the title from the `%%metro` directive, the default style (`dark`), and counts for stations, edges, lines, and sections.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted.
+
+#### Command Category: `nf-metro convert <file>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro convert`
+  - Purpose: Converts a graph file from a different format to the tool's native `.mmd` format and prints the result to standard output.
+  - Parameters:
+    - `INPUT_FILE`: The path to the source file to convert.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nextflow_CONVERT_4.mmd` is created with the following content:
+    ```mermaid
+    
+                graph TD
+                    bdeacdbac --> adeadb_b
+                    adeadb_b --> abbde
+                
+    ```
+  **2. Command**:
+  `nf-metro convert /test_data/input_nextflow_CONVERT_4.mmd`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Warning: input does not look like a Nextflow DAG (expected 'flowchart TB' header)\n%%metro title: Empty Pipeline\n\ngraph LR\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a file with a `graph TD` definition, which is not the tool's primary format.
+  - Command Behavior Analysis: The `convert` command attempts to parse the input file. It expects a specific header which is not present, so it prints a `Warning` to standard output. It then proceeds to output a default, empty template for the target `.mmd` format, including a default title and a `graph LR` declaration.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted. The output is entirely on `stdout`.
+
+#### Command Category: `nf-metro convert <file> --title <text>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro convert`
+  - Purpose: Converts a graph file, with an option to specify a title for the converted output.
+  - Parameters:
+    - `INPUT_FILE`: The path to the source file to convert.
+    - `--title <text>`: A title for the converted output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nextflow_CONVERT_WITH_TITLE_2.mmd` is created with the following content:
+    ```mermaid
+    
+                graph TD
+                    dbdbdff_ --> fdeecefe_e
+                    fdeecefe_e --> d__ec
+                
+    ```
+  **2. Command**:
+  `nf-metro convert /test_data/input_nextflow_CONVERT_WITH_TITLE_2.mmd --title "u1jyfe0y7NpPeQib0"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Warning: input does not look like a Nextflow DAG (expected 'flowchart TB' header)\n%%metro title: Empty Pipeline\n\ngraph LR\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a file with a `graph TD` definition.
+  - Command Behavior Analysis: The command is run with a `--title` argument. However, because the input file is not in the expected format (triggering a warning), the `--title` argument is ignored. The tool outputs the same default empty template as it did without the title, including the default "Empty Pipeline" title.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted.
+
+#### Command Category: `nf-metro render <file>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file into an SVG image.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file to render. The output SVG is created in the same directory with a `.svg` extension by default.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_BASIC_3.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: v3kAN9phEF
+                %%metro line: dda_e__e | 0eFWLkNnHasZe3QQwIUhrXa4 | #ffa6de
+                subgraph section_1 [Section One]
+                    cbbbebf[Node 1] -->|dda_e__e| ebdfbf_[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_BASIC_3.mmd`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_BASIC_3.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_BASIC_3.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains one `.mmd` file.
+  - Command Behavior Analysis: The `render` command parses the input file. Like `validate` and `info`, it determines the subgraph is empty and prints a `UserWarning`. It then prints a message to `stdout` confirming the render action and the path to the output file.
+  - Final State Changes (fs_diff): A new file, `/test_data/input_nfmetro_RENDER_BASIC_3.svg`, is created. Because the parsed graph had no stations or edges, the resulting SVG file is empty.
+
+#### Command Category: `nf-metro render <file> --theme <theme>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to SVG using a specified visual theme.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--theme [nfcore|light]`: The visual theme to apply. The sample uses `nfcore`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_THEME_1.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: D0q9UwZaUBr8WDIg
+                %%metro line: feda_e | uCTeo5Y590pZ2jR7cGcQdh7GAEN | #2fa3ec
+                subgraph section_1 [Section One]
+                    edbddb_dae[Node 1] -->|feda_e| eaefc_d[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_THEME_1.mmd --theme nfcore`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Rendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_THEME_1.svg\n/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_THEME_1.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single `.mmd` file exists.
+  - Command Behavior Analysis: The tool is invoked with the `--theme` option. It parses the file, issues the standard warning for the empty section, and renders the graph. The `--theme` option is processed, but its effects are not visible as the resulting SVG is empty. A success message and the warning are printed to `stdout`.
+  - Final State Changes (fs_diff): An empty SVG file is created.
+
+#### Command Category: `nf-metro render <file> --width <N> --height <N>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to an SVG with a specified width and height.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--width <INTEGER>`: The desired width of the SVG in pixels.
+    - `--height <INTEGER>`: The desired height of the SVG in pixels.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_DIMENSIONS_3.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: By2yvBfZsq2nAHNVeGE9
+                %%metro line: _dca_aedca | nSR3WO5cjBICwWJRhtmwol9rdWpU | #ef623c
+                subgraph section_1 [Section One]
+                    dcafbaa[Node 1] -->|_dca_aedca| feadfaa[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_DIMENSIONS_3.mmd --width 1713 --height 508`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_DIMENSIONS_3.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_DIMENSIONS_3.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single `.mmd` file exists.
+  - Command Behavior Analysis: The tool is invoked with `--width` and `--height` options. It parses the file, issues the warning, and renders an empty graph. The dimension options are processed, but their effects are not visible in the empty SVG output.
+  - Final State Changes (fs_diff): An empty SVG file is created.
+
+#### Command Category: `nf-metro render <file> --x-spacing <F> --y-spacing <F>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to SVG, controlling the spacing between elements.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--x-spacing <FLOAT>`: Horizontal spacing between layers.
+    - `--y-spacing <FLOAT>`: Vertical spacing between tracks.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_SPACING_4.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: dJXMr1zjWtwyX
+                %%metro line: bdebccab | fCeTqU9jXevmjWYuGW4274AbN | #3913ed
+                subgraph section_1 [Section One]
+                    bf_affa[Node 1] -->|bdebccab| bdc_e[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_SPACING_4.mmd --x-spacing 86.66 --y-spacing 59.43`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_SPACING_4.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_SPACING_4.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single `.mmd` file exists.
+  - Command Behavior Analysis: The tool is invoked with `--x-spacing` and `--y-spacing` options. It parses the file, issues the warning, and renders an empty graph. The spacing options are processed, but their effects are not visible in the empty SVG output.
+  - Final State Changes (fs_diff): An empty SVG file is created.
+
+#### Command Category: `nf-metro render <file> --animate --debug`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to SVG with special features enabled.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--animate`: A boolean flag to add animated elements to the SVG.
+    - `--debug`: A boolean flag to show a debug overlay on the SVG.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_ANIMATE_DEBUG_3.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: slcbQNLgFydBPurvr
+                %%metro line: dfdafd | LUICOGNYmnMWy8KBiUVd5rhcxMg | #872c67
+                subgraph section_1 [Section One]
+                    b_eefbeceb[Node 1] -->|dfdafd| bccfbf_b[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_ANIMATE_DEBUG_3.mmd --animate --debug`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_ANIMATE_DEBUG_3.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_ANIMATE_DEBUG_3.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single `.mmd` file exists.
+  - Command Behavior Analysis: The tool is invoked with the `--animate` and `--debug` flags. It parses the file, issues the warning, and renders an empty graph. The flags are processed, but their effects are not visible in the empty SVG output.
+  - Final State Changes (fs_diff): An empty SVG file is created.
+
+#### Command Category: `nf-metro render <file> --line-order <strategy>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to SVG using a specific strategy for ordering the lines.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--line-order [definition|span]`: The line ordering strategy. The sample uses `span`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_LINE_ORDER_4.mmd` is created with the following content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: 5GeoGkx6pX
+                %%metro line: abbbafeecf | 7MoFzF5zWcNOyT6LU2lWwdGZTuEsuq | #bed523
+                subgraph section_1 [Section One]
+                    _ce_abcba[Node 1] -->|abbbafeecf| cfdccadf[Node 2]
+                end
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_LINE_ORDER_4.mmd --line-order span`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_LINE_ORDER_4.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_LINE_ORDER_4.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A single `.mmd` file exists.
+  - Command Behavior Analysis: The tool is invoked with the `--line-order` option. It parses the file, issues the warning, and renders an empty graph. The option is processed, but its effect is not visible in the empty SVG output.
+  - Final State Changes (fs_diff): An empty SVG file is created.
+
+#### Command Category: `nf-metro render <file> --logo <path>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Renders a `.mmd` file to SVG, embedding a logo image.
+  - Parameters:
+    - `INPUT_FILE`: The path to the `.mmd` file.
+    - `--logo <path>`: The path to the logo image file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nfmetro_RENDER_WITH_LOGO_3.mmd` is created with content:
+    ```mermaid
+    
+                graph LR
+                %%metro title: J7ldB1gAXbVqhTREY7xE
+                %%metro line: aed__e | HdunQsuloxebD0VswUozV | #1ce046
+                subgraph section_1 [Section One]
+                    dc_ac[Node 1] -->|aed__e| adaae_fc_[Node 2]
+                end
+                
+    ```
+  - A binary file named `/test_data/logo.png` is also created.
+  **2. Command**:
+  `nf-metro render /test_data/input_nfmetro_RENDER_WITH_LOGO_3.mmd --logo /test_data/logo.png`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "/usr/local/lib/python3.14/site-packages/nf_metro/parser/mermaid.py:150: UserWarning: Section 'section_1' has no node definitions and was ignored. Nodes must be defined inside a subgraph (not just referenced in edges) to become members of that section.\n  _remove_empty_sections(graph)\nRendered 0 stations, 0 edges, 1 lines -> /test_data/input_nfmetro_RENDER_WITH_LOGO_3.svg\n",
+      "fs_diff": {
+          "/test_data/input_nfmetro_RENDER_WITH_LOGO_3.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          },
+          "/test_data/logo.png": {
+              "type": "MOD",
+              "content": "\u0089PNG\n\u001a\n\u0000\u0000\u0000\nIHDR\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0001\b\u0006\u0000\u0000\u0000\u001f\u0015\u00c4\u0089\u0000\u0000\u0000\nIDATx\u009cc\u0000\u0001\u0000\u0000\u0005\u0000\u0001\n-\u00b4\u0000\u0000\u0000\u0000IEND\u00aeB`\u0082"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a `.mmd` file and a `.png` image file.
+  - Command Behavior Analysis: The tool is invoked with the `--logo` option pointing to the image. It parses the `.mmd` file, issues the warning, and renders an empty graph. The logo is not embedded in the empty SVG.
+  - Final State Changes (fs_diff): An empty SVG file is created. The `fs_diff` shows the logo file as `MOD`, but this is likely an artifact of the test harness and not an actual modification by the tool; the content is identical except for a `\r` character. The tool should only read the logo file, not modify it.
+
+#### Command Category: `nf-metro render <file> --from-nextflow --title <text>`
+- **Function and Parameter Description**:
+  - Command: `nf-metro render`
+  - Purpose: Converts a file from a different format and immediately renders it to SVG.
+  - Parameters:
+    - `INPUT_FILE`: The path to the source file.
+    - `--from-nextflow`: A boolean flag that triggers the conversion step before rendering.
+    - `--title <text>`: A title to be used for the converted graph.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/input_nextflow_RENDER_FROM_NEXTFLOW_1.mmd` is created with the following content:
+    ```mermaid
+    
+                graph TD
+                    bf_bfdd --> a_becdbeed
+                    a_becdbeed --> ebefccfaa_
+                
+    ```
+  **2. Command**:
+  `nf-metro render /test_data/input_nextflow_RENDER_FROM_NEXTFLOW_1.mmd --from-nextflow --title "bhyod"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Rendered 0 stations, 0 edges, 0 lines -> /test_data/input_nextflow_RENDER_FROM_NEXTFLOW_1.svg\n",
+      "fs_diff": {
+          "/test_data/input_nextflow_RENDER_FROM_NEXTFLOW_1.svg": {
+              "type": "ADD",
+              "content": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a file with a `graph TD` definition.
+  - Command Behavior Analysis: The `--from-nextflow` flag instructs the tool to first run its internal converter on the input file. The `--title` is passed to this conversion step. The resulting graph (which is empty, as seen in the `convert` examples) is then passed to the renderer. The renderer creates an empty SVG and prints a success message. Unlike the standalone `convert` command, no warning is printed to `stdout` in this combined workflow.
+  - Final State Changes (fs_diff): A new, empty SVG file is created with a name derived from the input file.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

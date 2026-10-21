@@ -1,0 +1,373 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: toon
+**Repository Name**: toon
+**Core Functionality Description**:
+{{ Dynamic Generation: This project requires the creation of a CLI tool that converts data between JSON and a custom, compact, human-readable serialization format. The tool should be able to encode JSON files into this custom format and decode files from this format back into JSON. The custom format represents objects as `key: value` pairs and features a specialized, CSV-like syntax for tabular arrays to reduce data size. The tool's behavior should be configurable through command-line options, such as specifying delimiters, indentation, and validation strictness. }}
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+{{ Dynamic Generation: Strictly loop through the categories present in the provided execution samples (JSON data). If a command exists in the README or --help but has no corresponding sample, discard it entirely and do NOT generate it! Generate according to the structure below: }}
+#### Command Category: `toon <input.json> -o <output.toon>`
+- **Function and Parameter Description**:
+  This command encodes a JSON file into the custom format.
+  - `input`: A positional argument specifying the path to the input JSON file.
+  - `-o, --output`: An option to specify the path for the output file.
+  - `-e, --encode`: An option to explicitly force the operation to be encoding.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_1.json`: `{"JhOESImql": "pFgFMmXK4Z93G", "CkIAmeHGQq": "zlZsPu5KErg", "bS20BN": "1MpjyjQIM6k4", "sSHEnsZH": "Jzo8dmIEfwKCeC83", "id": 393, "active": false}`
+  **2. Command**:
+  `toon /test_data/input_1.json --encode -o /test_data/output_1.toon`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_1.toon": {
+            "type": "ADD",
+            "content": "JhOESImql: pFgFMmXK4Z93G\nCkIAmeHGQq: zlZsPu5KErg\nbS20BN: 1MpjyjQIM6k4\nsSHEnsZH: Jzo8dmIEfwKCeC83\nid: 393\nactive: false"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system starts with a JSON file named `input_1.json` located in the `/test_data` directory. This file contains a simple JSON object with key-value pairs.
+  - Command Behavior Analysis: The `toon` command is executed with the path to the input JSON file. The `--encode` flag explicitly tells the tool to perform an encoding operation. The `-o` flag specifies that the output should be written to a file named `output_1.toon` in the same directory. The tool reads the input JSON, converts its structure into the custom format.
+  - Final State Changes (fs_diff): The command successfully creates a new file, `output_1.toon`. The content of this file is the encoded version of the input JSON, where each key-value pair is represented on a new line in the format `key: value`.
+
+#### Command Category: `toon <input.toon> -o <output.json>`
+- **Function and Parameter Description**:
+  This command decodes a file from the custom format into a JSON file.
+  - `input`: A positional argument specifying the path to the input file in the custom format.
+  - `-o, --output`: An option to specify the path for the output JSON file.
+  - `-d, --decode`: An option to explicitly force the operation to be decoding.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single file in the custom format.
+  - `/test_data/input_4.toon`: `users[4,]{id,name}:\n  59,4GZtLZyu\n  59,Tt1RFyPIKf\n  51,HOnYVD4Yos\n  52,9jbvDOB`
+  **2. Command**:
+  `toon /test_data/input_4.toon --decode -o /test_data/output_4.json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_4.json": {
+            "type": "ADD",
+            "content": "{\n  \"users\": [\n    {\n      \"id\": 59,\n      \"name\": \"4GZtLZyu\"\n    },\n    {\n      \"id\": 59,\n      \"name\": \"Tt1RFyPIKf\"\n    },\n    {\n      \"id\": 51,\n      \"name\": \"HOnYVD4Yos\"\n    },\n    {\n      \"id\": 52,\n      \"name\": \"9jbvDOB\"\n    }\n  ]\n}"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a file `input_4.toon` which holds data in the custom tabular array format. The first line `users[4,]{id,name}:` defines a key `users`, an array of 4 elements, with columns `id` and `name`. The following indented lines contain the comma-separated values for each row.
+  - Command Behavior Analysis: The `toon` command is called with the path to the `.toon` file. The `--decode` flag forces a decoding operation. The `-o` flag directs the output to `output_4.json`. The tool parses the custom format, interpreting the header and the subsequent data rows. It reconstructs a list of objects based on the defined columns.
+  - Final State Changes (fs_diff): A new JSON file, `output_4.json`, is created. This file contains a JSON object with a single key, `users`, whose value is an array of four objects, correctly parsed from the input file.
+
+#### Command Category: `toon <input.json> --encode`
+- **Function and Parameter Description**:
+  This command encodes a JSON file into the custom format.
+  - `input`: A positional argument specifying the path to the input JSON file.
+  - `-o, --output`: An option to specify the path for the output file.
+  - `--encode`: An option to explicitly force the operation to be encoding.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_1.json`: `{"mPcbmnSND": "RfKOzzhWVde9V", "tS8WSe2a": "hcIKxDRmUFtImgS", "KJo700jnK": "XAlKSpc6Y9VlMQ", "mBignxZZD": "7ef5SAkPT0r", "N32hogng": "XnLdGHA4CJBV", "id": 125, "active": false}`
+  **2. Command**:
+  `toon /test_data/input_1.json -o /test_data/output_1.toon --encode`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_1.toon": {
+            "type": "ADD",
+            "content": "mPcbmnSND: RfKOzzhWVde9V\ntS8WSe2a: hcIKxDRmUFtImgS\nKJo700jnK: XAlKSpc6Y9VlMQ\nmBignxZZD: 7ef5SAkPT0r\nN32hogng: XnLdGHA4CJBV\nid: 125\nactive: false"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A JSON file `input_1.json` exists, containing a simple object.
+  - Command Behavior Analysis: The command is similar to the first example, demonstrating that the order of flags (`-o` and `--encode`) does not affect the outcome. The tool reads the JSON file, converts it to the key-value format, and writes it to the specified output file.
+  - Final State Changes (fs_diff): A new file `output_1.toon` is created with the content representing the input JSON object in the custom format.
+
+#### Command Category: `toon <input.json> --encode --delimiter <char>`
+- **Function and Parameter Description**:
+  This command encodes a JSON file, with an option to specify a delimiter for arrays.
+  - `input`: Path to the input JSON file.
+  - `-o, --output`: Path for the output file.
+  - `--encode`: Forces encoding mode.
+  - `--delimiter`: Specifies the character to use as a delimiter in arrays (e.g., `,`, `|`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_2.json`: `{"156X0": "GcpNKh3LwuUZOoMxDMH", "sRtZUBXnK": "02DqBbdRrp0mQ", "RwlMs1SCek": "1PzwJwPohgon5s4", "LxrkGYdE": "0VGmYSJpb74JWwzoEB", "4lv6vhkIhF": "hTDiQzHt6LzX", "id": 902, "active": true}`
+  **2. Command**:
+  `toon /test_data/input_2.json -o /test_data/output_2.toon --delimiter "|" --encode`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_2.toon": {
+            "type": "ADD",
+            "content": "\"156X0\": GcpNKh3LwuUZOoMxDMH\nsRtZUBXnK: 02DqBbdRrp0mQ\nRwlMs1SCek: 1PzwJwPohgon5s4\nLxrkGYdE: 0VGmYSJpb74JWwzoEB\n\"4lv6vhkIhF\": hTDiQzHt6LzX\nid: 902\nactive: true"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file `input_2.json` with a simple object.
+  - Command Behavior Analysis: The command encodes the JSON file. It also specifies `--delimiter "|"`. However, since the input data is a simple object and not an array, the `--delimiter` option has no visible effect on the output for this specific sample. The tool also correctly quotes keys that start with a number (e.g., `"156X0"`).
+  - Final State Changes (fs_diff): A new file `output_2.toon` is created. Its content is the encoded object, demonstrating that keys starting with digits are quoted.
+
+#### Command Category: `toon <input.json> --encode --indent <N>`
+- **Function and Parameter Description**:
+  This command encodes a JSON file, with an option to specify the indentation size for nested structures.
+  - `input`: Path to the input JSON file.
+  - `-o, --output`: Path for the output file.
+  - `--encode`: Forces encoding mode.
+  - `--indent`: Specifies the number of spaces for each indentation level.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_3.json`: `{"6klev": "4Iesgfvu8UN3", "pngd3TfNRX": "yipEkZzdf5WhM7y", "dfJP6qwPLi": "gfdzolTYxDK1nv", "ZZvpY4K": "JqpNADkEhv9pnAIg", "hqvu9": "fSKJ90BBi7T6Sp6I6pW", "id": 302, "active": true}`
+  **2. Command**:
+  `toon /test_data/input_3.json --encode -o /test_data/output_3.toon --indent 6`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_3.toon": {
+            "type": "ADD",
+            "content": "\"6klev\": 4Iesgfvu8UN3\npngd3TfNRX: yipEkZzdf5WhM7y\ndfJP6qwPLi: gfdzolTYxDK1nv\nZZvpY4K: JqpNADkEhv9pnAIg\nhqvu9: fSKJ90BBi7T6Sp6I6pW\nid: 302\nactive: true"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file `input_3.json` with a simple object.
+  - Command Behavior Analysis: The command encodes the JSON file and specifies `--indent 6`. As the input data is a flat object with no nested structures, the `--indent` option has no visible effect on the output in this case.
+  - Final State Changes (fs_diff): A new file `output_3.toon` is created with the encoded object content.
+
+#### Command Category: `toon <input.json> --encode --length-marker`
+- **Function and Parameter Description**:
+  This command encodes a JSON file, with an option to add a length marker to arrays.
+  - `input`: Path to the input JSON file.
+  - `-o, --output`: Path for the output file.
+  - `--encode`: Forces encoding mode.
+  - `--length-marker`: When specified, prefixes array lengths with a `#` character.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_4.json`: `{"CtN7FMX": "dyQZWVVvmbQSeFPtSs", "bUeLpAac": "RI202evkct6", "0R2fc2l5BR": "JL8m05KFOm8uotZ69K", "76PFiCrF9": "KUimYmluDTTyj0Y", "rP1PCKCs": "CxavFPvYWPaP", "id": 645, "active": true}`
+  **2. Command**:
+  `toon /test_data/input_4.json -o /test_data/output_4.toon --encode --length-marker`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_4.toon": {
+            "type": "ADD",
+            "content": "CtN7FMX: dyQZWVVvmbQSeFPtSs\nbUeLpAac: RI202evkct6\n\"0R2fc2l5BR\": JL8m05KFOm8uotZ69K\n\"76PFiCrF9\": KUimYmluDTTyj0Y\nrP1PCKCs: CxavFPvYWPaP\nid: 645\nactive: true"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file `input_4.json` with a simple object.
+  - Command Behavior Analysis: The command encodes the JSON file and includes the `--length-marker` flag. Since the input data does not contain any arrays, this flag has no effect on the final output. The tool correctly quotes keys that start with numbers.
+  - Final State Changes (fs_diff): A new file `output_4.toon` is created with the encoded object content.
+
+#### Command Category: `toon <input.json> --encode --delimiter <char> --indent <N> --length-marker`
+- **Function and Parameter Description**:
+  This command encodes a JSON file using a combination of formatting options.
+  - `input`: Path to the input JSON file.
+  - `-o, --output`: Path for the output file.
+  - `--encode`: Forces encoding mode.
+  - `--delimiter`: Specifies the array delimiter.
+  - `--indent`: Specifies the indentation size.
+  - `--length-marker`: Adds a `#` prefix to array lengths.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single JSON file.
+  - `/test_data/input_2.json`: `{"dSoAv4uBw": "INh86W9OCLi", "BEAkxkU": "9xijF0dJW6", "da7AL47eZw": "3vf4vhZbUyH59y7d", "2tMv9j3": "7SF8SJSjy0E5zf8Rf4Wk", "YCaC6c7B": "vzjVyomcYln7", "id": 386, "active": true}`
+  **2. Command**:
+  `toon /test_data/input_2.json -o /test_data/output_2.toon --delimiter "," --length-marker --encode --indent 7`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_2.toon": {
+            "type": "ADD",
+            "content": "dSoAv4uBw: INh86W9OCLi\nBEAkxkU: 9xijF0dJW6\nda7AL47eZw: 3vf4vhZbUyH59y7d\n\"2tMv9j3\": 7SF8SJSjy0E5zf8Rf4Wk\nYCaC6c7B: vzjVyomcYln7\nid: 386\nactive: true"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a JSON file `input_2.json` with a simple object.
+  - Command Behavior Analysis: The command encodes the JSON file with multiple formatting options specified. Since the input data is a flat object and contains no arrays or nested structures, none of the options (`--delimiter`, `--length-marker`, `--indent`) have a visible effect on the output.
+  - Final State Changes (fs_diff): A new file `output_2.toon` is created with the encoded object content, demonstrating that the tool runs successfully even when formatting options are provided for data structures that are not present.
+
+#### Command Category: `toon <input.toon> --decode`
+- **Function and Parameter Description**:
+  This command decodes a file from the custom format into a JSON file.
+  - `input`: Path to the input file.
+  - `-o, --output`: Path for the output JSON file.
+  - `--decode`: Forces decoding mode.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single file in the custom format.
+  - `/test_data/input_3.toon`: `users[3,]{id,name}:\n  27,tBs1de\n  39,SrQ68F7JtR\n  99,ysls0l`
+  **2. Command**:
+  `toon /test_data/input_3.toon --decode -o /test_data/output_3.json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_3.json": {
+            "type": "ADD",
+            "content": "{\n  \"users\": [\n    {\n      \"id\": 27,\n      \"name\": \"tBs1de\"\n    },\n    {\n      \"id\": 39,\n      \"name\": \"SrQ68F7JtR\"\n    },\n    {\n      \"id\": 99,\n      \"name\": \"ysls0l\"\n    }\n  ]\n}"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `input_3.toon`, which defines a tabular array `users` with 3 elements and columns `id` and `name`.
+  - Command Behavior Analysis: The command decodes the input file. The tool parses the header `users[3,]{id,name}:` and the three indented data rows. It correctly maps the comma-separated values to the `id` and `name` keys for each object in the resulting array.
+  - Final State Changes (fs_diff): A new file `output_3.json` is created, containing the JSON representation of the parsed data, which is an object with a `users` key holding an array of three objects.
+
+#### Command Category: `toon <input.toon> --decode --no-strict`
+- **Function and Parameter Description**:
+  This command decodes a file, disabling strict validation.
+  - `input`: Path to the input file.
+  - `-o, --output`: Path for the output JSON file.
+  - `--decode`: Forces decoding mode.
+  - `--no-strict`: Disables strict validation during parsing (e.g., might ignore length mismatches).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single file in the custom format.
+  - `/test_data/input_4.toon`: `users[5,]{id,name}:\n  82,6BRbBX\n  71,l3rbQtmH\n  7,184lstGjz\n  73,aavLVH3sk\n  58,8EyhPNI`
+  **2. Command**:
+  `toon /test_data/input_4.toon --decode -o /test_data/output_4.json --no-strict`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_4.json": {
+            "type": "ADD",
+            "content": "{\n  \"users\": [\n    {\n      \"id\": 82,\n      \"name\": \"6BRbBX\"\n    },\n    {\n      \"id\": 71,\n      \"name\": \"l3rbQtmH\"\n    },\n    {\n      \"id\": 7,\n      \"name\": \"184lstGjz\"\n    },\n    {\n      \"id\": 73,\n      \"name\": \"aavLVH3sk\"\n    },\n    {\n      \"id\": 58,\n      \"name\": \"8EyhPNI\"\n    }\n  ]\n}"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `input_4.toon` contains a tabular array `users` declared with a length of 5, and it correctly contains 5 data rows.
+  - Command Behavior Analysis: The command decodes the file with `--no-strict` mode enabled. In this case, the input is well-formed, so the `--no-strict` flag doesn't change the behavior, and the file is parsed successfully.
+  - Final State Changes (fs_diff): The resulting `output_4.json` file is created with the correctly parsed array of 5 user objects.
+
+#### Command Category: `toon <input.toon> --decode --indent <N>`
+- **Function and Parameter Description**:
+  This command decodes a file, specifying the expected indentation size.
+  - `input`: Path to the input file.
+  - `-o, --output`: Path for the output JSON file.
+  - `--decode`: Forces decoding mode.
+  - `--indent`: Specifies the expected indentation size for parsing nested structures.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single file in the custom format.
+  - `/test_data/input_3.toon`: `name: cQtXsPW\nage: 58`
+  **2. Command**:
+  `toon /test_data/input_3.toon --decode -o /test_data/output_3.json --indent 2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_3.json": {
+            "type": "ADD",
+            "content": "{\n  \"name\": \"cQtXsPW\",\n  \"age\": 58\n}"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `input_3.toon` contains a flat object with two key-value pairs. There is no indentation in the input file.
+  - Command Behavior Analysis: The command decodes the file. The `--indent 2` option is provided, but since the input file has no indented lines, this option does not affect the parsing of this particular file. The tool correctly parses the key-value pairs.
+  - Final State Changes (fs_diff): A new file `output_3.json` is created, containing the JSON object representation of the input data.
+
+#### Command Category: `toon <input.toon> --decode --no-strict --indent <N>`
+- **Function and Parameter Description**:
+  This command decodes a file with non-strict validation and a specified expected indentation.
+  - `input`: Path to the input file.
+  - `-o, --output`: Path for the output JSON file.
+  - `--decode`: Forces decoding mode.
+  - `--no-strict`: Disables strict validation.
+  - `--indent`: Specifies the expected indentation size for parsing.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a single file in the custom format.
+  - `/test_data/input_4.toon`: `users[4,]{id,name}:\n  66,rgRi84JIr2\n  7,EPILr\n  42,IsFoAMK\n  87,Qnk6Olg`
+  **2. Command**:
+  `toon /test_data/input_4.toon --decode -o /test_data/output_4.json --indent 3 --no-strict`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/output_4.json": {
+            "type": "ADD",
+            "content": "{\n  \"users\": []\n}"
+        }
+    }
+}
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `input_4.toon` contains a tabular array `users`. The data rows are indented with 2 spaces.
+  - Command Behavior Analysis: The command attempts to decode the file while expecting an indentation of 3 spaces (`--indent 3`). The actual indentation in the file is 2 spaces. Because the indentation does not match what the parser expects, it fails to recognize the data rows as belonging to the `users` array. Even with `--no-strict` mode, this fundamental structural mismatch prevents the items from being parsed.
+  - Final State Changes (fs_diff): The command creates the output file `output_4.json`, but the `users` array is empty. This is because the parser, expecting a 3-space indent, did not find any valid child items for the `users` array and thus concluded it was empty.
+{{ End of Loop }}
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

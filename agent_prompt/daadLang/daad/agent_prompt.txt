@@ -1,0 +1,130 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: daad
+**Repository Name**: daad
+**Core Functionality Description**:
+This project is a command-line interpreter for a new, interpreted, dynamically-typed programming language that uses Arabic keywords and syntax. The CLI tool, named `daad`, provides functionalities to execute script files, perform lexical analysis (tokenization), and generate Abstract Syntax Trees (ASTs) from source code.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `daad <file>`
+- **Function and Parameter Description**:
+  This is the default command. It directly interprets and executes a source file written in the Arabic-based programming language.
+  - `<file>`: The path to the source file to be executed. The file can have extensions like `.daad` or `.ض`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source file `/test_data/test_run_4.ض` is created with the following content:
+  ```
+  
+  درجة = -75
+  إذا درجة > 0:
+      اطبع("موجب")
+  وإذا درجة == 0:
+      اطبع("صفر")
+  وإلا:
+      اطبع("سالب")
+  
+  ```
+  **2. Command**:
+  `daad /test_data/test_run_4.ض`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "سالب\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script file named `test_run_4.ض`. This script initializes a variable `درجة` (degree) to `-75`.
+  - Command Behavior Analysis: The `daad` tool is invoked with the path to the script. The tool must parse and execute the script's logic. The script contains an if-elif-else (`إذا-وإذا-وإلا`) conditional block. The condition `درجة > 0` is false. The condition `درجة == 0` is also false. Therefore, the `else` (`وإلا`) block is executed, which calls the print function `اطبع` with the string `"سالب"` (negative). The tool should print this string to standard output, followed by a newline.
+  - Final State Changes (fs_diff): There are no changes to the file system. The tool only reads the file and produces output.
+
+#### Command Category: `daad tokenize <file>`
+- **Function and Parameter Description**:
+  This command performs lexical analysis on a given source file and displays all the resulting tokens.
+  - `tokenize`: The subcommand to trigger the tokenizer.
+  - `<file>`: The path to the source file to be tokenized.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source file `/test_data/test_tokenize_1.daad` is created with the following content:
+  ```
+  
+  س = 0
+  طالما س < 1:
+      اطبع(س)
+      س = س + 1
+  
+  ```
+  **2. Command**:
+  `daad tokenize /test_data/test_tokenize_1.daad`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Tokenizing: /test_data/test_tokenize_1.daad\n---\n   0: NAME            \"س\"\n   1: ASSIGN          \"=\"\n   2: NUMBER          \"0\"\n   3: NEWLINE         \"\\n\"\n   4: WHILE           \"طالما\"\n   5: NAME            \"س\"\n   6: LESS            \"<\"\n   7: NUMBER          \"1\"\n   8: COLON           \":\"\n   9: NEWLINE         \"\\n\"\n  10: INDENT          \"\"\n  11: NAME            \"اطبع\"\n  12: LPAREN          \"(\"\n  13: NAME            \"س\"\n  14: RPAREN          \")\"\n  15: NEWLINE         \"\\n\"\n  16: NAME            \"س\"\n  17: ASSIGN          \"=\"\n  18: NAME            \"س\"\n  19: PLUS            \"+\"\n  20: NUMBER          \"1\"\n  21: NEWLINE         \"\\n\"\n  22: DEDENT          \"\"\n  23: EOF             \"\"\n---\nTotal tokens: 24\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script file `test_tokenize_1.daad` with a simple `while` loop (`طالما`).
+  - Command Behavior Analysis: The `daad tokenize` command reads the specified file. It processes the content character by character to produce a sequence of tokens. The output format is specific: first a "Tokenizing..." line, then a separator `---`, followed by a list of tokens. Each token line is formatted with an index, the token type (e.g., `NAME`, `ASSIGN`, `WHILE`), and the literal string value of the token. It also correctly identifies indentation-related tokens (`INDENT`, `DEDENT`) and the end of the file (`EOF`). Finally, it prints another separator and the total token count.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+#### Command Category: `daad ast <file>`
+- **Function and Parameter Description**:
+  This command parses a source file and displays a structured, tree-like representation of its Abstract Syntax Tree (AST).
+  - `ast`: The subcommand to trigger the AST generator.
+  - `<file>`: The path to the source file to be parsed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source file `/test_data/test_ast_4.ض` is created with the following content:
+  ```
+  
+  درجة = 36
+  إذا درجة > 0:
+      اطبع("موجب")
+  وإذا درجة == 0:
+      اطبع("صفر")
+  وإلا:
+      اطبع("سالب")
+  
+  ```
+  **2. Command**:
+  `daad ast /test_data/test_ast_4.ض`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Module\n\u251c\u2500\u2500 ExprStmt\n\u2502   \u2514\u2500\u2500 value:\n\u2502       \u2514\u2500\u2500 Assign\n\u2502           \u251c\u2500\u2500 target:\n\u2502           \u2502   \u2514\u2500\u2500 Name(\u062f\u0631\u062c\u0629)\n\u2502           \u2514\u2500\u2500 value:\n\u2502               \u2514\u2500\u2500 Constant(36)\n\u2514\u2500\u2500 IfStmt\n    \u251c\u2500\u2500 test:\n    \u2502   \u2514\u2500\u2500 Compare (op: GREATER)\n    \u2502       \u251c\u2500\u2500 left:\n    \u2502       \u2502   \u2514\u2500\u2500 Name(\u062f\u0631\u062c\u0629)\n    \u2502       \u2514\u2500\u2500 right:\n    \u2502           \u2514\u2500\u2500 Constant(0)\n    \u251c\u2500\u2500 body:\n    \u2502   \u2514\u2500\u2500 ExprStmt\n    \u2502       \u2514\u2500\u2500 value:\n    \u2502           \u2514\u2500\u2500 Call\n    \u2502               \u251c\u2500\u2500 Func:\n    \u2502               \u2502   \u2514\u2500\u2500 Name(\u0627\u0637\u0628\u0639)\n    \u2502               \u2514\u2500\u2500 args:\n    \u2502                   \u2514\u2500\u2500 Constant(\u0645\u0648\u062c\u0628)\n    \u2514\u2500\u2500 orelse:\n        \u2514\u2500\u2500 IfStmt\n            \u251c\u2500\u2500 test:\n            \u2502   \u2514\u2500\u2500 Compare (op: EQ)\n            \u2502       \u251c\u2500\u2500 left:\n            \u2502       \u2502   \u2514\u2500\u2500 Name(\u062f\u0631\u062c\u0629)\n            \u2502       \u2514\u2500\u2500 right:\n            \u2502           \u2514\u2500\u2500 Constant(0)\n            \u251c\u2500\u2500 body:\n            \u2502   \u2514\u2500\u2500 ExprStmt\n            \u2502       \u2514\u2500\u2500 value:\n            \u2502           \u2514\u2500\u2500 Call\n            \u2502               \u251c\u2500\u2500 Func:\n            \u2502               \u2502   \u2514\u2500\u2500 Name(\u0627\u0637\u0628\u0639)\n            \u2502               \u2514\u2500\u2500 args:\n            \u2502                   \u2514\u2500\u2500 Constant(\u0635\u0641\u0631)\n            \u2514\u2500\u2500 orelse:\n                \u2514\u2500\u2500 ExprStmt\n                    \u2514\u2500\u2500 value:\n                        \u2514\u2500\u2500 Call\n                            \u251c\u2500\u2500 Func:\n                            \u2502   \u2514\u2500\u2500 Name(\u0627\u0637\u0628\u0639)\n                            \u2514\u2500\u2500 args:\n                                \u2514\u2500\u2500 Constant(\u0633\u0627\u0644\u0628)\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script file `test_ast_4.ض` which defines a variable and uses an `if-elif-else` structure.
+  - Command Behavior Analysis: The `daad ast` command parses the source code and builds an internal AST. It then traverses this tree to generate a human-readable, formatted string representation. The output uses box-drawing characters (e.g., `├`, `─`, `└`) to show the hierarchical structure. The tree correctly represents the assignment (`Assign`) followed by a nested `IfStmt`. The `elif` (`وإذا`) is represented as another `IfStmt` inside the `orelse` block of the parent `IfStmt`, which is a standard way to parse `if-elif-else` chains. Each node in the tree, like `Compare`, `Name`, and `Constant`, accurately reflects the components of the source code.
+  - Final State Changes (fs_diff): There are no changes to the file system.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

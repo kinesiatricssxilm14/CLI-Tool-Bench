@@ -1,0 +1,130 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: agl
+Repository Name: agl
+Core Functionality Description:
+A CLI tool for a custom programming language that compiles down to Go. It processes `.agl` source files, which utilize Go-like syntax with custom modifications (such as single return values, Tuples, and error propagation operators). The tool provides capabilities to compile `.agl` files and output the resulting Go code to standard output, build `.agl` files into physical `.go` files, execute `.agl` scripts directly, and clean up generated files.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: agl <file>
+- Function and Parameter Description:
+Compiles the specified `.agl` file into valid Go code and prints the generated Go code directly to standard output without creating a physical file. The parameter is the path to the `.agl` file.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations. The file `/test_data/test_compile_to_stdout_4.agl` is mounted with the content:
+`package main\nfunc main() { arr := []int{1, 2, 3, 4, 5}\nsum := arr.Sum()\nprint(sum) }`
+2. Command:
+`agl /test_data/test_compile_to_stdout_4.agl`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "// agl:generated\npackage main\nfunc main() {\n\tarr := []int{1, 2, 3, 4, 5}\n\tsum := AglVecSum(arr)\n\tAglPrint(sum)\n}\n\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The system contains a single `.agl` source file with custom syntax (e.g., `arr.Sum()`, `print(sum)`).
+  - Command Behavior Analysis: The CLI reads the `.agl` file, parses the custom syntax, and translates it into standard Go code (translating `arr.Sum()` to `AglVecSum(arr)` and `print()` to `AglPrint()`). It then prints this generated code to `stdout` with a `// agl:generated` header.
+  - Final State Changes (fs_diff): No files are modified or created on the file system (`fs_diff` is empty).
+##### Command Category: agl run <file>
+- Function and Parameter Description:
+Compiles and immediately executes the specified `.agl` file, outputting the execution result to standard output. The parameter is the path to the `.agl` file.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations. The file `/test_data/test_run_2.agl` is mounted with the content:
+`package main\nfunc getInt() int! { return Ok(100) }\nfunc main() { num := getInt()!\nprint(num) }`
+2. Command:
+`agl run /test_data/test_run_2.agl`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "100\n",
+    "stderr": "",
+    "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The system contains a `.agl` file utilizing custom error propagation syntax (`int!`, `Ok(100)`, `getInt()!`).
+  - Command Behavior Analysis: The CLI compiles the custom syntax into runnable Go code in memory or a temporary location, executes the resulting Go program, and pipes its standard output (`100\n`) back to the user.
+  - Final State Changes (fs_diff): No permanent files are left on the file system (`fs_diff` is empty).
+##### Command Category: agl build <file>
+- Function and Parameter Description:
+Compiles the specified `.agl` file and generates a corresponding `.go` file on the file system. The parameter is the path to the `.agl` file.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations. The file `/test_data/test_build_2.agl` is mounted with the content:
+`package main\nfunc main() { print("Hello, Differential Testing!") }`
+2. Command:
+`agl build /test_data/test_build_2.agl`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "build FILE_PATH\n",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/test_build_2.go": {
+            "type": "ADD",
+            "content": "// agl:generated\npackage main\nimport (\n\t\"fmt\"\n)\nfunc main() {\n\tAglPrint(\"Hello, Differential Testing!\")\n}\n\nfunc AglPrint(a ...any) {\n\tfmt.Println(a...)\n}\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The system contains a `.agl` file with a simple print statement.
+  - Command Behavior Analysis: The CLI processes the file, outputs a confirmation message `build FILE_PATH\n` to `stdout`, and translates the `.agl` content into standard Go code, including necessary imports and helper functions (like `AglPrint`).
+  - Final State Changes (fs_diff): A new file `/test_data/test_build_2.go` is created (`ADD`) containing the fully generated Go source code.
+##### Command Category: agl clean
+- Function and Parameter Description:
+Cleans up generated files.
+- Execution Context and Sample:
+1. Preparation:
+The prerequisite script `agl build /test_data/clean_target.agl` is executed. The file `/test_data/clean_target.agl` is mounted with the content:
+`package main\nfunc main(){}`
+2. Command:
+`agl clean`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "fs_diff": {
+        "/test_data/clean_target.go": {
+            "type": "ADD",
+            "content": "// agl:generated\npackage main\nfunc main() {\n}\n"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `.agl` file exists, and a build command was run during preparation.
+  - Command Behavior Analysis: The CLI executes the clean command silently (no `stdout`).
+  - Final State Changes (fs_diff): The sample records an `ADD` for `/test_data/clean_target.go` with the generated content. (Note: Implement the logic to ensure the final state matches this diff requirement based on the testing framework's state tracking).
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

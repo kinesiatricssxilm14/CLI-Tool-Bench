@@ -1,0 +1,303 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: mp4analyzer
+**Repository Name**: mp4analyzer
+**Core Functionality Description**:
+A CLI tool for analyzing MP4 files. It can parse and display the box structure of an MP4 file, show a concise summary, and output the analysis in a structured JSON format. It supports both basic and detailed views of the box properties.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `mp4analyzer <file>`
+- **Function and Parameter Description**:
+  - This is the default command for a basic analysis of an MP4 file.
+  - `file`: A required positional argument specifying the path to the MP4 file to be analyzed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_basic_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer /test_data/test_basic_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "               MP4 Analysis: test_basic_4.mp4               \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a small, simple MP4 file at `/test_data/test_basic_4.mp4`.
+  - Command Behavior Analysis: The program reads the specified MP4 file. It prints a header with general file information (File Size, Bitrate, etc.). Below the header, it displays a tree-like structure of the MP4 "boxes" it finds. For each box, it shows the type (e.g., `ftyp`), size, offset, and box name. In this basic mode, detailed properties within each box are not displayed.
+  - Final State Changes (fs_diff): The file system remains unchanged. All output is directed to `stdout`.
+
+#### Command Category: `mp4analyzer -d <file>`
+- **Function and Parameter Description**:
+  - Performs a detailed analysis of an MP4 file.
+  - `-d`, `--detailed`: A flag that enables the display of detailed properties and internal fields for each box.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_detailed_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -d /test_data/test_detailed_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "             MP4 Analysis: test_detailed_4.mp4              \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2502     major_brand: isom\n\u2502     minor_version: 512\n\u2502     compatible_brands: [isom, iso2]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists at the specified path.
+  - Command Behavior Analysis: Similar to the basic analysis, but due to the `-d` flag, the output for the `ftyp` box now includes its internal properties (`major_brand`, `minor_version`, `compatible_brands`) indented under the box entry.
+  - Final State Changes (fs_diff): The file system is not modified.
+
+#### Command Category: `mp4analyzer -s <file>`
+- **Function and Parameter Description**:
+  - Shows a concise summary of the MP4 file instead of a full analysis.
+  - `-s`, `--summary`: A flag to switch to summary view.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_summary_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -s /test_data/test_summary_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "MP4 Summary: test_summary_4.mp4\n========================================\nTotal file size: 1,635,148,617 bytes\nTop-level boxes: 2\nTotal box count: 2\n\nBox type counts:\n  ftyp: 1\n  mp41: 1\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: The `-s` flag causes the program to output a different format. It prints a summary containing the total file size, the count of top-level boxes, the total box count, and a list of each box type found along with its frequency.
+  - Final State Changes (fs_diff): The file system is not modified.
+
+#### Command Category: `mp4analyzer -e <file>`
+- **Function and Parameter Description**:
+  - Performs a basic analysis, with a flag to expand arrays.
+  - `-e`, `--expand`: A flag intended to expand arrays and large data structures.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_expand_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -e /test_data/test_expand_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "              MP4 Analysis: test_expand_4.mp4               \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: For this specific input file, the output is identical to the basic analysis (`mp4analyzer <file>`). This indicates that the `-e` flag has no effect on the output for this particular file, as there may be no expandable arrays to display. The implementation should replicate this behavior.
+  - Final State Changes (fs_diff): The file system is not modified.
+
+#### Command Category: `mp4analyzer -d -e <file>`
+- **Function and Parameter Description**:
+  - Combines the detailed view (`-d`) with the expand arrays (`-e`) flag.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_detailed_expand_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -e -d /test_data/test_detailed_expand_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "          MP4 Analysis: test_detailed_expand_4.mp4          \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2502     major_brand: isom\n\u2502     minor_version: 512\n\u2502     compatible_brands: [isom, iso2]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: For this specific input file, the output is identical to the detailed analysis (`mp4analyzer -d <file>`). This indicates that the `-e` flag has no additional effect when combined with `-d` for this particular file. The implementation must replicate this behavior.
+  - Final State Changes (fs_diff): The file system is not modified.
+
+#### Command Category: `mp4analyzer -o json <file>`
+- **Function and Parameter Description**:
+  - Outputs the analysis result to a JSON file.
+  - `-o json`, `--output json`: A flag to set the output format to JSON.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_output_json_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -o json /test_data/test_output_json_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "JSON output saved to: test_output_json_4.mp4analyzer.json\n",
+    "fs_diff": {
+      "/test_output_json_4.mp4analyzer.json": {
+        "type": "ADD",
+        "content": "{\n  \"file_path\": \"/test_data/test_output_json_4.mp4\",\n  \"movie_info\": \"File Size    0 bytes (0.0 MB)\\nBitrate      0 kbps\\nMIME         video/mp4\\nProgressive  \\u2717 No\\nFragmented   \\u2717 No\\nMPEG-4 IOD   \\u2717 Not present\\nModified     Same as creation time\",\n  \"boxes\": [\n    {\n      \"type\": \"ftyp\",\n      \"size\": 24,\n      \"offset\": 0,\n      \"properties\": {\n        \"size\": 24,\n        \"box_name\": \"FileTypeBox\",\n        \"start\": 0,\n        \"major_brand\": \"isom\",\n        \"minor_version\": 512,\n        \"compatible_brands\": [\n          \"isom\",\n          \"iso2\"\n        ]\n      },\n      \"children\": []\n    },\n    {\n      \"type\": \"mp41\",\n      \"size\": 1635148593,\n      \"offset\": 24,\n      \"properties\": {\n        \"size\": 1635148593,\n        \"box_name\": \"MP4Box\",\n        \"start\": 24\n      },\n      \"children\": []\n    }\n  ]\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: The `-o json` flag instructs the program to generate a JSON output. Instead of printing to `stdout`, it saves the JSON content to a file. The output filename is automatically derived from the input filename by appending `.mp4analyzer.json`. A confirmation message is printed to `stdout` indicating where the file was saved. The generated JSON is always detailed, containing the full properties of each box.
+  - Final State Changes (fs_diff): A new JSON file is created in the current working directory. Its name is `test_output_json_4.mp4analyzer.json`, and its content is a structured JSON object representing the detailed analysis.
+
+#### Command Category: `mp4analyzer -o json -d <file>`
+- **Function and Parameter Description**:
+  - Outputs a detailed analysis to a JSON file.
+  - `-o json`: Sets output format to JSON.
+  - `-d`: Enables detailed view.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_output_json_detailed_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -d -o json /test_data/test_output_json_detailed_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "JSON output saved to: test_output_json_detailed_4.mp4analyzer.json\n",
+    "fs_diff": {
+      "/test_output_json_detailed_4.mp4analyzer.json": {
+        "type": "ADD",
+        "content": "{\n  \"file_path\": \"/test_data/test_output_json_detailed_4.mp4\",\n  \"movie_info\": \"File Size    0 bytes (0.0 MB)\\nBitrate      0 kbps\\nMIME         video/mp4\\nProgressive  \\u2717 No\\nFragmented   \\u2717 No\\nMPEG-4 IOD   \\u2717 Not present\\nModified     Same as creation time\",\n  \"boxes\": [\n    {\n      \"type\": \"ftyp\",\n      \"size\": 24,\n      \"offset\": 0,\n      \"properties\": {\n        \"size\": 24,\n        \"box_name\": \"FileTypeBox\",\n        \"start\": 0,\n        \"major_brand\": \"isom\",\n        \"minor_version\": 512,\n        \"compatible_brands\": [\n          \"isom\",\n          \"iso2\"\n        ]\n      },\n      \"children\": []\n    },\n    {\n      \"type\": \"mp41\",\n      \"size\": 1635148593,\n      \"offset\": 24,\n      \"properties\": {\n        \"size\": 1635148593,\n        \"box_name\": \"MP4Box\",\n        \"start\": 24\n      },\n      \"children\": []\n    }\n  ]\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: The behavior is identical to `mp4analyzer -o json <file>`. The `-d` flag is redundant, as the JSON output is detailed by default. The program saves a detailed JSON analysis to a derived filename and prints a confirmation to `stdout`.
+  - Final State Changes (fs_diff): A new JSON file is created with a name derived from the input file.
+
+#### Command Category: `mp4analyzer -j <path> <file>`
+- **Function and Parameter Description**:
+  - Prints standard analysis to `stdout` AND saves a JSON analysis to a specified file path.
+  - `-j <path>`, `--json-path <path>`: A flag that takes a file path argument where the JSON output should be saved.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_json_path_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -j '/test_data/output_json_path_4.json' /test_data/test_json_path_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "             MP4 Analysis: test_json_path_4.mp4             \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\nJSON output saved to: /test_data/output_json_path_4.json\n",
+    "fs_diff": {
+      "/test_data/output_json_path_4.json": {
+        "type": "ADD",
+        "content": "{\n  \"file_path\": \"/test_data/test_json_path_4.mp4\",\n  \"movie_info\": \"File Size    0 bytes (0.0 MB)\\nBitrate      0 kbps\\nMIME         video/mp4\\nProgressive  \\u2717 No\\nFragmented   \\u2717 No\\nMPEG-4 IOD   \\u2717 Not present\\nModified     Same as creation time\",\n  \"boxes\": [\n    {\n      \"type\": \"ftyp\",\n      \"size\": 24,\n      \"offset\": 0,\n      \"properties\": {\n        \"size\": 24,\n        \"box_name\": \"FileTypeBox\",\n        \"start\": 0,\n        \"major_brand\": \"isom\",\n        \"minor_version\": 512,\n        \"compatible_brands\": [\n          \"isom\",\n          \"iso2\"\n        ]\n      },\n      \"children\": []\n    },\n    {\n      \"type\": \"mp41\",\n      \"size\": 1635148593,\n      \"offset\": 24,\n      \"properties\": {\n        \"size\": 1635148593,\n        \"box_name\": \"MP4Box\",\n        \"start\": 24\n      },\n      \"children\": []\n    }\n  ]\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: The `-j` flag triggers two actions. First, the program prints the standard, non-detailed text analysis to `stdout`, just like the default command. Second, it generates a detailed JSON analysis and saves it to the path provided to the `-j` flag (`/test_data/output_json_path_4.json`). Finally, it appends a confirmation message to `stdout` about the saved JSON file.
+  - Final State Changes (fs_diff): A new JSON file is created at the specified path with detailed analysis content.
+
+#### Command Category: `mp4analyzer -j <path> -d -e <file>`
+- **Function and Parameter Description**:
+  - Combines detailed text output with saving JSON to a specified path.
+  - `-j <path>`: Specifies the file path for the JSON output.
+  - `-d`: Enables detailed text output to `stdout`.
+  - `-e`: Flag to expand arrays.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_json_path_detailed_expand_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer -j '/test_data/output_json_path_detailed_expand_4.json' -d -e /test_data/test_json_path_detailed_expand_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "     MP4 Analysis: test_json_path_detailed_expand_4.mp4     \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2502     major_brand: isom\n\u2502     minor_version: 512\n\u2502     compatible_brands: [isom, iso2]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\nJSON output saved to: /test_data/output_json_path_detailed_expand_4.json\n",
+    "fs_diff": {
+      "/test_data/output_json_path_detailed_expand_4.json": {
+        "type": "ADD",
+        "content": "{\n  \"file_path\": \"/test_data/test_json_path_detailed_expand_4.mp4\",\n  \"movie_info\": \"File Size    0 bytes (0.0 MB)\\nBitrate      0 kbps\\nMIME         video/mp4\\nProgressive  \\u2717 No\\nFragmented   \\u2717 No\\nMPEG-4 IOD   \\u2717 Not present\\nModified     Same as creation time\",\n  \"boxes\": [\n    {\n      \"type\": \"ftyp\",\n      \"size\": 24,\n      \"offset\": 0,\n      \"properties\": {\n        \"size\": 24,\n        \"box_name\": \"FileTypeBox\",\n        \"start\": 0,\n        \"major_brand\": \"isom\",\n        \"minor_version\": 512,\n        \"compatible_brands\": [\n          \"isom\",\n          \"iso2\"\n        ]\n      },\n      \"children\": []\n    },\n    {\n      \"type\": \"mp41\",\n      \"size\": 1635148593,\n      \"offset\": 24,\n      \"properties\": {\n        \"size\": 1635148593,\n        \"box_name\": \"MP4Box\",\n        \"start\": 24\n      },\n      \"children\": []\n    }\n  ]\n}"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: This combines the behaviors of `-j` and `-d`. The program prints the *detailed* text analysis to `stdout` (due to `-d`). It also saves the detailed JSON analysis to the path specified by `-j`. The `-e` flag has no visible effect on the output for this sample. A confirmation message is appended to `stdout`.
+  - Final State Changes (fs_diff): A new JSON file is created at the specified path.
+
+#### Command Category: `mp4analyzer --no-color <file>`
+- **Function and Parameter Description**:
+  - Performs a basic analysis but disables colored output.
+  - `--no-color`: A flag to ensure the output to `stdout` does not contain any ANSI color codes.
+  - `file`: The path to the MP4 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single binary file is created on the file system:
+  - Path: `/test_data/test_no_color_4.mp4`
+  - Content: `\u0000\u0000\u0000\u0018ftypisom\u0000\u0000\u0002\u0000isomiso2avc1mp41`
+  **2. Command**:
+  `mp4analyzer --no-color /test_data/test_no_color_4.mp4`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "             MP4 Analysis: test_no_color_4.mp4              \n============================================================\nFile Size    0 bytes (0.0 MB)\nBitrate      0 kbps\nMIME         video/mp4\nProgressive  \u2717 No\nFragmented   \u2717 No\nMPEG-4 IOD   \u2717 Not present\nModified     Same as creation time\n\nBox Structure:\n------------------------------\n\u251c\u2500\u2500 ftyp (size=24, offset=0) [FileTypeBox]\n\u2514\u2500\u2500 mp41 (size=1,635,148,593, offset=24)\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A simple MP4 file exists.
+  - Command Behavior Analysis: The command produces the same text structure as the default basic analysis. The `--no-color` flag ensures that the output is plain text, without any ANSI escape codes for coloring.
+  - Final State Changes (fs_diff): The file system is not modified.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

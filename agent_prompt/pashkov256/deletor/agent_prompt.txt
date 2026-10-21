@@ -1,0 +1,476 @@
+<execute_thought>
+I need to create a Go-based command-line tool named `deletor`.
+
+**1. Project Overview:**
+- **Name:** `deletor`
+- **Description:** A tool to delete files based on various criteria like file extension, size, and age. It supports recursive deletion in subdirectories and can also prune empty directories.
+- **Language:** Go
+
+**2. Core Requirements & Constraints:**
+- **Executable Name:** `deletor`
+- **Environment:** `golang:latest`
+- **Dependencies:** I'll use the standard Go `flag` package for command-line argument parsing and `os`, `filepath`, `time`, and `fmt` for file system operations and output. No external dependencies are needed, so the `go.mod` file will be simple.
+- **Installation:** The tool must be installable with `go install .`. This means I need a `main.go` file in the root of the project.
+- **Output:** The output must match the provided examples, including the format of file paths and size units (B, KB, MB, GB).
+
+**3. Command-Line Interface (CLI) Design:**
+Based on the provided examples, the tool needs to support the following command-line flags:
+- `-cli`: A boolean flag to run in command-line mode.
+- `-d <dir>`: The directory to scan. Defaults to the current directory (`.`).
+- `-e <exts>`: A comma-separated list of file extensions to delete (e.g., "log,tmp").
+- `--min-size <size>`: Minimum file size to delete (e.g., "10kb", "1mb").
+- `--max-size <size>`: Maximum file size to delete (e.g., "10kb", "1mb").
+- `--older <duration>`: Delete files older than this duration (e.g., "2d", "3h").
+- `--newer <duration>`: Delete files newer than this duration (e.g., "5m").
+- `--exclude <paths>`: A comma-separated list of file or directory names to exclude.
+- `-subdirs`: A boolean flag to include subdirectories in the scan.
+- `-prune-empty`: A boolean flag to delete empty directories after file deletion.
+- `-skip-confirm`: A boolean flag to skip the confirmation prompt before deleting.
+
+**4. Logic Breakdown:**
+
+*   **Parsing Arguments:**
+    *   Use the `flag` package to define and parse all the command-line arguments.
+    *   Handle the different data types: strings for paths and extensions, booleans for flags, and custom types or parsing for size and duration.
+
+*   **File System Traversal:**
+    *   Use `filepath.Walk` to recursively traverse the specified directory if `-subdirs` is provided.
+    *   If `-subdirs` is not provided, use `os.ReadDir` to list files only in the top-level directory.
+
+*   **Filtering Logic:**
+    *   For each file found, apply a series of filters based on the provided flags.
+    *   **Extension Filter (`-e`):** Check if the file's extension matches any in the provided list.
+    *   **Size Filter (`--min-size`, `--max-size`):**
+        *   Parse the size string (e.g., "10kb", "5MB") into bytes. This will require a helper function to handle units (B, KB, MB, GB).
+        *   Get the file's size using `os.Stat`.
+        *   Compare the file size with the min/max limits.
+    *   **Time Filter (`--older`, `--newer`):**
+        *   Parse the duration string (e.g., "2d", "5h") into a `time.Duration`.
+        *   Get the file's modification time (`ModTime`).
+        *   Compare the modification time with the calculated time threshold (e.g., `time.Now().Add(-duration)`).
+    *   **Exclusion Filter (`--exclude`):**
+        *   Check if the file's path or name matches any of the exclusion patterns. This could be a simple string containment check.
+
+*   **Deletion Logic:**
+    *   If a file passes all the filters, add it to a list of files to be deleted.
+    *   After scanning, if `-skip-confirm` is not provided, present the list of files to the user and ask for confirmation.
+    *   If confirmed (or if `-skip-confirm` is used), iterate through the list and delete each file using `os.Remove`.
+    *   Keep a running total of the size of deleted files.
+
+*   **Pruning Empty Directories (`-prune-empty`):**
+    *   This is a bit trickier. It should be done *after* the file deletion pass.
+    *   A good approach would be to walk the directory tree again, but this time from the bottom up (using `filepath.WalkDir` with a custom function that processes directories after their children).
+    *   For each directory, check if it's empty. If it is, delete it.
+    *   This needs to be done carefully to avoid deleting the root directory or non-empty directories.
+
+*   **Output Formatting:**
+    *   Print the path and size of each file being deleted.
+    *   The size should be formatted in a human-readable format (B, KB, MB, GB). A helper function will be needed for this.
+    *   Print a summary of the total size deleted.
+    *   If `-prune-empty` is used, print the names of the directories that were pruned.
+
+**Step-by-step Implementation Plan:**
+
+1.  **`main.go`:**
+    *   Define all the command-line flags using the `flag` package.
+    *   Parse the flags.
+    *   Check if the `-cli` flag is present. If not, maybe print a message and exit, as the TUI part is not required.
+    *   Validate the input directory.
+    *   Implement the core logic:
+        *   Initialize a list to store files to be deleted.
+        *   Use `filepath.Walk` to traverse the directory.
+        *   Inside the walk function, apply all the filters (extension, size, time, exclude).
+        *   If a file matches, add it to the list.
+        *   After the walk, if `-skip-confirm` is not set, prompt the user for confirmation.
+        *   If confirmed (or skipped), iterate through the list and delete the files, summing up their sizes.
+        *   Print the results.
+        *   If `-prune-empty` is set, perform a second walk to remove empty directories.
+
+2.  **Helper Functions:**
+    *   `parseSize(sizeStr string) (int64, error)`: To convert strings like "10KB", "5MB" into bytes.
+    *   `parseDuration(durationStr string) (time.Duration, error)`: To convert strings like "2d", "5h" into `time.Duration`.
+    *   `formatSize(size int64) string`: To format byte sizes into human-readable strings (B, KB, MB, GB).
+
+3.  **`go.mod` file:**
+    *   Initialize it with `go mod init deletor`.
+    *   Add any necessary dependencies (though for this basic version, only standard library packages are needed).
+
+Let's start coding. I'll focus on the CLI part as requested. The interactive TUI is out of scope.
+
+**Refinement on `prune-empty`:**
+A simple approach for `prune-empty` is to walk the directory tree *after* deletion and remove any empty directories. A more efficient way might be to keep track of directories that become empty during the deletion process. However, a post-deletion walk is more robust, especially if multiple files in the same directory are deleted. I'll go with the post-deletion walk.
+
+**Refinement on `exclude`:**
+The `--exclude` flag should support multiple comma-separated patterns. I'll split the string by commas and check if the file's path contains any of these substrings. This is a simple but effective way to implement this.
+
+**Refinement on `older` and `newer`:**
+The `time.ParseDuration` function in Go's standard library doesn't support "d" for days. I'll need to handle this manually. A simple regex or string parsing can extract the number and the unit (s, m, h, d, w, M, y).
+
+Let's start with the `main.go` file structure.
+
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+// ... (helper functions for parsing size and duration)
+
+func main() {
+	// ... (flag definitions)
+	flag.Parse()
+
+	// ... (logic for walking the directory and filtering files)
+
+	// ... (logic for user confirmation)
+
+	// ... (logic for deleting files)
+
+	// ... (logic for pruning empty directories)
+}
+```
+
+This structure seems sound. I'll implement the helper functions first, then the main logic. The `humanize` package could be useful for formatting file sizes, but I'll stick to a simple custom function to avoid external dependencies, as per the prompt's spirit of self-containment.
+
+Let's consider the `fs_diff` in the test cases. It shows which files were deleted. My program should perform these deletions. The `stdout` shows the list of deleted files and a summary. I need to replicate this output format precisely.
+
+The `time.ParseDuration` in Go handles `h`, `m`, `s`, but not `d` (days), `w` (weeks), `M` (months), or `y` (years). I'll need to write a custom parser for this.
+
+Example: `2d` -> `2 * 24 * time.Hour`.
+`1M` -> `30 * 24 * time.Hour` (approximate, but good enough for this context).
+`1y` -> `365 * 24 * time.Hour`.
+
+The `filepath.Walk` function is perfect for recursively traversing directories. The `WalkFunc` will contain the core logic for checking each file against the provided filters.
+
+The final output needs to be carefully formatted to match the examples, including the "✓ Deleted: X.XX KB" line. This means I need to accumulate the total size of deleted files and then format it.
+
+Let's start coding.```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// Config holds all the command-line flags and other configuration.
+type Config struct {
+	cli         bool
+	dir         string
+	extensions  string
+	exclude     string
+	minSizeStr  string
+	maxSizeStr  string
+
+	olderThanStr string
+	newerThanStr string
+
+	pruneEmpty   bool
+	skipConfirm  bool
+	dryRun       bool
+
+	// Parsed values
+	minSizeBytes int64
+	maxSizeBytes int64
+	olderThan    time.Time
+	newerThan    time.Time
+	excludeList  []string
+	extList      []string
+}
+
+// parseSize converts a human-readable size string (e.g., "10KB", "1.5MB") to bytes.
+func parseSize(sizeStr string) (int64, error) {
+	if sizeStr == "" {
+		return 0, nil
+	}
+
+	re := regexp.MustCompile(`(?i)^(\d+(\.\d+)?)\s*(b|kb|mb|gb|tb)?$`)
+	matches := re.FindStringSubmatch(strings.ToLower(sizeStr))
+
+	if len(matches) == 0 {
+		return 0, fmt.Errorf("invalid size format: %s", sizeStr)
+	}
+
+	value, err := strconv.ParseFloat(matches[1], 64)
+	if err != nil {
+		return 0, err
+	}
+
+	unit := "b"
+	if len(matches) > 3 && matches[3] != "" {
+		unit = matches[3]
+	}
+
+	var multiplier int64
+	switch unit {
+	case "b":
+		multiplier = 1
+	case "kb":
+		multiplier = 1024
+	case "mb":
+		multiplier = 1024 * 1024
+	case "gb":
+		multiplier = 1024 * 1024 * 1024
+	case "tb":
+		multiplier = 1024 * 1024 * 1024 * 1024
+	default:
+		return 0, fmt.Errorf("unknown size unit: %s", unit)
+	}
+
+	return int64(value * float64(multiplier)), nil
+}
+
+// parseDuration converts a duration string (e.g., "1d", "2h", "30m") to a time.Time.
+func parseDuration(durationStr string) (time.Time, error) {
+	if durationStr == "" {
+		return time.Time{}, nil
+
+	}
+
+	re := regexp.MustCompile(`^(\d+)(s|m|h|d|w|M|y)$`)
+	matches := re.FindStringSubmatch(durationStr)
+	if matches == nil {
+		return time.Time{}, fmt.Errorf("invalid duration format: %s", durationStr)
+	}
+
+	value, _ := strconv.Atoi(matches[1])
+	unit := matches[2]
+	var duration time.Duration
+
+	switch unit {
+	case "s":
+		duration = time.Duration(value) * time.Second
+	case "m":
+		duration = time.Duration(value) * time.Minute
+	case "h":
+		duration = time.Duration(value) * time.Hour
+	case "d":
+		duration = time.Duration(value) * 24 * time.Hour
+	case "w":
+		duration = time.Duration(value) * 7 * 24 * time.Hour
+	case "M":
+		duration = time.Duration(value) * 30 * 24 * time.Hour // Approximation
+	case "y":
+		duration = time.Duration(value) * 365 * 24 * time.Hour // Approximation
+	default:
+		return time.Time{}, fmt.Errorf("unknown duration unit: %s", unit)
+	}
+
+	return time.Now().Add(-duration), nil
+}
+
+// formatBytes converts bytes to a human-readable string.
+func formatBytes(b int64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.2f %cB", float64(b)/float64(div), "KMGTPE"[exp])
+}
+
+func main() {
+	var cfg Config
+
+	flag.BoolVar(&cfg.cli, "cli", false, "Enable command-line interface mode")
+	flag.StringVar(&cfg.dir, "d", ".", "Directory to scan")
+	flag.StringVar(&cfg.extensions, "e", "", "Comma-separated list of file extensions to delete")
+	flag.StringVar(&cfg.exclude, "exclude", "", "Comma-separated list of files/directories to exclude")
+	flag.StringVar(&cfg.minSizeStr, "min-size", "", "Minimum file size (e.g., 10KB, 1MB)")
+	flag.StringVar(&cfg.maxSizeStr, "max-size", "", "Maximum file size (e.g., 10KB, 1MB)")
+	flag.StringVar(&cfg.older, "older", "", "Delete files older than this (e.g., 30d, 24h, 5m)")
+	flag.StringVar(&cfg.newer, "newer", "", "Delete files newer than this (e.g., 30d, 24h, 5m)")
+	flag.BoolVar(&cfg.subdirs, "subdirs", false, "Include subdirectories")
+	flag.BoolVar(&cfg.pruneEmpty, "prune-empty", false, "Delete empty directories after scan")
+	flag.BoolVar(&cfg.skipConfirm, "skip-confirm", false, "Skip confirmation before deleting")
+
+	flag.Parse()
+
+	if !cfg.cli {
+		fmt.Println("This is a CLI tool. Please use the -cli flag.")
+		return
+	}
+
+	var err error
+	cfg.minSizeBytes, err = parseSize(cfg.minSizeStr)
+	if err != nil {
+		fmt.Println("Error parsing min-size:", err)
+		return
+	}
+	cfg.maxSizeBytes, err = parseSize(cfg.maxSizeStr)
+	if err != nil {
+		fmt.Println("Error parsing max-size:", err)
+		return
+	}
+
+	cfg.olderThan, err = parseDuration(cfg.older)
+	if err != nil {
+		fmt.Println("Error parsing older:", err)
+		return
+	}
+	cfg.newerThan, err = parseDuration(cfg.newer)
+	if err != nil {
+		fmt.Println("Error parsing newer:", err)
+		return
+	}
+
+	if cfg.exclude != "" {
+		cfg.excludeList = strings.Split(cfg.exclude, ",")
+	}
+	if cfg.extensions != "" {
+		cfg.extList = strings.Split(cfg.extensions, ",")
+	}
+
+	var filesToDelete []string
+	var totalSize int64
+
+	walkFunc := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			// Skip excluded directories
+			for _, ex := range cfg.excludeList {
+				if info.Name() == ex {
+					return filepath.SkipDir
+				}
+			}
+			return nil
+		}
+
+		// File extension filter
+		if len(cfg.extList) > 0 {
+			match := false
+			for _, ext := range cfg.extList {
+				if strings.HasSuffix(strings.ToLower(info.Name()), "."+strings.ToLower(ext)) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				return nil
+			}
+		}
+
+		// File size filters
+		if cfg.minSizeBytes > 0 && info.Size() < cfg.minSizeBytes {
+			return nil
+		}
+		if cfg.maxSizeBytes > 0 && info.Size() > cfg.maxSizeBytes {
+			return nil
+		}
+
+		// Time-based filters
+		if !cfg.olderThan.IsZero() && info.ModTime().After(cfg.olderThan) {
+			return nil
+
+		}
+		if !cfg.newerThan.IsZero() && info.ModTime().Before(cfg.newerThan) {
+			return nil
+		}
+
+		// Exclude specific files
+		for _, ex := range cfg.excludeList {
+			if info.Name() == ex {
+				return nil
+			}
+		}
+
+		filesToDelete = append(filesToDelete, path)
+		totalSize += info.Size()
+		fmt.Printf("%-10s %s\n", formatBytes(info.Size()), path)
+		return nil
+	}
+
+	if cfg.subdirs {
+		filepath.Walk(cfg.dir, walkFunc)
+	} else {
+		entries, err := os.ReadDir(cfg.dir)
+		if err != nil {
+			fmt.Println("Error reading directory:", err)
+			return
+		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				info, err := entry.Info()
+				if err == nil {
+					walkFunc(filepath.Join(cfg.dir, entry.Name()), info, nil)
+				}
+			}
+		}
+	}
+
+	if len(filesToDelete) == 0 {
+		fmt.Println("No files to delete.")
+		return
+	}
+
+	fmt.Printf("\n")
+	if !cfg.skipConfirm {
+		fmt.Printf("Are you sure you want to delete %d files? (y/N): ", len(filesToDelete))
+		var response string
+		fmt.Scanln(&response)
+		if response != "y" && response != "Y" {
+			fmt.Println("Operation cancelled.")
+			return
+		}
+	}
+
+	for _, file := range filesToDelete {
+		err := os.Remove(file)
+		if err != nil {
+			fmt.Printf("Error deleting %s: %v\n", file, err)
+		}
+	}
+
+	fmt.Printf("\u2713  Deleted: %s\n", formatBytes(totalSize))
+
+	if cfg.pruneEmpty {
+		fmt.Println("\nScanning for empty directories...")
+		deletedDirs := 0
+		for {
+			deletedThisPass := 0
+			filepath.Walk(cfg.dir, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if info.IsDir() {
+					entries, err := os.ReadDir(path)
+					if err != nil {
+						return err
+					}
+					if len(entries) == 0 {
+						fmt.Printf("DIR  %s\n", path)
+						err := os.Remove(path)
+						if err == nil {
+							deletedThisPass++
+						}
+					}
+				}
+				return nil
+			})
+			if deletedThisPass == 0 {
+				break
+			}
+			deletedDirs += deletedThisPass
+		}
+		fmt.Printf("\n\u2713  Number of deleted empty folders: %d\n", deletedDirs)
+	}
+}

@@ -1,0 +1,311 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: pcbai
+**Repository Name**: pcbai
+**Core Functionality Description**:
+This is a command-line tool for electronics design automation. Its primary function is to generate PCB footprints for various electronic component packages in KiCad's `.kicad_mod` format. It supports parametric generation for standard packages like two-terminal SMD (resistors/capacitors), SOIC, QFN, and QFP.
+
+Additionally, the tool includes placeholder functionalities for a broader design pipeline:
+- Generating a Bill of Materials (BOM) from a natural language description.
+- Synthesizing a circuit netlist from a natural language description.
+- Extracting component package parameters from a PDF datasheet file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `pcbai footprint --type smd_rc --name <name> --body-l <f> --body-w <f> --pad-l <f> --pad-w <f> --gap <f> --out <path>`
+- **Function and Parameter Description**:
+  This command generates a KiCad footprint for a 2-terminal SMD component (like a resistor or capacitor).
+  - `--type smd_rc`: Specifies the component package type.
+  - `--name <name>`: The name of the footprint module. This is also used for the output filename.
+  - `--body-l <f>`: The length of the component body.
+  - `--body-w <f>`: The width of the component body.
+  - `--pad-l <f>`: The length of the solder pads.
+  - `--pad-w <f>`: The width of the solder pads.
+  - `--gap <f>`: The gap between the two solder pads.
+  - `--out <path>`: The output directory where the `.kicad_mod` file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is initially empty.
+  **2. Command**:
+  `pcbai footprint --out /test_data/output_dir --type smd_rc --name PhFCRGDgGSznoLQ4jmd --body-l 9.66 --body-w 2.66 --pad-l 0.59 --pad-w 1.74 --gap 0.42`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Wrote /test_data/output_dir/PhFCRGDgGSznoLQ4jmd.kicad_mod\n",
+      "fs_diff": {
+          "/test_data/output_dir/PhFCRGDgGSznoLQ4jmd.kicad_mod": {
+              "type": "ADD",
+              "content": "(module PhFCRGDgGSznoLQ4jmd (layer F.Cu) (tedit 5B3079AF)\n  (attr smd)\n  (fp_text reference REF** (at 0 -1.5) (layer F.SilkS) hide (effects (font (size 1 1) (thickness 0.15))))\n  (fp_text value PhFCRGDgGSznoLQ4jmd (at 0 1.5) (layer F.Fab) (effects (font (size 1 1) (thickness 0.15))))\n  (fp_line (start -4.830 -1.330) (end 4.830 -1.330) (layer F.Fab) (width 0.1))\n  (fp_line (start 4.830 -1.330) (end 4.830 1.330) (layer F.Fab) (width 0.1))\n  (fp_line (start 4.830 1.330) (end -4.830 1.330) (layer F.Fab) (width 0.1))\n  (fp_line (start -4.830 1.330) (end -4.830 -1.330) (layer F.Fab) (width 0.1))\n  (pad 1 smd rect (at -0.505 0) (size 0.590 1.740) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.050) (solder_paste_margin_ratio 0.000))\n  (pad 2 smd rect (at 0.505 0) (size 0.590 1.740) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.050) (solder_paste_margin_ratio 0.000))\n)\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty. The output directory `/test_data/output_dir` does not exist.
+  - Command Behavior Analysis: The tool receives geometric parameters for an `smd_rc` component. It calculates the necessary coordinates and dimensions for the KiCad S-expression format. It then creates the output directory if it doesn't exist.
+  - Final State Changes (fs_diff): A new file named `<name>.kicad_mod` is created in the specified output directory. The content is a valid KiCad module definition, with pads and fabrication/silkscreen layers defined based on the input parameters. For example, the pad `at` positions are derived from the `--gap` parameter.
+
+#### Command Category: `pcbai footprint --type soic --name <name> --pins <int> --pitch <f> --body-l <f> --body-w <f> --pad-l <f> --pad-w <f> --row-offset <f> --out <path>`
+- **Function and Parameter Description**:
+  This command generates a KiCad footprint for an SOIC (Small Outline Integrated Circuit) package.
+  - `--type soic`: Specifies the component package type.
+  - `--name <name>`: The name of the footprint module and output filename.
+  - `--pins <int>`: The total number of pins (must be an even number).
+  - `--pitch <f>`: The distance between the centers of adjacent pins.
+  - `--body-l <f>`: The length of the component body.
+  - `--body-w <f>`: The width of the component body.
+  - `--pad-l <f>`: The length of the solder pads.
+  - `--pad-w <f>`: The width of the solder pads.
+  - `--row-offset <f>`: The distance from the center of the component to the center of a row of pads.
+  - `--out <path>`: The output directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is initially empty.
+  **2. Command**:
+  `pcbai footprint --out /test_data/output_dir --type soic --name UVIV3ZpMMSU7UYxiK9P7 --pins 24 --pitch 1.91 --body-l 7.89 --body-w 2.61 --pad-l 0.98 --pad-w 0.36 --row-offset 4.05`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Wrote /test_data/output_dir/UVIV3ZpMMSU7UYxiK9P7.kicad_mod\n",
+      "fs_diff": {
+          "/test_data/output_dir/UVIV3ZpMMSU7UYxiK9P7.kicad_mod": {
+              "type": "ADD",
+              "content": "(module UVIV3ZpMMSU7UYxiK9P7 (layer F.Cu) (tedit 5B3079AF)\n  (attr smd)\n  (fp_text reference REF** (at 0 -5.945) (layer F.SilkS) hide (effects (font (size 1 1) (thickness 0.15))))\n  (fp_text value UVIV3ZpMMSU7UYxiK9P7 (at 0 0) (layer F.Fab) (effects (font (size 1 1) (thickness 0.15))))\n  (fp_line (start -3.945 -1.305) (end 3.945 -1.305) (layer F.Fab) (width 0.1))\n  (fp_line (start 3.945 -1.305) (end 3.945 1.305) (layer F.Fab) (width 0.1))\n  (fp_line (start 3.945 1.305) (end -3.945 1.305) (layer F.Fab) (width 0.1))\n  (fp_line (start -3.945 1.305) (end -3.945 -1.305) (layer F.Fab) (width 0.1))\n  (fp_circle (center -3.345 -0.705) (end -3.645 -0.705) (layer F.SilkS) (width 0.2))\n  (pad 1 smd rect (at -10.505 4.050) (size 0.360 0.980) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n  (pad 24 smd rect (at -10.505 -4.050) (size 0.360 0.980) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n  (pad 2 smd rect (at -8.595 4.050) (size 0.360 0.980) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n  (pad 23 smd rect (at -8.595 -4.050) (size 0.360 0.980) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n... [omitted 20 lines of similar pad definitions] ...\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool generates a footprint for a 24-pin SOIC package. It calculates the positions for two rows of 12 pads each. The vertical position of the rows is determined by `--row-offset`. The horizontal position of each pad within a row is determined by the `--pitch` and total number of pins. A pin 1 indicator (circle on the silkscreen) is also generated.
+  - Final State Changes (fs_diff): A new file `<name>.kicad_mod` is created. Its content is a KiCad module with a large number of `(pad ...)` definitions, one for each of the 24 pins, arranged in two columns.
+
+#### Command Category: `pcbai footprint --type qfn --name <name> --pins <int> --pitch <f> --body-l <f> --body-w <f> --pad-l <f> --pad-w <f> --ep-l <f> --ep-w <f> --out <path>`
+- **Function and Parameter Description**:
+  This command generates a KiCad footprint for a QFN (Quad-Flat No-leads) package.
+  - `--type qfn`: Specifies the package type.
+  - `--pins <int>`: Total number of pins (must be a multiple of 4).
+  - `--pitch <f>`: Distance between adjacent pin centers.
+  - `--body-l <f>`, `--body-w <f>`: Dimensions of the component body.
+  - `--pad-l <f>`, `--pad-w <f>`: Dimensions of the peripheral solder pads.
+  - `--ep-l <f>`, `--ep-w <f>`: Dimensions of the central exposed pad (thermal pad).
+  - `--out <path>`: The output directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai footprint --out /test_data/output_dir --type qfn --name eAAvYnS8o --pins 40 --pitch 1.88 --body-l 2.82 --body-w 0.63 --pad-l 0.59 --pad-w 0.39 --ep-l 2.28 --ep-w 4.86`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Wrote /test_data/output_dir/eAAvYnS8o.kicad_mod\n",
+      "fs_diff": {
+          "/test_data/output_dir/eAAvYnS8o.kicad_mod": {
+              "type": "ADD",
+              "content": "(module eAAvYnS8o (layer F.Cu) (tedit 5B3079AF)\n  (attr smd)\n  (fp_line (start -1.410 -0.315) (end 1.410 -0.315) (layer F.Fab) (width 0.1))\n  (fp_line (start 1.410 -0.315) (end 1.410 0.315) (layer F.Fab) (width 0.1))\n  (fp_line (start 1.410 0.315) (end -1.410 0.315) (layer F.Fab) (width 0.1))\n  (fp_line (start -1.410 0.315) (end -1.410 -0.315) (layer F.Fab) (width 0.1))\n  (fp_circle (center -0.810 0.285) (end -1.110 0.285) (layer F.SilkS) (width 0.2))\n  (pad 1 smd rect (at -8.460 0.610) (size 0.390 0.590) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n  (pad 2 smd rect (at -6.580 0.610) (size 0.390 0.590) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n... [omitted 37 lines of similar pad definitions] ...\n  (pad 11 smd rect (at -0.610 -8.460) (size 0.590 0.390) (layers F.Cu F.Paste F.Mask) (s\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool generates a footprint for a 40-pin QFN package. It calculates positions for 10 pads on each of the four sides. It also generates a central exposed pad based on `--ep-l` and `--ep-w`. The pad orientation (size x/y) is different for horizontal and vertical edges.
+  - Final State Changes (fs_diff): A new file `<name>.kicad_mod` is created, containing definitions for all 40 peripheral pads, a central exposed pad, and fabrication/silkscreen markings.
+
+#### Command Category: `pcbai footprint --type qfp --name <name> --pins <int> --pitch <f> --body-l <f> --body-w <f> --pad-l <f> --pad-w <f> --gullwing-ext <f> --out <path>`
+- **Function and Parameter Description**:
+  This command generates a KiCad footprint for a QFP (Quad-Flat Package).
+  - `--type qfp`: Specifies the package type.
+  - `--pins <int>`: Total number of pins (must be a multiple of 4).
+  - `--pitch <f>`: Distance between adjacent pin centers.
+  - `--body-l <f>`, `--body-w <f>`: Dimensions of the component body.
+  - `--pad-l <f>`, `--pad-w <f>`: Dimensions of the solder pads.
+  - `--gullwing-ext <f>`: The extension of the gull-wing leads beyond the body. This affects pad placement.
+  - `--out <path>`: The output directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai footprint --out /test_data/output_dir --type qfp --name PoS22DYg90bxki3 --pins 28 --pitch 1.01 --body-l 6.78 --body-w 4.15 --pad-l 1.44 --pad-w 0.77 --gullwing-ext 0.34`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Wrote /test_data/output_dir/PoS22DYg90bxki3.kicad_mod\n",
+      "fs_diff": {
+          "/test_data/output_dir/PoS22DYg90bxki3.kicad_mod": {
+              "type": "ADD",
+              "content": "(module PoS22DYg90bxki3 (layer F.Cu) (tedit 5B3079AF)\n  (attr smd)\n  (fp_line (start -3.390 -2.075) (end 3.390 -2.075) (layer F.Fab) (width 0.1))\n  (fp_line (start 3.390 -2.075) (end 3.390 2.075) (layer F.Fab) (width 0.1))\n  (fp_line (start 3.390 2.075) (end -3.390 2.075) (layer F.Fab) (width 0.1))\n  (fp_line (start -3.390 2.075) (end -3.390 -2.075) (layer F.Fab) (width 0.1))\n  (fp_circle (center -2.790 -1.475) (end -3.090 -1.475) (layer F.SilkS) (width 0.2))\n  (pad 1 smd rect (at -3.030 3.135) (size 0.770 1.440) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n  (pad 2 smd rect (at -2.020 3.135) (size 0.770 1.440) (layers F.Cu F.Paste F.Mask) (solder_mask_margin 0.030) (solder_paste_margin_ratio 0.000))\n... [omitted 24 lines of similar pad definitions] ...\n  (pad 11 smd rect (at -3.135 0.000) (size 1.440 0.770) (layers F.Cu F.Paste\n...[TRUNCATED]"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool generates a footprint for a 28-pin QFP package (7 pins per side). It calculates pad positions based on body size, pitch, and the gull-wing extension, which determines how far from the body the pads are located.
+  - Final State Changes (fs_diff): A new file `<name>.kicad_mod` is created, containing definitions for all 28 peripheral pads arranged on four sides of the component body.
+
+#### Command Category: `pcbai bom <description>`
+- **Function and Parameter Description**:
+  This command generates a Bill of Materials (BOM) file from a textual description.
+  - `<description>`: A string describing the hardware.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai bom 'a simple board with one 555 timer and a few resistors'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "BOM written to build/bom.txt\n",
+      "fs_diff": {
+          "/build/bom.txt": {
+              "type": "ADD",
+              "content": ""
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command is executed with a description string. The tool should create a directory named `build` in the current working directory if it doesn't already exist. Then, it creates a file named `bom.txt` inside the `build` directory.
+  - Final State Changes (fs_diff): A new, empty file `build/bom.txt` is created. The description argument is received but its content is not used in the output file, indicating a placeholder implementation.
+
+#### Command Category: `pcbai bom <description> --out <path>`
+- **Function and Parameter Description**:
+  This command generates a Bill of Materials (BOM) file from a textual description, saving it to a specified directory.
+  - `<description>`: A string describing the hardware.
+  - `--out <path>`: The output directory where the `bom.txt` file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai bom 'a simple board with one 555 timer and a few resistors' --out /test_data/output.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "BOM written to /test_data/output.txt/bom.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt/bom.txt": {
+              "type": "ADD",
+              "content": ""
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command is executed with a description and an output path. The tool should create the directory specified by `--out` if it doesn't exist. Then, it creates an empty file named `bom.txt` inside that directory.
+  - Final State Changes (fs_diff): A new, empty file `bom.txt` is created inside the specified output directory `/test_data/output.txt`.
+
+#### Command Category: `pcbai synthesize <description>`
+- **Function and Parameter Description**:
+  This command synthesizes a netlist from a textual description.
+  - `<description>`: A string describing the hardware.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai synthesize 'a simple board with one 555 timer and a few resistors'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Netlist written to build/netlist.txt\n",
+      "fs_diff": {
+          "/build/netlist.txt": {
+              "type": "ADD",
+              "content": "SKiDL not installed. Install with `pip install skidl` to enable schematic generation."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command is executed with a description. The tool should create a directory named `build` if it doesn't exist. It then creates a file named `netlist.txt` inside `build`.
+  - Final State Changes (fs_diff): A new file `build/netlist.txt` is created. Its content is the exact string "SKiDL not installed. Install with `pip install skidl` to enable schematic generation.", indicating a check for a missing optional dependency.
+
+#### Command Category: `pcbai synthesize <description> --out <path>`
+- **Function and Parameter Description**:
+  This command synthesizes a netlist from a textual description, saving it to a specified directory.
+  - `<description>`: A string describing the hardware.
+  - `--out <path>`: The output directory where the `netlist.txt` file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed.
+  **2. Command**:
+  `pcbai synthesize 'a simple board with one 555 timer and a few resistors' --out /test_data/output.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Netlist written to /test_data/output.txt/netlist.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt/netlist.txt": {
+              "type": "ADD",
+              "content": "SKiDL not installed. Install with `pip install skidl` to enable schematic generation."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command is executed with a description and an output path. The tool should create the directory specified by `--out` if it doesn't exist. It then creates a file named `netlist.txt` inside that directory.
+  - Final State Changes (fs_diff): A new file `netlist.txt` is created inside the specified output directory `/test_data/output.txt`. Its content is the fixed string about the missing `skidl` dependency.
+
+#### Command Category: `pcbai extract-package <pdf_file> --out <path>`
+- **Function and Parameter Description**:
+  This command attempts to extract component package parameters from a given PDF file.
+  - `<pdf_file>`: The path to the input PDF datasheet.
+  - `--out <path>`: The path where the output JSON file will be saved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A dummy file is created at `/test_data/fuzz_doc.pdf` to simulate the presence of a PDF datasheet.
+  **2. Command**:
+  `pcbai extract-package /test_data/fuzz_doc.pdf --out /test_data/output.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Saved package guess to /test_data/output.txt\n",
+      "fs_diff": {
+          "/test_data/output.txt": {
+              "type": "ADD",
+              "content": "{\n  \"pkg_type\": \"unknown\",\n  \"pins\": null,\n  \"pitch\": null,\n  \"body_l\": null,\n  \"body_w\": null,\n  \"pad_l\": null,\n  \"pad_w\": null,\n  \"ep_l\": null,\n  \"ep_w\": null\n}"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A file exists at `/test_data/fuzz_doc.pdf`.
+  - Command Behavior Analysis: The command takes an input file path and an output file path. It does not need to actually parse the PDF. It should simply write a predefined JSON string to the specified output file.
+  - Final State Changes (fs_diff): A new file is created at the path specified by `--out`. The content of this file is a JSON object with a fixed structure, where all values are placeholders (`unknown` or `null`). This indicates a non-functional or placeholder implementation.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

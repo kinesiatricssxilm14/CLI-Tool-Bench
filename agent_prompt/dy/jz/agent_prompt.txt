@@ -1,0 +1,200 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: jz
+**Repository Name**: jz
+**Core Functionality Description**:
+This is a command-line tool for a minimal, modern, functional subset of JavaScript that compiles to pure WebAssembly (WASM). The tool provides functionalities to:
+1.  Evaluate simple JavaScript expressions or entire JS files directly.
+2.  Compile JavaScript files into WebAssembly Text Format (`.wat`).
+3.  Compile JavaScript files into WebAssembly binary format (`.wasm`).
+4.  Compile and immediately run a JavaScript file.
+The core idea is to translate a subset of JS into highly efficient WASM with no runtime, garbage collection, or overhead.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `jz "<expression>"`
+- **Function and Parameter Description**:
+  This command evaluates a JavaScript expression provided as a string argument and prints the result to standard output.
+  - `<expression>`: A string containing the JavaScript code to be evaluated.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No files are needed. The environment is clean.
+  **2. Command**:
+  `jz "-96 * -93"`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "8928\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The tool receives a single string argument `"-96 * -93"`. It parses and evaluates this arithmetic expression. The calculated result, `8928`, is then printed to `stdout`, followed by a newline character.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jz <file.js>`
+- **Function and Parameter Description**:
+  This command evaluates a JavaScript file and prints the result of the last evaluated expression to standard output.
+  - `<file.js>`: The path to the JavaScript file to be evaluated.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created on the file system:
+  - Path: `/test_data/fuzz_test_4.js`
+  - Content: `export const result = (a, b) => a - b;`
+  **2. Command**:
+  `jz /test_data/fuzz_test_4.js`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "undefined\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_test_4.js` exists and contains a function export declaration.
+  - Command Behavior Analysis: The tool reads and evaluates the content of the specified JS file. The file only contains a `const` declaration for an exported function, but no top-level expression that produces a value. Therefore, the evaluation of the file as a whole results in `undefined`, which is printed to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `jz compile <file.js>`
+- **Function and Parameter Description**:
+  This command compiles a given JavaScript file into WebAssembly Text Format (`.wat`). By default, the output file is created in the same directory as the input file, with the same base name but a `.wat` extension.
+  - `compile`: The subcommand to trigger compilation.
+  - `<file.js>`: The path to the source JavaScript file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created on the file system:
+  - Path: `/test_data/fuzz_test_2.js`
+  - Content: `const val = 1074; export const getVal = () => val;`
+  **2. Command**:
+  `jz compile /test_data/fuzz_test_2.js`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiled /test_data/fuzz_test_2.js \u2192 /test_data/fuzz_test_2.wat (626 chars)\n",
+    "fs_diff": {
+      "/test_data/fuzz_test_2.wat": {
+        "type": "ADD",
+        "content": "(module\n  (memory (export \"_memory\") 2)\n  (global $__heap (mut i32) (i32.const 0))\n  (global $__heap_start (i32) (i32.const 0))\n  (func $die (result f64) (unreachable))\n  (func $f64.rem (param f64 f64) (result f64)\n    (f64.sub (local.get 0) (f64.mul (f64.trunc (f64.div (local.get 0) (local.get 1))) (local.get 1))))\n  (func $getVal (param $__env f64)  (result f64)\n    (block $return_getVal (result f64)\n      (f64.load (i32.add (call $__ptr_offset (local.get $__env)) (i32.const 0)))\n    )\n  )\n\n  (func $main (export \"main\") (result f64)\n    (local $val i32)\n    (drop (local.tee $val (i32.const 1074)))\n(f64.const 0)\n  )\n)"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The source file `/test_data/fuzz_test_2.js` exists.
+  - Command Behavior Analysis: The `compile` command is invoked on the source file. The tool compiles the JS code into `.wat` format. It prints a confirmation message to `stdout` indicating the source and destination files, along with the size of the generated file.
+  - Final State Changes (fs_diff): A new file, `/test_data/fuzz_test_2.wat`, is created. Its content is the WebAssembly Text Format representation of the input JavaScript code.
+
+#### Command Category: `jz compile <file.js> --output <file.wat>`
+- **Function and Parameter Description**:
+  This command compiles a given JavaScript file into a specified `.wat` output file.
+  - `compile`: The subcommand to trigger compilation.
+  - `<file.js>`: The path to the source JavaScript file.
+  - `-o <file.wat>` or `--output <file.wat>`: Specifies the path for the output `.wat` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created on the file system:
+  - Path: `/test_data/fuzz_test_4.js`
+  - Content: `const val = 6672; export const getVal = () => val;`
+  **2. Command**:
+  `jz compile /test_data/fuzz_test_4.js -o /test_data/fuzz_out_4.wat`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiled /test_data/fuzz_test_4.js \u2192 /test_data/fuzz_out_4.wat (626 chars)\n",
+    "fs_diff": {
+      "/test_data/fuzz_out_4.wat": {
+        "type": "ADD",
+        "content": "(module\n  (memory (export \"_memory\") 2)\n  (global $__heap (mut i32) (i32.const 0))\n  (global $__heap_start (i32) (i32.const 0))\n  (func $die (result f64) (unreachable))\n  (func $f64.rem (param f64 f64) (result f64)\n    (f64.sub (local.get 0) (f64.mul (f64.trunc (f64.div (local.get 0) (local.get 1))) (local.get 1))))\n  (func $getVal (param $__env f64)  (result f64)\n    (block $return_getVal (result f64)\n      (f64.load (i32.add (call $__ptr_offset (local.get $__env)) (i32.const 0)))\n    )\n  )\n\n  (func $main (export \"main\") (result f64)\n    (local $val i32)\n    (drop (local.tee $val (i32.const 6672)))\n(f64.const 0)\n  )\n)"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The source file `/test_data/fuzz_test_4.js` exists.
+  - Command Behavior Analysis: The `compile` command is used with the `-o` flag to specify an output path. The tool compiles the JS code into `.wat` format and saves it to the specified path `/test_data/fuzz_out_4.wat`. A confirmation message is printed to `stdout`.
+  - Final State Changes (fs_diff): A new file is created at the path specified by the `-o` flag, `/test_data/fuzz_out_4.wat`, containing the compiled WebAssembly Text.
+
+#### Command Category: `jz compile <file.js> --output <file.wasm>`
+- **Function and Parameter Description**:
+  This command compiles a given JavaScript file into a specified WebAssembly binary (`.wasm`) output file.
+  - `compile`: The subcommand to trigger compilation.
+  - `<file.js>`: The path to the source JavaScript file.
+  - `-o <file.wasm>` or `--output <file.wasm>`: Specifies the path for the output `.wasm` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created on the file system:
+  - Path: `/test_data/fuzz_test_2.js`
+  - Content: `export const result = (a, b) => a + b;`
+  **2. Command**:
+  `jz compile /test_data/fuzz_test_2.js -o /test_data/fuzz_out_2.wasm`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiled /test_data/fuzz_test_2.js \u2192 /test_data/fuzz_out_2.wasm (100 bytes)\n",
+    "fs_diff": {
+      "/test_data/fuzz_out_2.wasm": {
+        "type": "ADD",
+        "content": "\u0000asm\u0001\u0000\u0000\u0000\u0001\u000b\u0002`\u0000\u0001|`\u0002||\u0001|\u0003\u0004\u0003\u0000\u0001\u0001\u0005\u0003\u0001\u0000\u0002\u0006\u000b\u0002\u007f\u0001A\u0000\u000b\u007f\u0000A\u0000\u000b\u0007\u0014\u0002\u0007_memory\u0002\u0000\u0006result\u0000\u0002\n\u001f\u0003\u0003\u0000\u0000\u000b\u000e\u0000 \u0000 \u0000 \u0001\ufffd\ufffd \u0001\ufffd\ufffd\u000b\n\u0000\u0002| \u0000 \u0001\ufffd\u000b\u000b"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The source file `/test_data/fuzz_test_2.js` exists.
+  - Command Behavior Analysis: The `compile` command is used with the `-o` flag, and the output file has a `.wasm` extension. This instructs the tool to perform a full compilation to the WebAssembly binary format. It prints a confirmation message to `stdout` indicating the successful compilation and the size of the binary.
+  - Final State Changes (fs_diff): A new binary file, `/test_data/fuzz_out_2.wasm`, is created at the specified path.
+
+#### Command Category: `jz run <file.js>`
+- **Function and Parameter Description**:
+  This command compiles and runs a JavaScript file, printing the result of the last expression to standard output. It may also output warnings.
+  - `run`: The subcommand to compile and execute.
+  - `<file.js>`: The path to the JavaScript file to run.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file is created on the file system:
+  - Path: `/test_data/fuzz_test_0.js`
+  - Content: `9999999999999999999999999999`
+  **2. Command**:
+  `jz run /test_data/fuzz_test_0.js`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "jz: [no-loss-of-precision] Integer literal 1e+28 exceeds MAX_SAFE_INTEGER; precision may be lost\n1e+28\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file `/test_data/fuzz_test_0.js` exists and contains a very large number literal.
+  - Command Behavior Analysis: The `run` command is invoked on the file. The tool first processes the code. It identifies that the large number literal exceeds JavaScript's `MAX_SAFE_INTEGER`, so it prints a warning to `stdout`. Then, it proceeds to evaluate the expression. The number is represented in scientific notation (`1e+28`) and printed to `stdout`, followed by a newline.
+  - Final State Changes (fs_diff): No changes are made to the file system, as the `run` command is for execution, not file generation.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

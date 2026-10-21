@@ -1,0 +1,653 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: md-tree
+**Repository Name**: md-tree
+**Core Functionality Description**:
+This is a command-line tool for parsing and manipulating markdown files as tree structures. Its capabilities include:
+- Listing all headings in a markdown file, either in a human-readable tree format or as a JSON object.
+- Extracting specific sections based on heading text, or all sections of a given level. The extracted content can be printed to standard output or saved to individual files.
+- Displaying the document's heading structure as a visual tree.
+- Searching for elements within the markdown document using simple selectors (e.g., "link").
+- Generating and displaying document statistics, such as word count, paragraph count, and a breakdown of headings by level.
+- Checking for broken links within a file, with an option to recursively check links in linked local markdown files.
+- Generating a markdown-formatted Table of Contents (ToC) from the document's headings, with an option to control the maximum heading depth.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `md-tree list <file>`
+- **Function and Parameter Description**:
+  - `list`: This command parses a markdown file and lists all its headings.
+  - `<file>`: The path to the input markdown file.
+  - The output is a human-readable, indented tree structure representing the hierarchy of headings.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_LIST_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      JTDXXOzzAwnM9KHzeSs8XJrJvgCNGNiVvvXFBWTVI2eWz5LkoXD6SobfK5nL9Pid5ihbrhsMvrRhWh2svYBSm6cY2P8HZYBcGCtGXLU6T0vyJWOvpOj3nqyMBNEQlpEuNcuiH
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      CBnBJ8wzWuGvpS8FqSxaR8Mz1uNYn8kxu8bu3ZojLCQAqS204upej3fQ5BTzblphbHJwr9sq68UcdrEzyOv3SFRUydrqK
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree list /test_data/fuzz_test_LIST_3.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udccb Headings in fuzz_test_LIST_3.md (5 total):\n\n\ud83d\udcc1 Section Heading 1\n  \ud83d\udcc4 Section Heading 2\n    \ud83d\udcc3 Section Heading 3\n  \ud83d\udcc4 Section Heading 4\n  \ud83d\udcc4 Section Heading 5\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file named `fuzz_test_LIST_3.md` exists with a nested structure of headings (one H1, three H2s, one H3).
+  - Command Behavior Analysis: The `list` command reads the specified markdown file. It identifies all headings and their levels. It then prints a summary line followed by a formatted list of these headings. The indentation of each heading in the output corresponds to its level (e.g., H2s are indented under H1, H3s under H2).
+  - Final State Changes (fs_diff): No changes are made to the file system. The operation is read-only.
+
+#### Command Category: `md-tree list <file> --format json`
+- **Function and Parameter Description**:
+  - `list`: This command parses a markdown file and lists all its headings.
+  - `<file>`: The path to the input markdown file.
+  - `--format json`: An option to change the output format from the default tree view to a JSON array.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_LIST_JSON_2.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      nR1522biuwH03YuqJUw0DbQAD50cbSqDwUemXsQCdX7qFAVHxqAa9VALun70csRAkvYIvI70lmdTbfh9FBtBViPLoK3YNY9cUdLLHXXvKASk0ttUl7xkbSD
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      by6CGPwPJkvT1U4WenASd3FjB9JeL35O7OKEcLhWk9zwJyu8GJLbKDZ8DRKMBxlPAdadARyIxtd0Ai1KD15GYjDER8DfVEnwqHugUE0v0Nz6iNKQhNdFL8YF9PueqGuGYt
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree list /test_data/fuzz_test_LIST_JSON_2.md --format json`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "[\n  {\n    \"level\": 1,\n    \"text\": \"Section Heading 1\"\n  },\n  {\n    \"level\": 2,\n    \"text\": \"Section Heading 2\"\n  },\n  {\n    \"level\": 3,\n    \"text\": \"Section Heading 3\"\n  },\n  {\n    \"level\": 2,\n    \"text\": \"Section Heading 4\"\n  },\n  {\n    \"level\": 2,\n    \"text\": \"Section Heading 5\"\n  }\n]\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file named `fuzz_test_LIST_JSON_2.md` is present, containing headings at levels 1, 2, and 3.
+  - Command Behavior Analysis: The command parses the markdown file, but due to the `--format json` flag, it formats the output differently. Instead of a text tree, it generates a JSON array. Each element of the array is an object representing a single heading, with two keys: `level` (the heading level as an integer) and `text` (the text content of the heading).
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree extract <file> "<heading>"`
+- **Function and Parameter Description**:
+  - `extract`: This command extracts a section from a markdown file.
+  - `<file>`: The path to the input markdown file.
+  - `"<heading>"`: The exact text of the heading that marks the beginning of the section to be extracted. The section includes the heading itself and all content until the next heading of the same or higher level.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_EXTRACT_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      lrtRHB90I0Hp4f5KtjKzBfWypSGotS8Es79MAsPS9wHznAhOYFAPGIlhXjB4DQWSGNM5ObXGfxe6EiSz278MxpDdHZVZvgL3ieBniQYgurbP1
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      baQvdF0w3kYSdJEzTKAZFNwWAs3KWVGDDsfcUT3ajgNyotkc3OYtsdokn0MVd
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree extract /test_data/fuzz_test_EXTRACT_3.md "Section Heading 1"`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcc4 Section \"Section Heading 1\":\n\n# Section Heading 1\n\nlrtRHB90I0Hp4f5KtjKzBfWypSGotS8Es79MAsPS9wHznAhOYFAPGIlhXjB4DQWSGNM5ObXGfxe6EiSz278MxpDdHZVZvgL3ieBniQYgurbP1\n\n## Section Heading 2\n\n```js\nconsole.log('hello world');\n```\n\n### Section Heading 3\n\nA link to [GitHub](https://github.com) and a local [link](./other.md).\n\n## Section Heading 4\n\nbaQvdF0w3kYSdJEzTKAZFNwWAs3KWVGDDsfcUT3ajgNyotkc3OYtsdokn0MVd\n\n## Section Heading 5\n\n* list item 1\n* list item 2\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file exists with a top-level H1 heading "Section Heading 1".
+  - Command Behavior Analysis: The tool is asked to extract the section for "Section Heading 1". Since this is the highest-level heading in the file and there are no subsequent H1 headings, the "section" constitutes the entire file. The tool prints a title line and then outputs the full markdown content of the file to stdout.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree extract <file> "<heading>" --output <dir>`
+- **Function and Parameter Description**:
+  - `extract`: Extracts a section from a markdown file.
+  - `<file>`: The path to the input markdown file.
+  - `"<heading>"`: The heading text of the section to extract.
+  - `--output <dir>`: Specifies a directory where the extracted section should be saved as a new `.md` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The `mkdir -p /test_data/output` command is executed to ensure the output directory exists.
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_EXTRACT_OUTPUT_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      58V6VH0BfZ47241O6710ddXcs5V9io9CVWouPWrHbPpEymeyZAXdbViKWPQksWS3Ms4grKTRdmXPQ6SXe
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      S9hXTBNu06WESYeKmgYHfv0xHrWdTwJzpPngxMQpgIG9Ij5M8BqLlbwuZGiEaAKGqu0SP6kQ6fqRXwhLV0SP3fe
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree extract /test_data/fuzz_test_EXTRACT_OUTPUT_3.md "Section Heading 1" --output /test_data/output`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\u2705 Written to test_data/output/section-heading-1.md\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/output/section-heading-1.md": {
+        "type": "ADD",
+        "content": "# Section Heading 1\n\n58V6VH0BfZ47241O6710ddXcs5V9io9CVWouPWrHbPpEymeyZAXdbViKWPQksWS3Ms4grKTRdmXPQ6SXe\n\n## Section Heading 2\n\n```js\nconsole.log('hello world');\n```\n\n### Section Heading 3\n\nA link to [GitHub](https://github.com) and a local [link](./other.md).\n\n## Section Heading 4\n\nS9hXTBNu06WESYeKmgYHfv0xHrWdTwJzpPngxMQpgIG9Ij5M8BqLlbwuZGiEaAKGqu0SP6kQ6fqRXwhLV0SP3fe\n\n## Section Heading 5\n\n* list item 1\n* list item 2\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file and an empty `output` directory exist.
+  - Command Behavior Analysis: The tool extracts the "Section Heading 1" section (which is the whole file in this case). Instead of printing to stdout, it uses the `--output` directory. It generates a filename by "slugifying" the heading text (lowercase, spaces to hyphens), resulting in `section-heading-1.md`. It then writes the extracted markdown content into this new file inside the `/test_data/output` directory. A success message is printed to stdout indicating the path of the created file.
+  - Final State Changes (fs_diff): A new file, `/test_data/output/section-heading-1.md`, is created with the content of the extracted section.
+
+#### Command Category: `md-tree extract-all <file> <level>`
+- **Function and Parameter Description**:
+  - `extract-all`: Extracts all sections of a specific level from a markdown file.
+  - `<file>`: The path to the input markdown file.
+  - `<level>`: The heading level to target (e.g., `2` for `##`).
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_EXTRACT_ALL_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      oWA2qP3JJyTfyBqVZZnpldcCKGaUjVAjbNMWnnIMxMqV7MaZXtWZcPbZMZnHfrXxDLdAcYQ3wIxASIhgodncgBl7VMgeiE4gJ57wEJPpzSushHnrulPvqFnz9E2
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      ehAfFaXYsQdMYfb395ObCQcm0KQzkGEzNjhK9KeEocEsC2oDom2r8n0LevKcFzyHWBGAQ6O6eHFiii2GaQ
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree extract-all /test_data/fuzz_test_EXTRACT_ALL_3.md 2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcda Found 3 sections at level 2 in fuzz_test_EXTRACT_ALL_3.md:\n\n1. Section Heading 2\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n## Section Heading 2\n\n```js\nconsole.log('hello world');\n```\n\n### Section Heading 3\n\nA link to [GitHub](https://github.com) and a local [link](./other.md).\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n2. Section Heading 4\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n## Section Heading 4\n\nehAfFaXYsQdMYfb395ObCQcm0KQzkGEzNjhK9KeEocEsC2oDom2r8n0LevKcFzyHWBGAQ6O6eHFiii2GaQ\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n3. Section Heading 5\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n## Section Heading 5\n\n* list item 1\n* list item 2\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file exists with headings at multiple levels.
+  - Command Behavior Analysis: The tool is asked to extract all sections at level 2. It finds three such sections: "Section Heading 2", "Section Heading 4", and "Section Heading 5". For each, it determines the content of the section (from its heading to the next heading of level 2 or higher). It then prints a summary, followed by each section's content, prefixed by a number and title, and separated by a long line of `─` characters.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree extract-all <file> <level> --output <dir>`
+- **Function and Parameter Description**:
+  - `extract-all`: Extracts all sections of a specific level.
+  - `<file>`: The path to the input markdown file.
+  - `<level>`: The heading level to target.
+  - `--output <dir>`: Specifies a directory where each extracted section should be saved as a separate `.md` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The `mkdir -p /test_data/output` command is executed.
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_EXTRACT_ALL_OUTPUT_2.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      QYInl1q7BkdtVUGE0rm3f4NKq9C6l3byQEFyX0e2eAZLMvT2q3t3lCbVdiImnGPrr15Q2x3vbI4r5OlkfzYoT3od1VcT4KgfgD1mbEBJQNLuSxK6AeSBr4UxJ
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      880o6dRIyELW1IwRbiPD0PLKn8BdFmbLcN7Cep0eJxsx0hOJfp0vHM
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree extract-all /test_data/fuzz_test_EXTRACT_ALL_OUTPUT_2.md 2 --output /test_data/output`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcda Found 3 sections at level 2 in fuzz_test_EXTRACT_ALL_OUTPUT_2.md:\n\n1. Section Heading 2\n\u2705 Written to test_data/output/01-section-heading-2.md\n2. Section Heading 4\n\u2705 Written to test_data/output/02-section-heading-4.md\n3. Section Heading 5\n\u2705 Written to test_data/output/03-section-heading-5.md\n\n\u2728 All sections extracted to <WORKDIR>/output\n",
+    "stderr": "",
+    "fs_diff": {
+      "/test_data/output/01-section-heading-2.md": {
+        "type": "ADD",
+        "content": "## Section Heading 2\n\n```js\nconsole.log('hello world');\n```\n\n### Section Heading 3\n\nA link to [GitHub](https://github.com) and a local [link](./other.md).\n"
+      },
+      "/test_data/output/02-section-heading-4.md": {
+        "type": "ADD",
+        "content": "## Section Heading 4\n\n880o6dRIyELW1IwRbiPD0PLKn8BdFmbLcN7Cep0eJxsx0hOJfp0vHM\n"
+      },
+      "/test_data/output/03-section-heading-5.md": {
+        "type": "ADD",
+        "content": "## Section Heading 5\n\n* list item 1\n* list item 2\n"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file and an empty `output` directory are present.
+  - Command Behavior Analysis: The tool finds all level 2 sections. For each section, it creates a slugified filename prefixed with a zero-padded index (e.g., `01-section-heading-2.md`). It writes the content of each section to its corresponding new file in the output directory. The stdout reports the progress, listing each section and the file it was written to, and concludes with a summary message.
+  - Final State Changes (fs_diff): Three new files are created in the `/test_data/output` directory, each containing the content of one of the level 2 sections from the source file.
+
+#### Command Category: `md-tree tree <file>`
+- **Function and Parameter Description**:
+  - `tree`: This command displays the document's heading structure in a hierarchical tree format.
+  - `<file>`: The path to the input markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_TREE_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      S68mJQdXbUgB6r2WkjvCkiGCCR8wos7HVf9APTllxU28lc6G34BHD6fEF4L2SUFE3HJIq7PTaRxJfVIyeJ3jkYp0UaUfQtkBm1xSWEeoqVYT3cryTVJ4Zr1O
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      xJiBla8fOEuIu6q5ZgvtWb92KolVNj3Er6SSe6uhTXUCVpWZHpuCnCvvs11avg5rV8qZ4G77CHA9fWlKlj3VpHKhkynV8SLNpUN6RvHt2CyA8sdlYplvQoXwuxlG
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree tree /test_data/fuzz_test_TREE_3.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83c\udf33 Document structure for fuzz_test_TREE_3.md:\n\n\ud83d\udcc1 Section Heading 1\n  \ud83d\udcc4 Section Heading 2\n    \ud83d\udcc3 Section Heading 3\n  \ud83d\udcc4 Section Heading 4\n  \ud83d\udcc4 Section Heading 5\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file with a nested heading structure is available.
+  - Command Behavior Analysis: The `tree` command behaves identically to the `list` command. It parses the file, identifies all headings, and prints them in an indented tree format. The only difference is the introductory text in the stdout ("Document structure for...").
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree search <file> "<selector>"`
+- **Function and Parameter Description**:
+  - `search`: This command searches for specific node types within the markdown's abstract syntax tree.
+  - `<file>`: The path to the input markdown file.
+  - `"<selector>"`: A string representing the type of node to search for (e.g., "link", "heading").
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_SEARCH_2.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      CpY6Esm8eTbWOXaAh60spJax61stBJeAdUB2LeDALCkskW9KI1oUUEzDBqJSRTuCVrP0Fkebu7ZOLeoQ1niTzifV7quZaTnAzbmJDmtKZaG8Z1spVV1KkDLVfUS5QL5aDRKMRldMkNarj
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      KqgSO0AGzkHDUuDGC7qYF0Mj9DMMAGDbMGhsBbm4rz71kUlLh8cPafry53xpDBJUWTkoWMJgjaeQqc7iEyGTEVtZwLEzS1mcBzltMBXTBVLdaYx4o7
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree search /test_data/fuzz_test_SEARCH_2.md "link"`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udd0d Found 2 nodes matching \"link\" in fuzz_test_SEARCH_2.md:\n\n1. Type: link\n   URL: https://github.com\n\n2. Type: link\n   URL: ./other.md\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file containing two links is present.
+  - Command Behavior Analysis: The tool is instructed to search for nodes of type "link". It parses the document, finds two such nodes, and prints a summary. For each found node, it prints a numbered entry showing its type ("link") and its URL.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree stats <file>`
+- **Function and Parameter Description**:
+  - `stats`: This command analyzes a markdown file and prints various content statistics.
+  - `<file>`: The path to the input markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_STATS_1.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      8FMffDzSDPPLk6rIadkh8i9ZUjjKjxEbP2eYqs1Y0VGgpFUOzhjbw4waneJtbABfSrdbRB6dXZ15p9hf1JidW0jwYZvXvOwKAQ8sleoTMpSRI1SWeOjG6fdJCBmocoCYmpZfqJk4jsKKvA
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      7pxnSWNg6OO53BfYC577hovsnNeHui2OyLF81KSwQisYaxPuQwGHNPL8cGzBmL45iNc10lNkfT6JccsWmHadHKtm0q5ihDl0mW2hyIhzQbgnMKwbc08QvQClFcBqMGzInOi
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree stats /test_data/fuzz_test_STATS_1.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcca Statistics for fuzz_test_STATS_1.md:\n\n\ud83d\udcdd Word count: 32\n\ud83d\udccb Paragraphs: 5\n\ud83d\udcc1 Headings: 5\n   By level:\n     Level 1: 1\n     Level 2: 3\n     Level 3: 1\n\ud83d\udcbb Code blocks: 1\n\ud83d\udccc Lists: 1\n\ud83d\udd17 Links: 2\n\ud83d\uddbc\ufe0f  Images: 0\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file with various elements (headings, text, code, list, links) is present.
+  - Command Behavior Analysis: The `stats` command parses the entire file and counts different types of content. It counts words, paragraphs, total headings (with a sub-breakdown by level), code blocks, lists, links, and images. It then prints these counts in a neatly formatted, human-readable summary.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree check-links <file>`
+- **Function and Parameter Description**:
+  - `check-links`: Finds and validates all links in a markdown file.
+  - `<file>`: The path to the input markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created on the filesystem:
+    - Path: `/test_data/fuzz_test_CHECK_LINKS_4.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      WxdVa2HOzaMFm2nKx2DlC5cOOmO6nqQgcucNuhxCkoHjQu9lOh8q3A52A
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      BdzWN3wzWIQ6R76fasnfGEHXPRxfyNBGZlQY0Z1P6PX4noHnDzZtJG4iiaV18OW1jI6FcOo1uDCbRqcP2LnufFLgTsBH6p3NlElXjuDvy77mg4qxohQmM48QyPwObKNXct6MCDL5IrMdL
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+    - Path: `/test_data/other.md`
+    - Content:
+      ```markdown
+      # Other File
+      This is another file.
+      ```
+  **2. Command**:
+  `md-tree check-links /test_data/fuzz_test_CHECK_LINKS_4.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udd17 Checking 2 unique URLs in fuzz_test_CHECK_LINKS_4.md:\n\u2705 https://github.com\n\u2705 ./other.md\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two files exist. The main file `fuzz_test_CHECK_LINKS_4.md` contains a remote link (`https://github.com`) and a local link (`./other.md`) which points to the second file.
+  - Command Behavior Analysis: The tool scans the main file for unique links. It finds two. It then validates them. The `✓` symbol indicates success. For the remote URL, this implies a successful network check (or a mocked success). For the local file path, this implies that the file exists at the specified relative path.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree check-links <file> --recursive`
+- **Function and Parameter Description**:
+  - `check-links`: Finds and validates links.
+  - `<file>`: The path to the initial markdown file.
+  - `--recursive`: An option to also check for links within any local markdown files that are linked to from the initial file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following files are created on the filesystem:
+    - Path: `/test_data/fuzz_test_CHECK_LINKS_RECURSIVE_3.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      LHJjf9zIRE2uBRxi0a8T1fRCtlj78mQ8SXMx6H99wDQ8bKk9xNvesU1wKff75VHVYBlp3c0dp78jTg
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      saa2oK65tRAa1kgZiJB4240yaPsuInQOtXD6fEPi1dB0pb2D6dgFBILNLaNWkDGGng1HYlUvgcNqyoPwMNNs8ZtdmtcpoHiBv3839Tq8i6FzC5h9EnOCQlRm2MS6yewRtdmtig8uCluHIPiZ6JeO
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+    - Path: `/test_data/other.md`
+    - Content:
+      ```markdown
+      # Other File
+      This is another file.
+      ```
+  **2. Command**:
+  `md-tree check-links /test_data/fuzz_test_CHECK_LINKS_RECURSIVE_3.md --recursive`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udd17 Checking 2 unique URLs in fuzz_test_CHECK_LINKS_RECURSIVE_3.md:\n\u2705 https://github.com\n\u2705 ./other.md\n\n\ud83d\udd17 Checking 0 unique URLs in other.md:\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Similar to the previous sample, two files exist, with one linking to the other.
+  - Command Behavior Analysis: The tool first checks the links in the main file, `fuzz_test_CHECK_LINKS_RECURSIVE_3.md`, and prints the results. Because the `--recursive` flag is present and it found a valid link to a local file (`./other.md`), it then proceeds to check that file for links. It prints a new header for `other.md` and reports that it found 0 links to check within it.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree toc <file>`
+- **Function and Parameter Description**:
+  - `toc`: Generates a Table of Contents for the given markdown file.
+  - `<file>`: The path to the input markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_TOC_4.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      67aXnPH89aD7uCCmiKeqIFkIGXnQOPXkiHRROOqKlw5HJ9QJrtOgy8ID07Rz17kM6y6DI4kxkGjcybHTfhqarmH2Xvq9KB5sz3Ne1BdZbtbw67lSXevNyru
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      tKMcsyg8niiPsfObaBvNNjVNZIkzatX55eNRpAz2fygQ7OaxHgqZC9m9D2N9ui2PvmEZkqoiyuWh1yxfXzOLrxnaJiMWDx7CioawdN0t13pSMPNURIBTYEhlGPDA6mWo
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree toc /test_data/fuzz_test_TOC_4.md`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcda Table of Contents for fuzz_test_TOC_4.md:\n\n## Table of Contents\n\n- [Section Heading 1](#section-heading-1)\n  - [Section Heading 2](#section-heading-2)\n    - [Section Heading 3](#section-heading-3)\n  - [Section Heading 4](#section-heading-4)\n  - [Section Heading 5](#section-heading-5)\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file with a nested heading structure is present.
+  - Command Behavior Analysis: The `toc` command reads the file, identifies all headings, and generates a markdown-formatted list that serves as a table of contents. The list items are links, with the text being the heading title and the URL being a slugified anchor link (e.g., `#section-heading-1`). The indentation of the list reflects the hierarchy of the headings. The entire output is printed to stdout.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `md-tree toc <file> --max-level <level>`
+- **Function and Parameter Description**:
+  - `toc`: Generates a Table of Contents.
+  - `<file>`: The path to the input markdown file.
+  - `--max-level <level>`: An option to limit the ToC to headings up to and including the specified level.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - The following file is created on the filesystem:
+    - Path: `/test_data/fuzz_test_TOC_MAX_LEVEL_4.md`
+    - Content:
+      ```markdown
+      # Section Heading 1
+      w9C0nT8CxNVttLlqpIfggYSZNV1dgvSHyNNoQ82vCUDzenqAKeNZzF
+
+      ## Section Heading 2
+      ```js
+      console.log('hello world');
+      ```
+
+      ### Section Heading 3
+      A link to [GitHub](https://github.com) and a local [link](./other.md).
+
+      ## Section Heading 4
+      aZVloq54MsxPMFpxUo7cK6Rrg7jM4ASTSOaf2JBm12PoqERg9rJj0NRch50BwGzDCv0vcrURPKJqfNx7OE0S
+
+      ## Section Heading 5
+      * list item 1
+      * list item 2
+      ```
+  **2. Command**:
+  `md-tree toc /test_data/fuzz_test_TOC_MAX_LEVEL_4.md --max-level 3`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\ud83d\udcda Table of Contents for fuzz_test_TOC_MAX_LEVEL_4.md:\n\n## Table of Contents\n\n- [Section Heading 1](#section-heading-1)\n  - [Section Heading 2](#section-heading-2)\n    - [Section Heading 3](#section-heading-3)\n  - [Section Heading 4](#section-heading-4)\n  - [Section Heading 5](#section-heading-5)\n\n",
+    "stderr": "",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A markdown file with headings up to level 3 is present.
+  - Command Behavior Analysis: The command generates a ToC, but with the `--max-level 3` constraint. This means it should only include headings of level 1, 2, and 3. In this specific sample, since the deepest heading is level 3, the output is identical to the standard `toc` command. The implementation must correctly filter out headings deeper than the specified `max-level` if they were present.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

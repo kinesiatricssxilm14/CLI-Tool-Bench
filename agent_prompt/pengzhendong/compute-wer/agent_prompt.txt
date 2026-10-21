@@ -1,0 +1,310 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: compute-wer
+**Repository Name**: compute-wer
+**Core Functionality Description**:
+This project requires the creation of a command-line tool for evaluating speech recognition systems by computing Word Error Rate (WER) and Sentence Error Rate (SER). The tool compares reference (ground truth) text with hypothesis (transcribed) text from input files.
+
+Key features to be implemented include:
+- Comparison of text on either a word-level (default) or character-level.
+- Case-sensitive and case-insensitive matching modes.
+- Ability to remove XML-style tags (e.g., `<noise>`) from text before comparison.
+- Option to ignore a predefined list of words from a separate file during calculation.
+- Filtering of results to show only utterances with a WER below a specified threshold.
+- Sorting the output report by utterance ID or by WER in ascending order.
+- Aligning the output based on the hypothesis text instead of the reference text.
+- Generating a detailed report for each utterance pair, including alignment and error statistics (Correct, Substitution, Deletion, Insertion), and an overall summary report.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `compute-wer <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - This is the basic command to compute the Word Error Rate (WER).
+  - `REF`: The first positional argument is the path to the reference text file.
+  - `HYP`: The second positional argument is the path to the hypothesis text file.
+  - Each file contains lines formatted as `utterance_id text`. The tool compares lines with matching utterance IDs. By default, the comparison is word-level and case-insensitive.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created on the file system:
+  - `/test_data/ref_FILE_BASIC_3.txt` with content:
+    ```
+    utt_1 a world test is this for recognition
+    utt_2 is speech
+    utt_3 for recognition hello
+    utt_4 recognition hello test speech
+    utt_5 world a speech systems is recognition
+    ```
+  - `/test_data/hyp_FILE_BASIC_3.txt` with content:
+    ```
+    utt_1 a for world test is this for recognition
+    utt_2 is speech
+    utt_3 for hello
+    utt_4 recognition recognition test speech
+    utt_5 world a speech a systems is recognition
+    ```
+  **2. Command**:
+  `compute-wer /test_data/ref_FILE_BASIC_3.txt /test_data/hyp_FILE_BASIC_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_4\nWER: [PERCENTAGE]% N=4 Cor=3 Sub=1 Del=0 Ins=0\nref: RECOGNITION HELLO       TEST SPEECH\nhyp: RECOGNITION RECOGNITION TEST SPEECH\n\nutt: utt_1\nWER: [PERCENTAGE]% N=7 Cor=7 Sub=0 Del=0 Ins=1\nref: A     WORLD TEST IS THIS FOR RECOGNITION\nhyp: A FOR WORLD TEST IS THIS FOR RECOGNITION\n\nutt: utt_2\nWER: [PERCENTAGE]% N=2 Cor=2 Sub=0 Del=0 Ins=0\nref: IS SPEECH\nhyp: IS SPEECH\n\nutt: utt_3\nWER: [PERCENTAGE]% N=3 Cor=2 Sub=0 Del=1 Ins=0\nref: FOR RECOGNITION HELLO\nhyp: FOR             HELLO\n\nutt: utt_5\nWER: [PERCENTAGE]% N=6 Cor=6 Sub=0 Del=0 Ins=1\nref: WORLD A SPEECH   SYSTEMS IS RECOGNITION\nhyp: WORLD A SPEECH A SYSTEMS IS RECOGNITION\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=22 Cor=20 Sub=1 Del=1 Ins=2\nEnglish -> [PERCENTAGE]% N=22 Cor=20 Sub=1 Del=1 Ins=2\nSER -> [PERCENTAGE]% N=5 Cor=1 Err=4 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two text files exist, each containing five lines of text prefixed with utterance IDs (`utt_1` to `utt_5`).
+  - Command Behavior Analysis: The tool reads the reference and hypothesis files. For each matching utterance ID, it performs a case-insensitive, word-level comparison. It calculates the WER and prints a detailed block for each utterance, including the WER percentage, error counts (N, Cor, Sub, Del, Ins), and a visual alignment of the reference and hypothesis text. The order of the utterance blocks in the output is not guaranteed. After processing all utterances, it prints a summary section with overall WER, SER (Sentence Error Rate), and aggregated error counts.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted. The tool's output is entirely on `stdout`.
+
+#### Command Category: `compute-wer --char <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Computes WER at the character level instead of the word level.
+  - `--char` or `-c`: A flag that switches the comparison mode from word-level to character-level. Spaces are treated as characters in the alignment.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_CHAR_0.txt` and `/test_data/hyp_FILE_CHAR_0.txt` are created with corresponding reference and hypothesis sentences.
+  **2. Command**:
+  `compute-wer --char /test_data/ref_FILE_CHAR_0.txt /test_data/hyp_FILE_CHAR_0.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_4\nWER: [PERCENTAGE]% N=32 Cor=21 Sub=0 Del=11 Ins=0\nref: W O R L D S Y S T E M S F O R A R E C O G N I T I O N H E L L O\nhyp: W O R L D S Y S T E M S F O R A                       H E L L O\n\nutt: utt_1\nWER: [PERCENTAGE]% N=31 Cor=27 Sub=4 Del=0 Ins=1\nref: S P E E C H I S   T H I S W O R L D F O R R E C O G N I T I O N\nhyp: S P E E C H I S H E L L O W O R L D F O R R E C O G N I T I O N\n\nutt: utt_5\nWER: [PERCENTAGE]% N=29 Cor=22 Sub=0 Del=7 Ins=0\nref: A H E L L O F O R S Y S T E M S T E S T W O R L D T H I S\nhyp: A H E L L O F O R               T E S T W O R L D T H I S\n\nutt: utt_3\nWER: [PERCENTAGE]% N=10 Cor=10 Sub=0 Del=0 Ins=5\nref:           F O R S Y S T E M S\nhyp: W O R L D F O R S Y S T E M S\n\nutt: utt_2\nWER: [PERCENTAGE]% N=37 Cor=37 Sub=0 Del=0 Ins=0\nref: T H I S S P E E C H I S S Y S T E M S A T E S T W O R L D F O R H E L L O\nhyp: T H I S S P E E C H I S S Y S T E M S A T E S T W O R L D F O R H E L L O\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=139 Cor=117 Sub=4 Del=18 Ins=6\nEnglish -> [PERCENTAGE]% N=139 Cor=117 Sub=4 Del=18 Ins=6\nSER -> [PERCENTAGE]% N=5 Cor=1 Err=4 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two text files with reference and hypothesis data are present.
+  - Command Behavior Analysis: Due to the `--char` flag, the tool tokenizes each sentence into characters instead of words. The WER calculation and the alignment visualization (`ref`/`hyp` lines) are based on individual characters. All other aspects, like the overall summary, remain the same but are based on character counts.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --case-sensitive <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Computes WER with case-sensitive matching.
+  - `--case-sensitive` or `-cs`: A flag that makes the word/character comparison sensitive to case. For example, "Hello" and "hello" would be considered different.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_CASE_SENSITIVE_2.txt` and `/test_data/hyp_FILE_CASE_SENSITIVE_2.txt` are created with mixed-case sentences.
+  **2. Command**:
+  `compute-wer --case-sensitive /test_data/ref_FILE_CASE_SENSITIVE_2.txt /test_data/hyp_FILE_CASE_SENSITIVE_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_1\nWER: [PERCENTAGE]% N=3 Cor=1 Sub=2 Del=0 Ins=1\nref:      THIS world IS\nhyp: test this world is\n\nutt: utt_3\nWER: [PERCENTAGE]% N=2 Cor=1 Sub=1 Del=0 Ins=1\nref:      SYSTEMS this\nhyp: this systems this\n\nutt: utt_5\nWER: [PERCENTAGE]% N=7 Cor=2 Sub=5 Del=0 Ins=0\nref: systems HELLO FOR RECOGNITION speech IS WORLD\nhyp: systems hello for recognition speech is world\n\nutt: utt_2\nWER: [PERCENTAGE]% N=9 Cor=5 Sub=4 Del=0 Ins=0\nref: a THIS SPEECH recognition world systems IS test FOR\nhyp: a this speech recognition world systems is test for\n\nutt: utt_4\nWER: [PERCENTAGE]% N=8 Cor=2 Sub=2 Del=0 Ins=0\nref: WORLD TEST hello A RECOGNITION FOR speech IS\nhyp: world test hello a for         for speech is\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=29 Cor=11 Sub=18 Del=0 Ins=2\nEnglish -> [PERCENTAGE]% N=29 Cor=11 Sub=18 Del=0 Ins=2\nSER -> [PERCENTAGE]% N=5 Cor=0 Err=5 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input files contain words with varying capitalization.
+  - Command Behavior Analysis: The `--case-sensitive` flag modifies the comparison logic. Words are only considered a match if they are identical in both content and case. For example, in `utt_1`, "THIS" in the reference and "this" in the hypothesis are treated as a substitution, not a match. The rest of the reporting logic is unchanged.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --remove-tag <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Computes WER after removing XML-style tags from the text.
+  - `--remove-tag` or `-rt`: A flag that instructs the tool to preprocess each line by removing any substrings that look like XML tags (e.g., `<tag>` or `</tag>`) before performing the comparison.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_REMOVE_TAG_0.txt` and `/test_data/hyp_FILE_REMOVE_TAG_0.txt` are created. The sentences are wrapped in `<noise>` tags or contain `<hesitation>` tags.
+  **2. Command**:
+  `compute-wer --remove-tag /test_data/ref_FILE_REMOVE_TAG_0.txt /test_data/hyp_FILE_REMOVE_TAG_0.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_3\nWER: [PERCENTAGE]% N=9 Cor=9 Sub=0 Del=0 Ins=1\nref: IS THIS WORLD SPEECH A TEST       SYSTEMS HELLO FOR\nhyp: IS THIS WORLD SPEECH A TEST WORLD SYSTEMS HELLO FOR\n\nutt: utt_1\nWER: [PERCENTAGE]% N=7 Cor=7 Sub=0 Del=0 Ins=0\nref: THIS WORLD HELLO FOR RECOGNITION A IS\nhyp: THIS WORLD HELLO FOR RECOGNITION A IS\n\nutt: utt_2\nWER: [PERCENTAGE]% N=5 Cor=5 Sub=0 Del=0 Ins=0\nref: HELLO THIS RECOGNITION FOR WORLD\nhyp: HELLO THIS RECOGNITION FOR WORLD\n\nutt: utt_5\nWER: [PERCENTAGE]% N=4 Cor=3 Sub=1 Del=0 Ins=0\nref: HELLO WORLD A THIS\nhyp: HELLO WORLD A TEST\n\nutt: utt_4\nWER: [PERCENTAGE]% N=4 Cor=4 Sub=0 Del=0 Ins=1\nref:      FOR THIS SPEECH IS\nhyp: TEST FOR THIS SPEECH IS\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=29 Cor=28 Sub=1 Del=0 Ins=2\nEnglish -> [PERCENTAGE]% N=29 Cor=28 Sub=1 Del=0 Ins=2\nSER -> [PERCENTAGE]% N=5 Cor=2 Err=3 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input files contain sentences with tags like `<noise>`, `</noise>`, and `<hesitation>`.
+  - Command Behavior Analysis: Because of `--remove-tag`, the tool first strips all tags from the reference and hypothesis strings. For example, `<noise> this world </noise>` becomes `this world`. The WER is then calculated on the cleaned text. The output report reflects the comparison of the tag-free text.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --align-to-hyp <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Aligns the output visualization to the hypothesis text.
+  - `--align-to-hyp`: A flag that changes the alignment strategy for the `ref`/`hyp` visualization. The default is to align to the reference.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_ALIGN_HYP_3.txt` and `/test_data/hyp_FILE_ALIGN_HYP_3.txt` are created.
+  **2. Command**:
+  `compute-wer --align-to-hyp /test_data/ref_FILE_ALIGN_HYP_3.txt /test_data/hyp_FILE_ALIGN_HYP_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_2\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=0 Del=1 Ins=0\nref: SPEECH SYSTEMS IS FOR A WORLD\nhyp: SPEECH SYSTEMS    FOR A WORLD\n\nutt: utt_3\nWER: [PERCENTAGE]% N=3 Cor=2 Sub=0 Del=1 Ins=0\nref: RECOGNITION HELLO WORLD\nhyp:             HELLO WORLD\n\nutt: utt_4\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=1 Del=0 Ins=0\nref: THIS FOR TEST SYSTEMS RECOGNITION HELLO\nhyp: THIS FOR TEST TEST    RECOGNITION HELLO\n\nutt: utt_1\nWER: [PERCENTAGE]% N=7 Cor=7 Sub=0 Del=0 Ins=1\nref: SPEECH IS     TEST A FOR RECOGNITION THIS\nhyp: SPEECH IS FOR TEST A FOR RECOGNITION THIS\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=22 Cor=19 Sub=1 Del=2 Ins=1\nEnglish -> [PERCENTAGE]% N=22 Cor=19 Sub=1 Del=2 Ins=1\nSER -> [PERCENTAGE]% N=4 Cor=0 Err=4 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two text files with reference and hypothesis data are present.
+  - Command Behavior Analysis: The `--align-to-hyp` flag alters how the alignment is displayed. For example, in `utt_2`, a word is deleted from the reference to match the hypothesis. This flag does not change the underlying WER, Sub, Del, Ins counts, only their visual representation in the alignment.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --ignore-file <ignore_file> <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Computes WER while ignoring a specified list of words.
+  - `--ignore-file` or `-ig`: A parameter that takes a file path. Words listed in this file (one per line) will be removed from both reference and hypothesis sentences before comparison.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Three files are created: `/test_data/ref_FILE_IGNORE_0.txt`, `/test_data/hyp_FILE_IGNORE_0.txt`, and an ignore file `/test_data/ignore_FILE_IGNORE_0.txt` with content:
+    ```
+    a
+    is
+    the
+    world
+    ```
+  **2. Command**:
+  `compute-wer --ignore-file /test_data/ignore_FILE_IGNORE_0.txt /test_data/ref_FILE_IGNORE_0.txt /test_data/hyp_FILE_IGNORE_0.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_1\nWER: [PERCENTAGE]% N=2 Cor=1 Sub=1 Del=0 Ins=0\nref: FOR   HELLO\nhyp: HELLO HELLO\n\nutt: utt_5\nWER: [PERCENTAGE]% N=7 Cor=6 Sub=0 Del=1 Ins=0\nref: THIS SYSTEMS TEST FOR SPEECH HELLO RECOGNITION\nhyp: THIS SYSTEMS TEST FOR        HELLO RECOGNITION\n\nutt: utt_2\nWER: [PERCENTAGE]% N=6 Cor=6 Sub=0 Del=0 Ins=1\nref:      SYSTEMS FOR HELLO RECOGNITION TEST SPEECH\nhyp: THIS SYSTEMS FOR HELLO RECOGNITION TEST SPEECH\n\nutt: utt_3\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=0 Del=1 Ins=0\nref: SYSTEMS RECOGNITION HELLO THIS FOR TEST\nhyp: SYSTEMS RECOGNITION HELLO      FOR TEST\n\nutt: utt_4\nWER: [PERCENTAGE]% N=3 Cor=3 Sub=0 Del=0 Ins=0\nref: RECOGNITION SPEECH THIS\nhyp: RECOGNITION SPEECH THIS\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=24 Cor=21 Sub=1 Del=2 Ins=1\nEnglish -> [PERCENTAGE]% N=24 Cor=21 Sub=1 Del=2 Ins=1\nSER -> [PERCENTAGE]% N=5 Cor=1 Err=4 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files and one ignore-list file are present.
+  - Command Behavior Analysis: The tool reads the ignore file and creates a set of words to ignore. Before comparing each pair of sentences, it removes all occurrences of these ignored words. For example, the original `ref` for `utt_1` is "is for hello a", but after removing "is" and "a", it becomes "for hello", which is what's used for the calculation and shown in the report.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --max-wer <float> <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Filters the output to include only utterances with a WER at or below a certain threshold.
+  - `--max-wer` or `-mw`: A parameter that takes a floating-point value (e.g., 0.5 for 50%). Only utterance-level results with a WER less than or equal to this value will be printed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_MAX_WER_1.txt` and `/test_data/hyp_FILE_MAX_WER_1.txt` are created.
+  **2. Command**:
+  `compute-wer --max-wer 0.81 /test_data/ref_FILE_MAX_WER_1.txt /test_data/hyp_FILE_MAX_WER_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_2\nWER: [PERCENTAGE]% N=3 Cor=3 Sub=0 Del=0 Ins=0\nref: HELLO IS RECOGNITION\nhyp: HELLO IS RECOGNITION\n\nutt: utt_4\nWER: [PERCENTAGE]% N=2 Cor=1 Sub=1 Del=0 Ins=0\nref: HELLO FOR\nhyp: WORLD FOR\n\nutt: utt_1\nWER: [PERCENTAGE]% N=8 Cor=7 Sub=1 Del=0 Ins=0\nref: SPEECH TEST SYSTEMS WORLD A IS THIS        HELLO\nhyp: SPEECH TEST SYSTEMS WORLD A IS RECOGNITION HELLO\n\nutt: utt_5\nWER: [PERCENTAGE]% N=9 Cor=9 Sub=0 Del=0 Ins=1\nref: A FOR IS HELLO     THIS SPEECH TEST SYSTEMS WORLD\nhyp: A FOR IS HELLO FOR THIS SPEECH TEST SYSTEMS WORLD\n\nutt: utt_3\nWER: [PERCENTAGE]% N=4 Cor=4 Sub=0 Del=0 Ins=0\nref: SYSTEMS THIS TEST A\nhyp: SYSTEMS THIS TEST A\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=26 Cor=24 Sub=2 Del=0 Ins=1\nEnglish -> [PERCENTAGE]% N=26 Cor=24 Sub=2 Del=0 Ins=1\nSER -> [PERCENTAGE]% N=5 Cor=2 Err=3 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files are present.
+  - Command Behavior Analysis: The tool calculates the WER for every utterance. After calculation, it checks if the WER is less than or equal to the value provided to `--max-wer` (0.81 in this case). If it is, the result for that utterance is printed. If not, it is omitted from the individual results. The final "Overall" summary should still be calculated based on all utterances, regardless of the filter. (Note: In this specific sample, all utterances have a WER <= 0.81, so all are printed. The filtering logic must still be implemented correctly).
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --sort utt <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Sorts the output report by utterance ID.
+  - `--sort` or `-s`: A parameter that specifies the sorting order for the per-utterance reports. `utt` sorts them alphanumerically by utterance ID.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_SORT_UTT_2.txt` and `/test_data/hyp_FILE_SORT_UTT_2.txt` are created.
+  **2. Command**:
+  `compute-wer --sort utt /test_data/ref_FILE_SORT_UTT_2.txt /test_data/hyp_FILE_SORT_UTT_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_1\nWER: [PERCENTAGE]% N=5 Cor=5 Sub=0 Del=0 Ins=0\nref: SPEECH IS SYSTEMS TEST WORLD\nhyp: SPEECH IS SYSTEMS TEST WORLD\n\nutt: utt_2\nWER: [PERCENTAGE]% N=7 Cor=7 Sub=0 Del=0 Ins=1\nref: FOR TEST         WORLD A SPEECH RECOGNITION SYSTEMS\nhyp: FOR TEST SYSTEMS WORLD A SPEECH RECOGNITION SYSTEMS\n\nutt: utt_3\nWER: [PERCENTAGE]% N=4 Cor=3 Sub=0 Del=1 Ins=0\nref: FOR TEST A RECOGNITION\nhyp: FOR      A RECOGNITION\n\nutt: utt_4\nWER: [PERCENTAGE]% N=9 Cor=8 Sub=1 Del=0 Ins=0\nref: TEST SYSTEMS WORLD A  IS THIS FOR RECOGNITION HELLO\nhyp: TEST SYSTEMS WORLD IS IS THIS FOR RECOGNITION HELLO\n\nutt: utt_5\nWER: [PERCENTAGE]% N=8 Cor=7 Sub=0 Del=1 Ins=0\nref: SYSTEMS HELLO RECOGNITION A THIS TEST IS SPEECH\nhyp: SYSTEMS HELLO RECOGNITION   THIS TEST IS SPEECH\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=33 Cor=30 Sub=1 Del=2 Ins=1\nEnglish -> [PERCENTAGE]% N=33 Cor=30 Sub=1 Del=2 Ins=1\nSER -> [PERCENTAGE]% N=5 Cor=1 Err=4 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files are present.
+  - Command Behavior Analysis: The tool first calculates the results for all utterances. Before printing, it sorts the collection of results based on the utterance ID in ascending order. The output clearly shows the reports for `utt_1`, `utt_2`, `utt_3`, `utt_4`, `utt_5` printed in that sequence.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --sort wer <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - Sorts the output report by Word Error Rate.
+  - `--sort` or `-s`: A parameter that specifies the sorting order. `wer` sorts the reports by their calculated WER value in ascending order.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_SORT_WER_1.txt` and `/test_data/hyp_FILE_SORT_WER_1.txt` are created.
+  **2. Command**:
+  `compute-wer --sort wer /test_data/ref_FILE_SORT_WER_1.txt /test_data/hyp_FILE_SORT_WER_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_1\nWER: [PERCENTAGE]% N=5 Cor=5 Sub=0 Del=0 Ins=0\nref: WORLD HELLO SPEECH SYSTEMS THIS\nhyp: WORLD HELLO SPEECH SYSTEMS THIS\n\nutt: utt_4\nWER: [PERCENTAGE]% N=2 Cor=2 Sub=0 Del=0 Ins=0\nref: SPEECH FOR\nhyp: SPEECH FOR\n\nutt: utt_3\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=0 Del=1 Ins=0\nref: IS RECOGNITION HELLO SYSTEMS A WORLD\nhyp: IS             HELLO SYSTEMS A WORLD\n\nutt: utt_2\nWER: [PERCENTAGE]% N=4 Cor=3 Sub=1 Del=0 Ins=0\nref: IS SPEECH WORLD A\nhyp: IS THIS   WORLD A\n\nutt: utt_5\nWER: [PERCENTAGE]% N=2 Cor=1 Sub=1 Del=0 Ins=0\nref: THIS        FOR\nhyp: RECOGNITION FOR\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=19 Cor=16 Sub=2 Del=1 Ins=0\nEnglish -> [PERCENTAGE]% N=19 Cor=16 Sub=2 Del=1 Ins=0\nSER -> [PERCENTAGE]% N=5 Cor=2 Err=3 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files are present.
+  - Command Behavior Analysis: The tool calculates results for all utterances. Before printing, it sorts the results based on the WER percentage in ascending order. The sample output shows results with 0% WER first, followed by results with progressively higher WER.
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --char --case-sensitive <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates the combination of multiple flags.
+  - `--char`: Use character-level comparison.
+  - `--case-sensitive`: Make the comparison case-sensitive.
+  - The tool should apply both modes simultaneously, performing a case-sensitive, character-level WER calculation.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_CHAR_CASE_SENSITIVE_3.txt` and `/test_data/hyp_FILE_CHAR_CASE_SENSITIVE_3.txt` are created.
+  **2. Command**:
+  `compute-wer --char --case-sensitive /test_data/ref_FILE_CHAR_CASE_SENSITIVE_3.txt /test_data/hyp_FILE_CHAR_CASE_SENSITIVE_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_3\nWER: [PERCENTAGE]% N=27 Cor=21 Sub=6 Del=0 Ins=6\nref:             t e s t W O R L D r e c o g n i t i o n s p e e c h A\nhyp: s p e e c h t e s t w o r l d r e c o g n i t i o n s p e e c h a\n\nutt: utt_5\nWER: [PERCENTAGE]% N=28 Cor=5 Sub=23 Del=0 Ins=1\nref:   S P E E C H R E C O G N I T I O N t h i s I S w o r l d\nhyp: s p e e c h r e c o g n i t i o n h e l l o i s w o r l d\n\nutt: utt_4\nWER: [PERCENTAGE]% N=21 Cor=9 Sub=12 Del=0 Ins=0\nref: S P E E C H H E L L O s y s t e m s A i s\nhyp: s p e e c h h e l l o s y s t e m s a i s\n\nutt: utt_1\nWER: [PERCENTAGE]% N=28 Cor=9 Sub=19 Del=0 Ins=2\nref: F O R S P E E C H A t h     i s h e l l o S Y S T E M S I S\nhyp: f o r s p e e c h a t h i s i s h e l l o s y s t e m s i s\n\nutt: utt_2\nWER: [PERCENTAGE]% N=35 Cor=26 Sub=9 Del=0 Ins=4\nref: T H I S T E S T s y s t e m s s p e e c   h       A f o r w o r l d h e l l o\nhyp: t h i s t e s t s y s t e m s s p e e c h h e l l o f o r w o r l d h e l l o\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=139 Cor=70 Sub=69 Del=0 Ins=13\nEnglish -> [PERCENTAGE]% N=139 Cor=70 Sub=69 Del=0 Ins=13\nSER -> [PERCENTAGE]% N=5 Cor=0 Err=5 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files with mixed-case text are present.
+  - Command Behavior Analysis: The tool applies both flags. The comparison is done character by character, and a character is only considered a match if it is the same letter in the same case (e.g., 'A' and 'a' are a substitution).
+  - Final State Changes (fs_diff): None.
+
+#### Command Category: `compute-wer --remove-tag --ignore-file <ignore_file> <ref_file> <hyp_file>`
+- **Function and Parameter Description**:
+  - This command demonstrates another combination of flags.
+  - `--remove-tag`: Remove XML-style tags before comparison.
+  - `--ignore-file`: Ignore words from the specified file.
+  - The tool should first remove tags, then remove ignored words, and finally compute the WER.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The files `/test_data/ref_FILE_REMOVE_TAG_IGNORE_2.txt`, `/test_data/hyp_FILE_REMOVE_TAG_IGNORE_2.txt`, and `/test_data/ignore_FILE_REMOVE_TAG_IGNORE_2.txt` are created.
+  **2. Command**:
+  `compute-wer --remove-tag --ignore-file /test_data/ignore_FILE_REMOVE_TAG_IGNORE_2.txt /test_data/ref_FILE_REMOVE_TAG_IGNORE_2.txt /test_data/hyp_FILE_REMOVE_TAG_IGNORE_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\nutt: utt_5\nWER: [PERCENTAGE]% N=5 Cor=5 Sub=0 Del=0 Ins=0\nref: FOR THIS TEST HELLO SYSTEMS\nhyp: FOR THIS TEST HELLO SYSTEMS\n\nutt: utt_4\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=1 Del=0 Ins=0\nref: THIS RECOGNITION TEST SPEECH HELLO FOR\nhyp: THIS RECOGNITION TEST TEST   HELLO FOR\n\nutt: utt_3\nWER: [PERCENTAGE]% N=6 Cor=5 Sub=0 Del=1 Ins=0\nref: TEST SPEECH FOR HELLO SYSTEMS THIS\nhyp: TEST SPEECH FOR HELLO         THIS\n\nutt: utt_1\nWER: [PERCENTAGE]% N=4 Cor=4 Sub=0 Del=0 Ins=0\nref: HELLO SPEECH THIS SYSTEMS\nhyp: HELLO SPEECH THIS SYSTEMS\n\nutt: utt_2\nWER: [PERCENTAGE]% N=1 Cor=1 Sub=0 Del=0 Ins=0\nref: FOR\nhyp: FOR\n\n===========================================================================\nOverall -> [PERCENTAGE]% N=22 Cor=20 Sub=1 Del=1 Ins=0\nEnglish -> [PERCENTAGE]% N=22 Cor=20 Sub=1 Del=1 Ins=0\nSER -> [PERCENTAGE]% N=5 Cor=3 Err=2 ML=0 MH=0\n===========================================================================\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two data files with tags and one ignore-list file are present.
+  - Command Behavior Analysis: The tool applies a sequence of preprocessing steps. First, it removes tags (like `<noise>`) from the sentences. Second, it removes any words found in the ignore file. Finally, it computes the standard word-level, case-insensitive WER on the doubly-cleaned text.
+  - Final State Changes (fs_diff): None.
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

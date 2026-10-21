@@ -1,0 +1,287 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: mol
+**Repository Name**: mol-cli
+**Core Functionality Description**:
+This project involves creating a command-line tool for a custom scripting language. The language is designed for data pipelines and features a special pipe operator `|>` for chaining operations. The CLI tool serves as an interpreter and a comprehensive toolchain for this language.
+
+Key functionalities include:
+- **Script Execution**: Running scripts from `.mol` files. A standout feature is the automatic tracing of multi-stage pipelines (3+ stages), which provides detailed, timed feedback on each step of the data flow. This tracing can be disabled with a flag.
+- **AST Parsing**: Parsing a script and displaying its Abstract Syntax Tree (AST) in a human-readable format.
+- **Transpilation**: Converting scripts into either Python or JavaScript code.
+- **Building Standalone Applications**: Compiling scripts into self-contained, runnable formats, including:
+    - A standalone HTML file with an embedded JS runtime for browser execution.
+    - A standalone JavaScript file.
+    - A Node.js module.
+- **Test Runner**: A built-in capability to discover and execute test blocks defined within the scripts.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `mol run <file.mol>`
+- **Function and Parameter Description**:
+  - `run <file.mol>`: This command executes a script from the specified `.mol` file.
+  - **Auto-Tracing**: If the script contains a pipeline using the `|>` operator with three or more stages, the tool must automatically print a detailed execution trace to `stdout` before the final result. The trace should show the input, each step, the type of the result at each step, and the time taken.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_run_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol run /test_data/fuzz_run_1.mol`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "  \u250c\u2500 Pipeline Trace \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2502 0.  input                   \u2500  Text(\"  a pipeline test  \")\n  \u2502 1.  trim                [TIME]ms  \u2192 Text(\"a pipeline test\")\n  \u2502 2.  upper               [TIME]ms  \u2192 Text(\"A PIPELINE TEST\")\n  \u2502 3.  split(..)           [TIME]ms  \u2192 List<3 strs>\n  \u2514\u2500 [N] steps \u00b7 [TIME] total \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n['A', 'PIPELINE', 'TEST']\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script file with a single line of code that performs a three-stage pipeline operation (trim, upper, split) on a string and displays the result.
+  - Command Behavior Analysis: The `mol run` command parses and executes the script. Because the pipeline has 3 stages (`trim`, `upper`, `split`), it first generates and prints a "Pipeline Trace". This trace visualizes the data transformation, starting from the initial string, through each function call, and showing the intermediate results. After the trace, it prints the final output of the `show` command, which is the Python representation of the resulting list.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `mol run <file.mol> --no-trace`
+- **Function and Parameter Description**:
+  - `run <file.mol>`: Executes a script from the specified `.mol` file.
+  - `--no-trace`: An optional flag that explicitly disables the automatic pipeline tracing, regardless of the number of stages in a pipeline.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_run_no_trace_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol run /test_data/fuzz_run_no_trace_1.mol --no-trace`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "['A', 'PIPELINE', 'TEST']\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the same pipeline script as the previous example.
+  - Command Behavior Analysis: The `mol run` command is executed with the `--no-trace` flag. The interpreter executes the script's pipeline but, due to the flag, it suppresses the "Pipeline Trace" output. It only prints the final result of the `show` command to `stdout`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `mol parse <file.mol>`
+- **Function and Parameter Description**:
+  - `parse <file.mol>`: This command parses the given script file and prints a human-readable, structured representation of its Abstract Syntax Tree (AST) to standard output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_parse_2.mol` is created with the following content:
+    ```
+    define add(a, b)
+      return a + b
+    end
+    show add(5, 10)
+    ```
+  **2. Command**:
+  `mol parse /test_data/fuzz_parse_2.mol`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Program \n  statements:\n    FuncDef name='add'\n      params:\n        ('a', None)\n        ('b', None)\n      body:\n        ReturnStmt \n          value:\n            BinaryOp op='+'\n              left:\n                VarRef name='a'\n              right:\n                VarRef name='b'\n    ShowStmt \n      value:\n        FuncCall name='add'\n          args:\n            NumberLiteral value=5\n            NumberLiteral value=10\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script that defines a function `add` and then calls it with two numbers.
+  - Command Behavior Analysis: The `mol parse` command reads the script, processes it through the language's parser, and generates an AST. It then traverses this AST and prints a formatted, indented string that represents the tree structure. The output clearly shows a `FuncDef` (function definition) node and a `ShowStmt` (show statement) node, with their respective properties and children, like parameters, body, and arguments.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `mol transpile <file.mol>`
+- **Function and Parameter Description**:
+  - `transpile <file.mol>`: This command transpiles a script file into another programming language and prints the result to `stdout`. By default, the target language is Python.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_transpile_py_3.mol` is created with the following content:
+    ```
+    test "addition" do
+      assert_eq(1 + 1, 2)
+    end
+    ```
+  **2. Command**:
+  `mol transpile /test_data/fuzz_transpile_py_3.mol`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "# Auto-generated from MOL\n# \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nfrom mol.types import Thought, Memory, Node, Stream\n\ndef test_addition():  # test \"addition\"\n    assert_eq((1 + 1), 2)\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script with a `test` block named "addition".
+  - Command Behavior Analysis: The `mol transpile` command (with no target specified) defaults to Python. It parses the script and converts the `test "addition" do ... end` block into a valid Python function `def test_addition(): ...`. The `assert_eq` call inside is translated directly. The output also includes a standard header comment and a line for importing types, even if they are not used in this specific snippet.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `mol transpile <file.mol> -t js`
+- **Function and Parameter Description**:
+  - `transpile <file.mol>`: Transpiles a script file.
+  - `-t js`: A flag to specify the target language for transpilation as JavaScript.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_transpile_js_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol transpile /test_data/fuzz_transpile_js_1.mol -t js`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "// Auto-generated from MOL\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nconsole.log((split(upper(trim(\"  a pipeline test  \")), \" \")));\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the pipeline script.
+  - Command Behavior Analysis: The `mol transpile` command with the `-t js` flag converts the script to JavaScript. The `|>` pipeline operator is "desugared" into nested function calls, so `A |> B(C)` becomes `B(A, C)`. The `show` command is translated to `console.log`. The final output is a single line of JavaScript code wrapped in `console.log`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `mol build <file.mol>`
+- **Function and Parameter Description**:
+  - `build <file.mol>`: This command compiles a script into a standalone, runnable application. By default, it generates an HTML file that can be run in a web browser.
+  - The output file is created in a `dist/` directory relative to the current working directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_build_html_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol build /test_data/fuzz_build_html_1.mol`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiling fuzz_build_html_1.mol \u2192 browser...\n  \u2713 dist/fuzz_build_html_1.html (22.3 KB)\n\n  Open in browser: file:///dist/fuzz_build_html_1.html\n  Or serve:        python3 -m http.server -d dist\n\nBuild complete.\n",
+    "fs_diff": {
+      "/dist/fuzz_build_html_1.html": {
+        "type": "ADD",
+        "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Fuzz Build Html 1 \u2014 MOL Program</title>\n  <style>\n    :root {\n      --bg: #0d1117; --fg: #e6edf3; --accent: #58a6ff;\n      --green: #3fb950; --yellow: #d29922; --red: #f85149;\n      --surface: #161b22; --border: #30363d;\n    }\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;\n      background: var(--bg); color: var(--fg);\n      display: flex; flex-direction: column; height: 100vh;\n    }\n... [omitted 50+ lines of CSS and HTML boilerplate] ...\n  </header>\n  <div id=\"console\"></div>\n  <footer>\n    <span>Compiled from MOL &middot; fuzz_build_html_1.mol</span>\n    <span id=\"timing\"></span>\n\n...[TRUNCATED]"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the pipeline script. The `dist/` directory does not exist.
+  - Command Behavior Analysis: The `mol build` command (with no target) defaults to building for the browser. It first prints a status message. It then creates the `dist/` directory. Inside, it generates an HTML file. This file contains a complete HTML structure, CSS for styling a console-like interface, and a large embedded JavaScript block which includes both a full runtime for the language's standard library and the transpiled code from the input script.
+  - Final State Changes (fs_diff): A new file `/dist/fuzz_build_html_1.html` is created. Its content is a full webpage designed to execute and display the output of the script.
+
+#### Command Category: `mol build <file.mol> --target js`
+- **Function and Parameter Description**:
+  - `build <file.mol>`: Compiles a script into a standalone application.
+  - `--target js`: A flag that specifies the build target as a single, standalone JavaScript file.
+  - The output file is created in the `dist/` directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_build_js_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol build /test_data/fuzz_build_js_1.mol --target js`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiling fuzz_build_js_1.mol \u2192 js...\n  \u2713 dist/fuzz_build_js_1.js (19.0 KB)\n\nBuild complete.\n",
+    "fs_diff": {
+      "/dist/fuzz_build_js_1.js": {
+        "type": "ADD",
+        "content": "// MOL Compiled Program\n// Generated by MOL v2.0.5 \u2014 fuzz_build_js_1.mol\n// Run in browser or Node.js\n\n(function() {\n  \"use strict\";\n\n  /**\n * MOL Runtime \u2014 JavaScript Standard Library\n * ==========================================\n... [omitted hundreds of lines of the JavaScript runtime] ...\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  //  Standard Library Functions\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n...[TRUNCATED]"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the pipeline script.
+  - Command Behavior Analysis: The `mol build` command with `--target js` transpiles the script to JavaScript and bundles it with the language's JavaScript runtime. It prints a status message to `stdout`.
+  - Final State Changes (fs_diff): A new file `/dist/fuzz_build_js_1.js` is created. This file contains a large, self-contained JavaScript runtime that implements all the standard library functions, followed by the specific code translated from the input `.mol` file.
+
+#### Command Category: `mol build <file.mol> --target node`
+- **Function and Parameter Description**:
+  - `build <file.mol>`: Compiles a script into a standalone application.
+  - `--target node`: A flag that specifies the build target as a Node.js executable module (`.mjs`).
+  - The output file is created in the `dist/` directory.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_build_node_1.mol` is created with the following content:
+    ```
+    show ("  a pipeline test  " |> trim |> upper |> split(" "))
+    ```
+  **2. Command**:
+  `mol build /test_data/fuzz_build_node_1.mol --target node`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "Compiling fuzz_build_node_1.mol \u2192 node...\n  \u2713 dist/fuzz_build_node_1.mjs (19.0 KB)\n\n  Run with:  node dist/fuzz_build_node_1.mjs\n\nBuild complete.\n",
+    "fs_diff": {
+      "/dist/fuzz_build_node_1.mjs": {
+        "type": "ADD",
+        "content": "#!/usr/bin/env node\n// MOL Compiled Program \u2014 Node.js target\n// Generated by MOL v2.0.5\n// Source: fuzz_build_node_1.mol\n\n/**\n * MOL Runtime \u2014 JavaScript Standard Library\n * ==========================================\n... [omitted hundreds of lines of the JavaScript runtime] ...\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  //  Standard Library Functions\n  // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n...[TRUNCATED]"
+      }
+    }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the pipeline script.
+  - Command Behavior Analysis: The `mol build` command with `--target node` creates a file suitable for execution with Node.js. It prints a status message to `stdout`, including instructions on how to run the generated file.
+  - Final State Changes (fs_diff): A new file `/dist/fuzz_build_node_1.mjs` is created. It is nearly identical to the `--target js` output but includes a `#!/usr/bin/env node` shebang at the top, making it directly executable in a Unix-like environment.
+
+#### Command Category: `mol test <file.mol>`
+- **Function and Parameter Description**:
+  - `test <file.mol>`: This command acts as a test runner. It scans the specified `.mol` file for `test "..." do ... end` blocks and executes them. It then prints a summary of the test results.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - A file named `/test_data/fuzz_test_3.mol` is created with the following content:
+    ```
+    test "addition" do
+      assert_eq(1 + 1, 2)
+    end
+    ```
+  **2. Command**:
+  `mol test /test_data/fuzz_test_3.mol`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\u25cf test_data/fuzz_test_3.mol\n  \u2713 addition\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Tests: 1 passed, 1 total\n  Time:  0.049s\n\nALL TESTS PASSED\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a script with one `test` block.
+  - Command Behavior Analysis: The `mol test` command identifies the `test` block in the file. It executes the code within the block, which includes an `assert_eq` call. Since the assertion passes, the tool prints a success message (`✓ addition`) under the file name. Finally, it prints a summary report showing the total number of tests passed and the total time taken.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

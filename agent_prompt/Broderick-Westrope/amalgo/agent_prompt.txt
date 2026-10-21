@@ -1,0 +1,263 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: amalgo
+Repository Name: amalgo
+Core Functionality Description:
+A command-line tool that creates consolidated snapshots (an amalgamation) of source code for analysis, documentation, and sharing with Large Language Models (LLMs). It gathers and organizes a codebase into a single, well-structured document. Core features include directory tree generation, code content dumping, flexible filtering using glob/gitignore patterns, language-specific outlines (specifically for Go), binary file handling, and support for both standard text and JSON output formats.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: amalgo <dir> --stdout
+- Function and Parameter Description:
+Analyzes the specified directory and outputs the consolidated snapshot to standard output.
+  - `<dir>`: The directory to analyze.
+  - `--stdout`: Redirects all output to standard output (terminal) instead of writing to a file.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations.
+Mounted files:
+  - `/test_data/src/file_0.log` (content: "giUlNgBj5kQfqazNHd25fs2P6JcplZYcPkjdsSIJBlCeNVHc1uYArrgJq5ylVUmtTdjjz9ZFEdWbmrC0fdpnOCCyccE2k0Yp8SdPN8HHsd57RtDYwK4JjtpuNviIfJh64k5i26ISS90ZfOolvsJuTsykyHtsDaNVqc3uu6PqwWTRMUt0JyFT2HdTBce5CIu")
+  - `/test_data/src/file_1.log` (content: "fdE63AwA1uby4xcsetgpSdHxI5M3sgAI9hWoC5Uy6xkFvYWab6zTprMLrmI94vdR5grHLoUh8uv4BdOzYwOGa7lvTmgo5tNrHNK0V3v2Ajoi2CeXyI3x3WRSA7oaWx7p3IX202MMmClD7fu0xSf5XxNWHjtRXhTcS62")
+  - `/test_data/file_2.txt` (content: "iDtJb8KGOBbkMCtTBb7zLKkTAvHT4FcoaTT6iczrLCjFQOyEUzErqwTOTqQjdhZ55R9Ks94ToR4jzw14cvga7LEmsAqDpZzkNokxLn7BlhlVdcz0eJJ1DV0wGBuc78VC3HeyyvXIneclbpjn8r7nK4IekFeQG8UmZcBaHPMh2wr0Xklk0E9XTb2MUTaKzmaYLx")
+  - `/test_data/empty_file.txt` (content: "")
+  - `/test_data/-tricky-name.sh` (content: "echo 'hello'")
+  - `/test_data/evil.txt` (content: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+2. Command:
+`amalgo /test_data --stdout`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:14:30\n\n## File Tree\n\n\u2514\u2500\u2500 test_data/\n    \u251c\u2500\u2500 -tricky-name.sh\n    \u251c\u2500\u2500 empty_file.txt\n    \u251c\u2500\u2500 evil.txt\n    \u251c\u2500\u2500 file_2.txt\n    \u2514\u2500\u2500 src/\n        \u251c\u2500\u2500 file_0.log\n        \u2514\u2500\u2500 file_1.log\n\n## File Contents\n\n--- Start File: test_data/-tricky-name.sh\necho 'hello'\n--- End File: test_data/-tricky-name.sh\n\n... [omitted similar file content blocks for empty_file.txt, evil.txt, file_2.txt, file_0.log, file_1.log] ...\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory `/test_data` exists with various text, log, and script files, including nested directories like `src/`.
+  - Command Behavior Analysis: The CLI scans the directory, generates an ASCII tree representation of the files, and then dumps the contents of each discovered file, wrapping them in `--- Start File: <path>` and `--- End File: <path>` markers. The output includes a timestamp header.
+  - Final State Changes (fs_diff): No file system changes occur (read-only operation).
+##### Command Category: amalgo <dir> --stdout --filter '<pattern>'
+- Function and Parameter Description:
+Analyzes the directory and filters files based on a provided glob pattern.
+  - `--filter`: Controls which files are processed using glob patterns.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files include various `.txt` and `.log` files in `/test_data` and subdirectories.
+2. Command:
+`amalgo /test_data --stdout --filter='hrm8i5p'`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:15:26\n\n## File Tree\n\n< no paths found >\n\n## File Contents\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Directory contains multiple files.
+  - Command Behavior Analysis: The CLI applies the filter `hrm8i5p`. Since no files match this pattern, the tree outputs `< no paths found >` and the file contents section is empty.
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --gitignore <file>
+- Function and Parameter Description:
+Uses a specific `.gitignore` formatted file to filter the output.
+  - `--gitignore`: Specifies `.gitignore` files to use for filtering.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files include an ignore file `/test_data/0ijYGde.ignore` containing `*.log\n/dist\n`.
+2. Command:
+`amalgo /test_data --stdout --gitignore=/test_data/0ijYGde.ignore`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:18:23\n\n## File Tree\n\n\u2514\u2500\u2500 test_data/\n    \u251c\u2500\u2500 -tricky-name.sh\n    \u251c\u2500\u2500 0ijYGde.ignore\n... [omitted tree details, noting that .log files are excluded from the tree and contents] ...\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Directory contains an ignore file and several `.log` and `.md` files.
+  - Command Behavior Analysis: The CLI parses the provided ignore file and excludes any files matching its patterns (e.g., all `.log` files are omitted from the output).
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --no-tree
+- Function and Parameter Description:
+Skips the file tree generation.
+  - `--no-tree`: Skips the inclusion of the file tree in the output.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files in `/test_data`.
+2. Command:
+`amalgo /test_data --stdout --no-tree`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:23:35\n\n## File Contents\n\n--- Start File: test_data/-tricky-name.sh\n... [omitted file contents] ...\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard directory structure.
+  - Command Behavior Analysis: The CLI omits the `## File Tree` section entirely and only outputs the `## File Contents` section.
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --no-dump
+- Function and Parameter Description:
+Skips dumping file contents.
+  - `--no-dump`: Skips the inclusion of file contents in the output.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files in `/test_data`.
+2. Command:
+`amalgo /test_data --stdout --no-dump`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:25:13\n\n## File Tree\n\n\u2514\u2500\u2500 test_data/\n... [omitted tree details] ...\n\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard directory structure.
+  - Command Behavior Analysis: The CLI outputs the file tree but completely omits the `## File Contents` section.
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --outline
+- Function and Parameter Description:
+Includes a language-aware outline of code files (e.g., Go functions).
+  - `--outline`: Includes structural outlines for supported languages (Go).
+- Execution Context and Sample:
+1. Preparation:
+Mounted files include Go source files (`main.go`, `utils/helpers.go`) with functions.
+2. Command:
+`amalgo /test_data --stdout --outline`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:28:29\n\n## File Tree\n... [omitted tree] ...\n\n## Language-Specific Outlines\n\n### File: test_data/main.go\n\nFUNCTION: main (func main())\n\n### File: test_data/utils/helpers.go\n\nFUNCTION: Helper (func Helper())\n  Documentation:\n    Helper does things\n\n## File Contents\n... [omitted contents] ...\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Directory contains `.go` files with functions and comments.
+  - Command Behavior Analysis: The CLI parses the Go files using the `go/ast` or similar package, extracts function signatures and doc comments, and inserts a `## Language-Specific Outlines` section before the file contents.
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --no-tree --no-dump
+- Function and Parameter Description:
+Attempts to run with no output sections enabled.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files in `/test_data`.
+2. Command:
+`amalgo /test_data --stdout --no-tree --no-dump`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "An empty output is not allowed (no dump, no tree, and no outline).\n",
+  "stderr": "",
+  "fs_diff": {
+    "/test_data/evil.txt": {
+      "type": "MOD",
+      "content": "\n"
+    }
+  }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard directory.
+  - Command Behavior Analysis: The CLI detects that all major output sections are disabled. It prints an error message to stdout: "An empty output is not allowed (no dump, no tree, and no outline)."
+  - Final State Changes (fs_diff): Note the minor modification in `evil.txt` (likely an artifact of the test environment, but ensure the CLI handles the validation logic correctly).
+##### Command Category: amalgo <dir> --stdout --include-binary
+- Function and Parameter Description:
+Processes binary files instead of skipping them.
+  - `--include-binary`: Processes binary files.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files include a binary file `app.bin`.
+2. Command:
+`amalgo /test_data --stdout --include-binary`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "## Generated with Amalgo at: 2026-03-17 05:36:28\n\n## File Tree\n... [omitted tree] ...\n\n## File Contents\n\n... [omitted text files] ...\n--- Start File: test_data/app.bin\n\u00b3\u00ac\u00ae\u00c5\u00ec\u0096\u008a... [omitted binary content] ...\n--- End File: test_data/app.bin\n... [omitted text files] ...\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Directory contains a binary file.
+  - Command Behavior Analysis: By default, binary files might be skipped, but with this flag, the CLI reads and dumps the raw bytes of the binary file into the output stream.
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --format json
+- Function and Parameter Description:
+Outputs the snapshot in JSON format.
+  - `--format`: Selects the output format (`default` or `json`).
+- Execution Context and Sample:
+1. Preparation:
+Mounted files in `/test_data`.
+2. Command:
+`amalgo /test_data --stdout --format=json`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "{\n  \"timestamp\": \"2026-03-17 05:36:49\",\n  \"tree\": \"\u2514\u2500\u2500 test_data/\\n    \u251c\u2500\u2500 file_1.log\\n    \u2514\u2500\u2500 docs/\\n        \u2514\u2500\u2500 guides/\\n            \u251c\u2500\u2500 file_0.txt\\n            \u2514\u2500\u2500 file_2.md\\n\",\n  \"files\": [\n    {\n      \"path\": \"test_data/docs/guides/file_0.txt\",\n      \"content\": \"wAUNPwOLJfbDvaY3xIsA3aPKt69p8IVQCEHa4MyB6b5dT6TkEjUvcjTFymxA2BoxuzcpMr7hl28UW0ysN8DqvgMz5yQV8EiM6TyPUHjSnGxmumYwI4pvRzPFX0pdaTBU3eRv6rlmv\"\n    },\n... [omitted other files] ...\n  ]\n}\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Standard directory.
+  - Command Behavior Analysis: The CLI structures the output as a JSON object containing `timestamp`, `tree` (as a single string with newlines), and an array of `files` objects (each with `path` and `content`).
+  - Final State Changes (fs_diff): None.
+##### Command Category: amalgo <dir> --stdout --format json --outline
+- Function and Parameter Description:
+Outputs the snapshot in JSON format, including language outlines.
+- Execution Context and Sample:
+1. Preparation:
+Mounted files include Go source files.
+2. Command:
+`amalgo /test_data --stdout --outline --format=json`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "{\n  \"timestamp\": \"2026-03-17 05:39:45\",\n  \"tree\": \"... [omitted tree string] ...\",\n  \"files\": [\n... [omitted files array] ...\n  ],\n  \"outlines\": [\n    {\n      \"path\": \"test_data/main.go\",\n      \"symbols\": [\n        {\n          \"type\": \"function\",\n          \"name\": \"main\",\n          \"signature\": \"func main()\",\n          \"metadata\": null\n        }\n      ]\n    },\n    {\n      \"path\": \"test_data/utils/helpers.go\",\n      \"symbols\": [\n        {\n          \"type\": \"function\",\n          \"name\": \"Helper\",\n          \"signature\": \"func Helper()\",\n          \"documentation\": \"Helper does things\\n\",\n          \"metadata\": null\n        }\n      ]\n    }\n  ]\n}\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Directory contains Go files.
+  - Command Behavior Analysis: The JSON output includes an additional `outlines` array. Each item maps a file path to an array of `symbols` (functions, with name, signature, and optional documentation).
+  - Final State Changes (fs_diff): None.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,403 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: debx
+**Repository Name**: debx
+**Core Functionality Description**:
+This project involves creating a command-line tool for working with Debian package files (.deb). The tool needs to provide functionalities for:
+1.  **Packing**: Assembling files and directories into a .deb package, with support for specifying control information and data files, including their paths and permissions within the package.
+2.  **Unpacking**: Extracting the contents of a .deb package into a local directory.
+3.  **Inspecting**: Displaying the contents of a .deb package in various formats, including a human-readable list (ls-style), JSON, CSV, and a simple file path list.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `debx inspect <package.deb>`
+- **Function and Parameter Description**:
+  The `inspect` command is used to view the contents of a Debian package. When run without any format options, it displays a human-readable, `ls -lah` style listing of all files and directories within the package's internal archives.
+  - `<package.deb>`: The path to the `.deb` file to be inspected.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to create a test Debian package. It first creates a control file (`/test_data/prep_data/control`) and a data file (`/test_data/prep_data/datafile`), then uses the `debx pack` command to assemble them into `/test_data/test.deb`.
+  **2. Command**:
+  `debx inspect /test_data/test.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Hint: probably you trying process this output. Please see the output formats for better results.\ntotal 1\n-rw-r--r--  0 0  228B [TIMESTAMP] control.tar.gz\n-rw-r--r--  0 0   46B [TIMESTAMP] control.tar.gz/md5sums\n-rw-r--r--  0 0   84B [TIMESTAMP] control.tar.gz/control\n-rw-r--r--  0 0  158B [TIMESTAMP] data.tar.bz2\ndrwxr-xr-x  0 0    0B [TIMESTAMP] data.tar.bz2/usr\ndrwxr-xr-x  0 0    0B [TIMESTAMP] data.tar.bz2/usr/bin\n-rw-r--r--  0 0   12B [TIMESTAMP] data.tar.bz2/usr/bin/app\n-rw-r--r--  0 0    4B [TIMESTAMP] debian-binary\n",
+      "fs_diff": {
+          "/test_data/prep_data/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/prep_data/datafile": {
+              "type": "ADD",
+              "content": "hello world\n"
+          },
+          "/test_data/test.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Before the command, a valid `.deb` file named `test.deb` exists in the `/test_data` directory. This file was created by the tool itself, containing a simple control file and a single data file.
+  - Command Behavior Analysis: The `debx inspect` command reads the specified `test.deb` file. It parses the outer `ar` archive format to identify the main components (`debian-binary`, `control.tar.gz`, `data.tar.bz2`). It then reads the metadata (permissions, owner, size, timestamp) and contents of these components and the files within the inner tarballs. The output is formatted to mimic the `ls -l` command, showing details for each file and directory inside the package. The timestamp in the output should be replaced with a placeholder like `[TIMESTAMP]`.
+  - Final State Changes (fs_diff): The command is read-only. It inspects the file but does not cause any changes to the filesystem. The `fs_diff` only reflects the files created during the preparation phase.
+
+#### Command Category: `debx inspect --format=json <package.deb>`
+- **Function and Parameter Description**:
+  This command inspects a `.deb` package and outputs its contents as a structured JSON array.
+  - `--format=json`: A flag that specifies the output format should be JSON.
+  - `<package.deb>`: The path to the `.deb` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to create a test Debian package `/test_data/test.deb` using the `debx pack` command.
+  **2. Command**:
+  `debx inspect --format=json /test_data/test.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "[\n {\n  \"file\": \"debian-binary\",\n  \"size\": 4,\n  \"type\": \"regular\",\n  \"mode\": 33188,\n  \"uid\": 0,\n  \"gid\": 0,\n  \"mtime\": 0,\n  \"md5\": \"[MD5_HASH]\",\n  \"path\": null\n },\n ... [omitted 7 similar JSON objects] ...\n {\n  \"file\": \"data.tar.bz2\",\n  \"size\": 12,\n  \"type\": \"regular\",\n  \"mode\": 420,\n  \"uid\": 0,\n  \"gid\": 0,\n  \"mtime\": 0,\n  \"path\": \"usr/bin/app\",\n  \"md5\": \"[MD5_HASH]\"\n }\n]\n",
+      "fs_diff": {
+          "/test_data/prep_data/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/prep_data/datafile": {
+              "type": "ADD",
+              "content": "hello world\n"
+          },
+          "/test_data/test.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists at `/test_data/test.deb`.
+  - Command Behavior Analysis: The tool performs the same internal parsing as the default `inspect` command. However, instead of formatting the output as a human-readable list, it constructs a JSON object for each file/directory. Each object contains keys like `file`, `size`, `type`, `mode`, `uid`, `gid`, `mtime`, `md5`, and `path`. The entire collection of objects is then serialized into a JSON array and printed to standard output. Note that `mtime` should be set to 0 and `md5` should be a placeholder string `[MD5_HASH]` for consistency.
+  - Final State Changes (fs_diff): This is a read-only operation; no filesystem changes occur.
+
+#### Command Category: `debx inspect --format=csv <package.deb>`
+- **Function and Parameter Description**:
+  This command inspects a `.deb` package and outputs its contents in Comma-Separated Values (CSV) format.
+  - `--format=csv`: A flag that specifies the output format should be CSV.
+  - `<package.deb>`: The path to the `.deb` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to create a test Debian package `/test_data/test.deb` using the `debx pack` command.
+  **2. Command**:
+  `debx inspect --format=csv /test_data/test.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "file,size,type,mode,uid,gid,mtime,md5,path\r\ndebian-binary,4,regular,33188,0,0,1773730451,3cf918272ffa5de195752d73f3da3e5e,\r\ncontrol.tar.gz,231,regular,33188,0,0,1773730451,4e7798ab0855b55eb8a69ec5c6756c9e,\r\ncontrol.tar.gz,46,regular,420,0,0,1773730451,md5sums,\r\ncontrol.tar.gz,84,regular,420,0,0,1773730450,control,\r\ndata.tar.bz2,156,regular,33188,0,0,1773730451,,\r\ndata.tar.bz2,0,directory,493,0,0,1773730451,usr,\r\ndata.tar.bz2,0,directory,493,0,0,1773730451,usr/bin,\r\ndata.tar.bz2,12,regular,420,0,0,1773730450,usr/bin/app,6f5902ac237024bdd0c176cb93063dc4\r\n",
+      "fs_diff": {
+          "/test_data/test.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          },
+          "/test_data/prep_data/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/prep_data/datafile": {
+              "type": "ADD",
+              "content": "hello world\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists at `/test_data/test.deb`.
+  - Command Behavior Analysis: The tool parses the package as before. It then generates a CSV output. The first line is a header row: `file,size,type,mode,uid,gid,mtime,md5,path`. Each subsequent line represents a file or directory from the package, with its attributes placed in the corresponding columns. The line endings must be `\r\n`.
+  - Final State Changes (fs_diff): This is a read-only operation; no filesystem changes occur.
+
+#### Command Category: `debx inspect --format=find <package.deb>`
+- **Function and Parameter Description**:
+  This command inspects a `.deb` package and outputs only the paths of the files and directories contained within, one per line.
+  - `--format=find`: A flag that specifies the output format should be a simple path list.
+  - `<package.deb>`: The path to the `.deb` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to create a test Debian package `/test_data/test.deb` using the `debx pack` command.
+  **2. Command**:
+  `debx inspect --format=find /test_data/test.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "debian-binary\ncontrol.tar.gz\ncontrol.tar.gz/md5sums\ncontrol.tar.gz/control\ndata.tar.bz2\ndata.tar.bz2/usr\ndata.tar.bz2/usr/bin\ndata.tar.bz2/usr/bin/app\n",
+      "fs_diff": {
+          "/test_data/prep_data/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/prep_data/datafile": {
+              "type": "ADD",
+              "content": "hello world\n"
+          },
+          "/test_data/test.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists at `/test_data/test.deb`.
+  - Command Behavior Analysis: The tool parses the package as before. For each entry found in the `ar` archive and the inner tarballs, it prints its path to standard output, followed by a newline character.
+  - Final State Changes (fs_diff): This is a read-only operation; no filesystem changes occur.
+
+#### Command Category: `debx unpack <package.deb>`
+- **Function and Parameter Description**:
+  The `unpack` command extracts the contents of a Debian package. By default, it creates a new directory named after the package (without the `.deb` extension) in the current working directory and extracts the contents into it.
+  - `<package.deb>`: The path to the `.deb` file to be unpacked.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script is executed to create a test Debian package `/test_data/test.deb`.
+  **2. Command**:
+  `debx unpack /test_data/test.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Unpacking /test_data/test/debian-binary\nUnpacking /test_data/test/control.tar.gz\nUnpacking /test_data/test/data.tar.bz2\nUnpacking control.tar.gz -> /test_data/test/control\nExtracting /test_data/test/control/md5sums\nExtracting /test_data/test/control/control\nRemoving packed control.tar.gz\nUnpacking data.tar.bz2 -> /test_data/test/data\nExtracting /test_data/test/data/usr\nExtracting /test_data/test/data/usr/bin\nExtracting /test_data/test/data/usr/bin/app\nExtracting /test_data/test/data/usr/bin\nExtracting /test_data/test/data/usr\nRemoving packed data.tar.bz2\n",
+      "fs_diff": {
+          "/test_data/test/data/usr/bin/app": {
+              "type": "ADD",
+              "content": "hello world\n"
+          },
+          "/test_data/test/debian-binary": {
+              "type": "ADD",
+              "content": "2.0\n"
+          },
+          "/test_data/test/control/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/test/control/md5sums": {
+              "type": "ADD",
+              "content": "6f5902ac237024bdd0c176cb93063dc4  usr/bin/app\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists. The target directory `/test_data/test` does not exist.
+  - Command Behavior Analysis: The tool first determines the output directory, which by default is the input filename minus `.deb` (i.e., `/test_data/test`). It creates this directory. It then reads the `test.deb` `ar` archive and extracts the `debian-binary`, `control.tar.gz`, and `data.tar.bz2` files into the output directory. Next, it extracts the contents of `control.tar.gz` into a subdirectory named `control` and the contents of `data.tar.bz2` into a subdirectory named `data`. Finally, it deletes the intermediate `control.tar.gz` and `data.tar.bz2` files from the output directory.
+  - Final State Changes (fs_diff): A new directory `/test_data/test` is created. Inside it are the `debian-binary` file and two subdirectories, `control` and `data`, containing the fully extracted package contents.
+
+#### Command Category: `debx unpack <package.deb> -d <dir>`
+- **Function and Parameter Description**:
+  This command unpacks a `.deb` file into a specified directory.
+  - `-d <dir>`: Specifies the target directory for extraction.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script creates a test Debian package `/test_data/test.deb`.
+  **2. Command**:
+  `debx unpack /test_data/test.deb -d /test_data/unpack_dir`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Unpacking /test_data/unpack_dir/debian-binary\nUnpacking /test_data/unpack_dir/control.tar.gz\nUnpacking /test_data/unpack_dir/data.tar.bz2\nUnpacking control.tar.gz -> /test_data/unpack_dir/control\nExtracting /test_data/unpack_dir/control/md5sums\nExtracting /test_data/unpack_dir/control/control\nRemoving packed control.tar.gz\nUnpacking data.tar.bz2 -> /test_data/unpack_dir/data\nExtracting /test_data/unpack_dir/data/usr\nExtracting /test_data/unpack_dir/data/usr/bin\nExtracting /test_data/unpack_dir/data/usr/bin/app\nExtracting /test_data/unpack_dir/data/usr/bin\nExtracting /test_data/unpack_dir/data/usr\nRemoving packed data.tar.bz2\n",
+      "fs_diff": {
+          "/test_data/unpack_dir/control/control": {
+              "type": "ADD",
+              "content": "Package: prep-pkg\nVersion: 1.0\nArchitecture: all\nMaintainer: test\nDescription: test\n"
+          },
+          "/test_data/unpack_dir/control/md5sums": {
+              "type": "ADD",
+              "content": "6f5902ac237024bdd0c176cb93063dc4  usr/bin/app\n"
+          },
+          "/test_data/unpack_dir/data/usr/bin/app": {
+              "type": "ADD",
+              "content": "hello world\n"
+          },
+          "/test_data/unpack_dir/debian-binary": {
+              "type": "ADD",
+              "content": "2.0\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists. The target directory `/test_data/unpack_dir` does not exist.
+  - Command Behavior Analysis: The logic is identical to the default `unpack`, but all extraction operations are performed inside the user-specified directory `/test_data/unpack_dir`.
+  - Final State Changes (fs_diff): A new directory `/test_data/unpack_dir` is created and populated with the extracted package contents.
+
+#### Command Category: `debx unpack <package.deb> --keep-archives`
+- **Function and Parameter Description**:
+  This command unpacks a `.deb` file but preserves the intermediate `control.tar.gz` and `data.tar.bz2` archives in the output directory.
+  - `--keep-archives`: A flag to prevent the deletion of the intermediate tar archives after extraction.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script creates a test Debian package `/test_data/test.deb`.
+  **2. Command**:
+  `debx unpack /test_data/test.deb --keep-archives`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Unpacking /test_data/test/debian-binary\nUnpacking /test_data/test/control.tar.gz\nUnpacking /test_data/test/data.tar.bz2\nUnpacking control.tar.gz -> /test_data/test/control\nExtracting /test_data/test/control/md5sums\nExtracting /test_data/test/control/control\nUnpacking data.tar.bz2 -> /test_data/test/data\nExtracting /test_data/test/data/usr\nExtracting /test_data/test/data/usr/bin\nExtracting /test_data/test/data/usr/bin/app\nExtracting /test_data/test/data/usr/bin\nExtracting /test_data/test/data/usr\n",
+      "fs_diff": {
+          "/test_data/test/control/control": { "type": "ADD", "content": "..." },
+          "/test_data/test/control/md5sums": { "type": "ADD", "content": "..." },
+          "/test_data/test/control.tar.gz": { "type": "ADD", "content": "... [omitted binary content] ..." },
+          "/test_data/test/data/usr/bin/app": { "type": "ADD", "content": "hello world\n" },
+          "/test_data/test/data.tar.bz2": { "type": "ADD", "content": "... [omitted binary content] ..." },
+          "/test_data/test/debian-binary": { "type": "ADD", "content": "2.0\n" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists.
+  - Command Behavior Analysis: The tool performs the same extraction steps as the default `unpack`. However, due to the `--keep-archives` flag, it skips the final step of deleting the `control.tar.gz` and `data.tar.bz2` files.
+  - Final State Changes (fs_diff): The output directory `/test_data/test` contains the extracted `control` and `data` subdirectories, the `debian-binary` file, AND the `control.tar.gz` and `data.tar.bz2` archives.
+
+#### Command Category: `debx unpack <package.deb> -d <dir> --keep-archives`
+- **Function and Parameter Description**:
+  This command combines the functionality of specifying an output directory and keeping the intermediate archives.
+  - `-d <dir>`: Specifies the target directory.
+  - `--keep-archives`: Prevents deletion of intermediate archives.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A script creates a test Debian package `/test_data/test.deb`.
+  **2. Command**:
+  `debx unpack /test_data/test.deb -d /test_data/unpack_dir_keep --keep-archives`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Unpacking /test_data/unpack_dir_keep/debian-binary\nUnpacking /test_data/unpack_dir_keep/control.tar.gz\nUnpacking /test_data/unpack_dir_keep/data.tar.bz2\nUnpacking control.tar.gz -> /test_data/unpack_dir_keep/control\nExtracting /test_data/unpack_dir_keep/control/md5sums\nExtracting /test_data/unpack_dir_keep/control/control\nUnpacking data.tar.bz2 -> /test_data/unpack_dir_keep/data\nExtracting /test_data/unpack_dir_keep/data/usr\nExtracting /test_data/unpack_dir_keep/data/usr/bin\nExtracting /test_data/unpack_dir_keep/data/usr/bin/app\nExtracting /test_data/unpack_dir_keep/data/usr/bin\nExtracting /test_data/unpack_dir_keep/data/usr\n",
+      "fs_diff": {
+          "/test_data/unpack_dir_keep/control/control": { "type": "ADD", "content": "..." },
+          "/test_data/unpack_dir_keep/control/md5sums": { "type": "ADD", "content": "..." },
+          "/test_data/unpack_dir_keep/control.tar.gz": { "type": "ADD", "content": "... [omitted binary content] ..." },
+          "/test_data/unpack_dir_keep/data/usr/bin/app": { "type": "ADD", "content": "hello world\n" },
+          "/test_data/unpack_dir_keep/data.tar.bz2": { "type": "ADD", "content": "... [omitted binary content] ..." },
+          "/test_data/unpack_dir_keep/debian-binary": { "type": "ADD", "content": "2.0\n" }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A `test.deb` file exists.
+  - Command Behavior Analysis: The tool extracts the package contents to the specified directory `/test_data/unpack_dir_keep` and leaves the intermediate `control.tar.gz` and `data.tar.bz2` files intact within that directory.
+  - Final State Changes (fs_diff): The specified directory `/test_data/unpack_dir_keep` is created and contains the full extracted content, including the intermediate archives.
+
+#### Command Category: `debx pack --control <file>:/control --data <file>:/path/file -o <output.deb>`
+- **Function and Parameter Description**:
+  The `pack` command assembles files into a Debian package.
+  - `--control <src>:<dest>`: Specifies a control file. `<src>` is the local file path, and `<dest>` is the path within the `control.tar.gz` archive (e.g., `/control`).
+  - `--data <src>:<dest>`: Specifies a data file. `<src>` is the local file path, and `<dest>` is the absolute path within the `data.tar.bz2` archive.
+  - `-o <output.deb>`: Specifies the path for the output `.deb` file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are mounted in the `/test_data` directory:
+  - `/test_data/control_PACK_BASIC_2`: A text file containing package metadata.
+  - `/test_data/data_2.txt`: A text file to be included as data.
+  **2. Command**:
+  `debx pack --control /test_data/control_PACK_BASIC_2:/control --data /test_data/data_2.txt:/usr/share/doc/pkg_2/file.txt -o /test_data/output_PACK_BASIC_2.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Adding control file: /control\nAdding data file: /usr/share/doc/pkg_2/file.txt\n",
+      "fs_diff": {
+          "/test_data/output_PACK_BASIC_2.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two source files, one for control metadata and one for data, exist on the filesystem.
+  - Command Behavior Analysis: The tool reads the source files specified by `--control` and `--data`. It creates a `control.tar.gz` archive containing the content of `control_PACK_BASIC_2` at the path `control`. It creates a `data.tar.bz2` archive containing the content of `data_2.txt` at the path `usr/share/doc/pkg_2/file.txt`. It also generates a `debian-binary` file with the content `2.0\n`. Finally, it combines these three components into a standard `ar` archive named `output_PACK_BASIC_2.deb`.
+  - Final State Changes (fs_diff): A new Debian package file is created at the specified output path.
+
+#### Command Category: `debx pack --control <file>:/control --data <file>:/path/file:mode=<mode> -o <output.deb>`
+- **Function and Parameter Description**:
+  This demonstrates using modifiers with the `--data` option to set file attributes within the package.
+  - `--data <src>:<dest>:<modifiers>`: The modifiers are a comma-separated list of key-value pairs. This sample uses `mode`, `uid`, and `gid`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are mounted:
+  - `/test_data/control_PACK_MODIFIERS_4`: Control metadata file.
+  - `/test_data/data_4.bin`: Data file.
+  **2. Command**:
+  `debx pack --control /test_data/control_PACK_MODIFIERS_4:/control --data /test_data/data_4.bin:/usr/bin/app_4:mode=0755,uid=101,gid=905 -o /test_data/output_PACK_MODIFIERS_4.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Adding control file: /control\nAdding data file: /usr/bin/app_4\n",
+      "fs_diff": {
+          "/test_data/output_PACK_MODIFIERS_4.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Source control and data files exist.
+  - Command Behavior Analysis: The packing process is the same as the basic `pack` command, but with a crucial addition: the tool must parse the modifiers string (`mode=0755,uid=101,gid=905`). When creating the `data.tar.bz2` archive, it must use these parsed values to set the file permissions (mode), user ID (uid), and group ID (gid) for the `usr/bin/app_4` entry in the tar header.
+  - Final State Changes (fs_diff): A new `.deb` file is created, with the specified file attributes embedded in its internal data archive.
+
+#### Command Category: `debx pack --control <file>:/control --data <f1>:/p1 --data <f2>:/p2 -o <output.deb>`
+- **Function and Parameter Description**:
+  This demonstrates the ability to include multiple data files in a single package by using the `--data` option multiple times.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are mounted:
+  - `/test_data/control_PACK_MULTIPLE_2`: Control metadata file.
+  - `/test_data/data_2_1.txt`: First data file.
+  - `/test_data/data_2_2.log`: Second data file.
+  **2. Command**:
+  `debx pack --control /test_data/control_PACK_MULTIPLE_2:/control --data /test_data/data_2_1.txt:/etc/app_2/conf.txt --data /test_data/data_2_2.log:/var/log/app_2.log -o /test_data/output_PACK_MULTIPLE_2.deb`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Adding control file: /control\nAdding data file: /var/log/app_2.log\n",
+      "fs_diff": {
+          "/test_data/output_PACK_MULTIPLE_2.deb": {
+              "type": "ADD",
+              "content": "!<arch>\ndebian-binary   ... [omitted binary content] ..."
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A control file and two separate data files exist.
+  - Command Behavior Analysis: The tool must be able to handle multiple occurrences of the `--data` argument. It collects all specified data files. When creating the `data.tar.bz2` archive, it adds both `/test_data/data_2_1.txt` (as `/etc/app_2/conf.txt`) and `/test_data/data_2_2.log` (as `/var/log/app_2.log`) to the same archive. The rest of the packing process is standard. Note that the stdout only logs the last data file added, which is an acceptable behavior to replicate.
+  - Final State Changes (fs_diff): A single `.deb` file is created containing both data files in its data archive.
+
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,310 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: fmt
+**Repository Name**: fmt
+**Core Functionality Description**:
+This project involves creating a CLI tool named `fmt` that reformats text from files and writes the result to standard output. Based on the provided examples, the tool's primary function is to read a file and reformat its paragraphs. A key observed behavior is splitting long lines into shorter ones to fit a specified or default width, especially when the `-s` (split-only) flag is used. The tool accepts various flags to control the formatting logic, such as setting line width (`-w`), handling prefixes (`-p`), and managing spacing (`-u`). For many of the provided inputs, which consist of long, unbroken strings of characters, the tool outputs the content without modification, suggesting that reformatting is primarily applied to text containing spaces or break opportunities.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `fmt <file>`
+- **Function and Parameter Description**:
+  This is the most basic usage. The tool reads content from a specified file and prints it to standard output. By default, it should reformat paragraphs.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_basic_3.txt` is created with several paragraphs of random text.
+  **2. Command**:
+  `fmt  /test_data/fuzz_input_basic_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "6hYs6q0NENXKzQIoydo3MlmDruorJtE6gEbY5BKjq6mPgI4DX0WQFJwkktFP2PyMTE3DZghvmQFZR5g4hdieHsQnv91edU9wYTTRkxNfDlKMWYpPT7COD6PczeeDjWk\n\n1JgHtOlkiRMA4EhzwGeRXGwO4ohmqHGCUxu8tMaJpEZlmYURmb4HDQ80Me2neLkeutGcVcvJHBJr7pZfvTpJirNX1KRR1lEBzffH1vxMR1aoOaNx6WxRFuhwprp2cItdqqS0v2sAUuK73KJwj8FFtpxwsRvqT2QNwL8QPYH\n\nWECfQ23rqTVK24xKnQVhqllkYdoAa6rSeji5MZJLzMvc8TZv1q4zhPTS9sxnums5B13reBPJeojwmHIPC5z6xfRbx6GGwyC7FJaRuLCr7HXb0uf3nSF\n\nSGD1DjQBJIXRt56nQ4o3sl3RCxAU47uGa0S5hiBTef5o8jCATPLQxARDoPFFB6dt2jIEGkqKVWnZ7GkfANCozS6S3ZtPAeLWyRACsIdwxGQb8RKoauyf5LGdiW6flJ\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a text file with long, unbroken lines of random characters, separated by blank lines.
+  - Command Behavior Analysis: The `fmt` command is run on the file. It reads the file's content and prints it directly to `stdout`. For this specific input, which lacks spaces within the long lines, no reformatting or line wrapping occurs. The output is identical to the input file's content.
+  - Final State Changes (fs_diff): No files are created, modified, or deleted.
+
+#### Command Category: `fmt -w <WIDTH> <file>`
+- **Function and Parameter Description**:
+  - `-w, --width=WIDTH`: Sets the maximum line width for formatting. The default is 75 columns.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_width_3.txt` is created with several paragraphs of random text.
+  **2. Command**:
+  `fmt -w 105 /test_data/fuzz_input_width_3.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "rjJ6nNUNwMMDDUS4yDgteLnr91OdBZ3W7TJR7OMsatXw0UMauyGJ14cENsR0t1RHaUPLOdTG54kZoCe3TGzMy87b\n\nm96ic6aurapbIrm6AjNouaH0eGsPc3VlpsGGpWsGd3Mbffpyb6W4YGcOo8cU7nUTq2fa7A3AEuSGmbRM6oaMwRQYZPSEus9gIeniQBwvYut9Bcq9RsyFx7RNYRwFko1JO02L08z0fFX64a87byIT7\n\nJSA67aEWhL8tehkPb0EVbkzXBY4Q5DVxyeWBgdwVfSpmw4pA6pMhZPTGTnM4IKmPh8OlHc602ptK3J4uPdKCPgTeiN5b0oJQai492Eekii7Gchzmoh6semLcIJTSHEGjIqepJUuRmfmZ2C7q3jJRFx2s68hoYT8DHrkE0D2xXNsr66Wfj54WjnwHHa62XSlmvSnR65ko\n\n9KBXFwOFndrgo3TW0t9g2AbhlLTwcbzx7PjrMhthbTDmbgMvMd8eSIqOXcSnQH159TZ897mol2j7rDUvQG\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a text file with long, unbroken lines of random characters.
+  - Command Behavior Analysis: The command is executed with the `-w 105` option, setting the line width to 105. However, because the input lines are long strings of characters without spaces, there are no natural break points for wrapping. Consequently, the tool outputs the content exactly as it was in the input file. The `-w` flag is parsed but has no visible effect on this specific type of input.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -c <file>`
+- **Function and Parameter Description**:
+  - `-c, --crown-margin`: Preserves the indentation of the first two lines of a paragraph.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_crown_margin_4.txt` is created.
+  **2. Command**:
+  `fmt -c /test_data/fuzz_input_crown_margin_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2Z4odBciUA2txSObxRSIxbdH4rFbALnHywHHN5qp6zjiJxEjqXXbyxGzixn6Dm36bztWJ6tOjNtAyaGmuBjwLIGbQxdYOd5eliJKERSemtNIIJwHc9rVkWt2kRNkohNeM681tvGdxtDB315QcGj9OmO6HugZ6B\n\njqmaioWyVRf0DP7jQVjKINxTETgZn7GmRnKqlbsMw0VGXVn1v27t8xDjXZGqW52aDs4FQu937UETwBJboWPLdk2gxk7Wt5VEZUTsCzcwMXOEJEdIUpRSKFkGXYCL10ilYFhrmJzoPKTKBL6llbyIT1DbkRIonlTxE7ZJXsvkqyiR7p4MZQRTqG1iN8vWvyItNOPeKwv\n\nyxmYkXpnI4WXCb7A6lYSeOW3mUi5a4cwiqeaC8hxm4OjUg1cM5tNuBLBxckVHM6VKT0JQ1vuILgZhXb0ur2MEpTyPh96Cq6EhcZKBFW6ZeQoR004TswF67fZc7ygD2Hi9cf9Uz3h8eFIY4KN2q38pQpntcF4JeOjb5zgO\n\n4HOjTfIeXsBy4alvR2hByEbMxjwlUKgp9i9oTDeoOdy6717r8Dn2xyi8NnCjLT4U6jJV6dqhLTPcP2I1FvqhP5uLeN368syQsgLUk6Z0mqkFyCY0FKMCda75TXZrRhSD1o871mhjJVh36ktM884uIiAKVVxBp\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with the `-c` flag. Similar to other examples with this type of input, the tool reads the file and prints its content to `stdout` without any modifications. The `-c` flag has no observable effect on this input.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -p <STRING> <file>`
+- **Function and Parameter Description**:
+  - `-p, --prefix=STRING`: Reformat only lines beginning with `STRING`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_prefix_1.txt` is created, with some lines starting with the prefix "D3A".
+  **2. Command**:
+  `fmt -p 'D3A' /test_data/fuzz_input_prefix_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "sIHJqIFY9AC7U5HpYIlHUELT0Yn1hjxXPSjoGv0tDZ02AcqHlw0D1PF6lwJ70alxjxlPPadYZKFNF122bI9ZByNSVbUvT0b1t8JL0m4lZ8K9lLq2KfzTRByvXRP2uL881t56VV7LubltSvQHDRbHvV6wqKNT584XvhNoAj7DX6uYwKHwjKzcsp2hKYLPpEHpI85uI6sg\n\npsz6CcfyAGMfDlF5SG7WKjeMhBrv0ruaIOesxjCW0KngHp0G4Sqnj2hO1rs5SV5sXyutnCXzaYodLsaob2efkDKPVEWS3Al7D6OQ6Pj0ybbp3s1TLjpr3bdFzAvRQLSwJ6SECMrz0NHefQ8ovMDVO1VvwQNCjM8RM\n\nD3AjjhRxp6vEEZdz4sEtEXUuktlQjktEZ18UxDBKVAOoEZwuZkuM9opqOdorO9mz6u5Uino324eaqvjTa0Al73qijAr\nD3A\nD3AsDbR0m0wFMomHJFxmnz2yDYGi1wRq7ah93zeNBBeqBrCrRCrdCjzN0Hnhp5n3bRJRb40nOnRekqfyobqQ7GpRD42WUxpAoOPpbVxDRdtu\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains several lines, some of which start with the specified prefix 'D3A'.
+  - Command Behavior Analysis: The command is run with `-p 'D3A'`. The tool should identify lines starting with this prefix. However, for this specific input, no reformatting is applied, and the entire file content is printed to `stdout` verbatim. The logic should correctly parse the prefix but may not perform any action if the lines are not formattable.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -s <file>`
+- **Function and Parameter Description**:
+  - `-s, --split-only`: Split long lines, but do not refill short lines.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_split_only_0.txt` is created with a single, very long line of space-separated words.
+  **2. Command**:
+  `fmt -s /test_data/fuzz_input_split_only_0.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "word word word word word word word word word word word word word word\nword word word word word word word word word word word word word word\nword word word word word word word word word word word word word word\nword word word word word word word word word word word word word word\nword word word word word word word word word word word word word word\nword word word word word word word word word word word word word word word\nword word word word word word word word word word word word word word word\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains one long line of text with words separated by spaces.
+  - Command Behavior Analysis: This sample is critical as it demonstrates the core formatting logic. The command is run with the `-s` flag. The tool reads the long line and splits it into multiple shorter lines. The wrapping respects word boundaries. This behavior must be implemented. The line width appears to be the default (75 characters), and the tool should wrap the text to not exceed this width.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -t <file>`
+- **Function and Parameter Description**:
+  - `-t, --tagged-paragraph`: Treat paragraphs with different indentation on the first and second lines specially.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_tagged_paragraph_4.txt` is created.
+  **2. Command**:
+  `fmt -t /test_data/fuzz_input_tagged_paragraph_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "fSkRO927nY2opyHrJ2LJJJxjVY6jz0r6QjEl36Cqw6qCGFDZKVm9PLxw3pk0ryQy9sEqzCcWgyuNAOXenoHszua266ujHSyAzVWwB0x4aZ0vCdnlQuqU0DDYKTFGayLaPlv7KdfMYgPEfcfJOmXWsvHVtcro7xKSDV8ceVtk5hAb6G4PFQNIobxw1PwQg5e1IQL1Rx\n\nJsByVaRWrV1G560cUxAmtfH0cIhv6ScvTYBdy5m0MPVvmxZGkfiwf6COkL6MarizUrjkcXZAkrLcP3ocUgubyFBVRMhUI3mRLC612kNfUlhi9IQjRtz\n\nhSRzJi9jVyQmdXm3xkTKXVIeYjgkm98Du5qGfcqKwErncPrHKDAT05sShS8XY1X2Vn4PsTGXfCz7Wq23OjEXhclgLSJ0NQgFbKf\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with the `-t` flag. As with other flags on this type of input, the tool outputs the file's content without any changes. The `-t` flag has no observable effect here.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -u <file>`
+- **Function and Parameter Description**:
+  - `-u, --uniform-spacing`: Use one space between words, and two after sentences.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_uniform_spacing_4.txt` is created.
+  **2. Command**:
+  `fmt -u /test_data/fuzz_input_uniform_spacing_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "8b12vtwCqPFhOFL1PD6CvUekE9GUb1smHDjmC6aNro2u6LU7PVvSVfBr8YTEJwPlie57IidpLZRYl4zSZBVy6vSlY4HXqzrrkg8TpKVmWhhwwjexsAbRgShCU8BUZn6QaCdKX94YltulRj8pQT3fvNR1nY6H6L1A2NBG3g64\n\nUEGsGr3WckbnMvG0DLQkPIZzIZBWA4xpm3YqA2WGDT8L2lmd92JqhwHw9YyqUqaeLYqz3nr2rvqUMhshOvUxcusyhWLn5kyu5SdU2i3Ud6msQYlvRWUGkgLrJ61EVy00yNNP5Ka6l8YlZCwYwnuMrhX56ujec4tQYkx1binWwPkzv1ANAlbh7aW\n\ndbRyyHibl6UY4QNmw8asEvrttPMu3b4YVbWMQibvnONg4IeMWZPokQihE2hMhyfn5ekdyYIu3i7eVW5EOVMipkXEB8wA7AbHQD36\n\nTzZGLlsl9CHToz8FI1fMMVqgMwfpgO9cSXz2uXiRmbakgmauDED6xhvped767t9x74AN4SPVAZ0P5akaKLGu78PTLkL3jsaVkLQ15qwwwTRkmPOTHpRSIVF4Q6pbEGLgKS8laJRE9iEyjVL9IHekgp4eT9VrP9kO3qDIq1IYkwvG3zWEXGZc5dSk22aqQ9\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with the `-u` flag. The tool outputs the file's content without any changes. The `-u` flag has no observable effect on this input.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -g <WIDTH> <file>`
+- **Function and Parameter Description**:
+  - `-g, --goal=WIDTH`: Set the goal width for formatting, defaulting to 93% of the line width.
+  - `-w, --width=WIDTH`: Sets the maximum line width.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_goal_1.txt` is created.
+  **2. Command**:
+  `fmt -w 71 -g 63 /test_data/fuzz_input_goal_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "9Uqe6g6SA3BtUXBnjnokAWca4gstgGTiphKvmByPr5tEYDHH0UQQl9VZHEkp8SSoY1UDoBWZBk38UfHBPjlRRwkhIkl8wwQ0q66awcQ20sEatnZRucDYUshG3m8QKhcMqLmaovHzknhf7l8tVXRuqXtriOGCmg8jXafrFIjI\n\n0rYFJctPE1gJFiX26lKliBumQUz48VBA3N6z5bvDGmHxvchKHlGfjLDV9d8X7vJXvyEsTp8GyZH0oSHzuMXWaejjQDJcYiucjJrn5gvMG3CtfOCvmcbtiPEI5wERGUcUTnuVvWPY2z0xVpgI\n\nXHgXLqcPoaWl4HIkdXSYwBT2GLUfpocsb8ozsMkvd0H1IUCKYyLbl7DM8c1IavsumP5VcqKjOZbSdR4qDWs3Bue2cATdmvem5qUfKKFjmOZKVbsYqNhTa3PmnNrSmD2aifT2BUKVf6MKawMA9n2TfTuHmbmou4YETt3AJTqbD61EKrkJbhNSmX\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with both `-w` and `-g` flags. The tool outputs the file's content without any changes, as the input lacks breakable spaces. The flags are parsed but have no effect on the output for this data.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -w <WIDTH> -c <file>`
+- **Function and Parameter Description**:
+  - `-w, --width=WIDTH`: Sets the maximum line width.
+  - `-c, --crown-margin`: Preserves indentation of the first two lines.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_width_and_crown_1.txt` is created.
+  **2. Command**:
+  `fmt -w 90 -c /test_data/fuzz_input_width_and_crown_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "BwOVEt8NSTSIqmV9PKAAZvJinKY2udmSw3KpnjIK5qLsKRplBKzcqb8hp63N87iJUn1P8GdPDyrAPTVF2Y9gRu6uAEPRp\n\nR5e4Rzt776Xv3C0M8Hxa0IlN5SCkLpeSX7nhWaLWE6BnB5fTdTXvlqCEvtBDkYAfrxZfFxlgTXfO4HUMUAZqWkgQ0BGiWwpCKwZa9le0OJq25R1icilascO4CaBCffZMSNUK4G6lbpfwvLwigYdfeLmhSOb9Szqlst61GGl5skLaFW8WMF5IN5S6C\n\nkDbrs9TggRWbC0JmSXPYa2w4YARtQ7ErXM4Pxa8lAySXqlrVSN55M9ZOImqtMDuuOHFywxsuPURU9Pi7jVjMbH4LrVSCr5Fu9pghkF52eM4tfbGMeKW6EY\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with both `-w` and `-c` flags. The tool outputs the file's content without any changes. The flags have no observable effect on this input.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -w <WIDTH> -s <file>`
+- **Function and Parameter Description**:
+  - `-w, --width=WIDTH`: Sets the maximum line width.
+  - `-s, --split-only`: Split long lines.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_width_and_split_1.txt` is created.
+  **2. Command**:
+  `fmt -w 99 -s /test_data/fuzz_input_width_and_split_1.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "s8qRFsK6qyUGd4QTN2GFKTQIVTzdIe4B07FO61G7Pb90lbL9gDwpVO055P1KFwnemD3ZPoJ3J8gvLqCe4kgdHhWPnPqQ2X04hulveATEugkZijodCQqiDmJjfMf\n\neIuo8p3rVyqqvKAvnvmC4ayB00pNKYSaoKibsW15dqlC2N3Momn6TFcz8WwTbW0FlqxWgOHmYZ7kB25eUMe4Y9dBMHOVK5ZppDemMdLnf2NKB6XxtXZP9hkGYoKjdWxsslJR653Ri6a4eVjv5kAyZcWx33rJLuQHMzdlB0a4RsRc\n\nKNYEo6S2ISLXA3pFWgTLRwj4KrobOg0yiOZDdS4Hwg1r2JL4mWP0Smks8eM03pkltYHtIBewCczUurwmyUcqjERe88yBKICzg4mk2FJOE055nW1pPxiSfDXvYUyE7NMNuEDt38dFR\n\nTJbYMok4iei725O2I2pRSMxOW2HxLXf3UFBOn1AtsbijgOcctlz388x82OOgZ70DJinUAh6WlH9SM2SvzYJSKXXXBU8j17XtJ3Pk9ZOGWDeoQ7m9TrrKA0TTuU6N110n4uUOKYHLRQdI0x6OxWYAVSGBetH3FVZLZ2teon33GjsBDl2zrEgN\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with `-w 99` and `-s`. Even though the `-s` flag is present, which triggered splitting in a previous sample, it has no effect here. This is because the input lines lack spaces, so there are no points to split the line. The output is identical to the input.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -w <WIDTH> -u <file>`
+- **Function and Parameter Description**:
+  - `-w, --width=WIDTH`: Sets the maximum line width.
+  - `-u, --uniform-spacing`: Use one space between words.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_width_and_uniform_4.txt` is created.
+  **2. Command**:
+  `fmt -w 84 -u /test_data/fuzz_input_width_and_uniform_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Ka5HlnU2L4ko5c7Es2PIo8TbQJJDzwC97uFr4jB1yt5feWkCxLQ24IAZM8fr5sZ0rPb8PlAuKcAk5aHyTTtsLoaIhYP9shPpzwHSCcn1xuVLtQ6oayPquYGNekA\n\nMckBEpWaxBNrRCOrgs829HFSxPfj2uVf0w21TJJQa6kU89qcQktfrTxvkF0i9N5RKkOL2lWtuJvbAL0WgcYL0xt\n\nEnaQsZ1INJ9nri5BfaHuFFPPqYsgZPjIxGObBqEV070oQwcsmK0dNhlkJjKdpP7ElKdwBRCCivZiZ5yi72UGdLseOuVJ6bkBd7IjlziDDsOs5fShOZyFJcza07zjvqBvk9UyYkjIEnz1jBDhY4VSGHUZjPgww3F4vOc4yqknOMudlR9y\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with both `-w` and `-u` flags. The tool outputs the file's content without any changes, as the input is not formattable.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -w <WIDTH> -g <WIDTH> <file>`
+- **Function and Parameter Description**:
+  - `-w, --width=WIDTH`: Sets the maximum line width.
+  - `-g, --goal=WIDTH`: Set the goal width for formatting.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_width_and_goal_2.txt` is created.
+  **2. Command**:
+  `fmt -w 68 -g 61 /test_data/fuzz_input_width_and_goal_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "3EBQUCxKSWdtXk51ohZmD4XEwKHhkMUQkvgztxDOa2bpDk3TS4JyyQd080tJy8bUrRKUcrpZL2ICG07CnTfCruLNxvAf4vA1ePhhMVGE43SxwH\n\n5HeLvuU7Whe4cFKS4v4BL5a4nJG7BmpOdv78Imy1WtJayjuMh0uzKEt2l04YZeEEm6x7PMDYyAYVY9MGePtxuICdgtOcmqdDoFU85sNaw7Qi3f8Fn2afyAMI3yQOWERcoeUQIxkmKIkfjLwPJLJVvaTntwSd\n\n57tXVtxympZlPWlCGVpaj6OqieuaYMO1v2q1eyqVRsolltuj4dmJwVNMt6RvfVedEf6AnDJugP7ef9oj5MNJC2g0sh8F5Ij4qmXCu5WfOlptfhUU2dHcQfeoC5jmQCZzkqhneRHmmQs\n\n2JKwh1msFuVG9G2AFZeUdRqDWQR6Av6WH32WMVPxbVuWDmu4lL9xEWuACTh6wSz4EKfRrmEDkj9MgbjFNGUHW4aUgCy2\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences.
+  - Command Behavior Analysis: The command is run with both `-w` and `-g` flags. The tool outputs the file's content without any changes, as the input is not formattable.
+  - Final State Changes (fs_diff): No files are changed.
+
+#### Command Category: `fmt -c -u <file>`
+- **Function and Parameter Description**:
+  - `-c, --crown-margin`: Preserves indentation.
+  - `-u, --uniform-spacing`: Use one space between words.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  An initial file `/test_data/fuzz_input_crown_and_uniform_4.txt` is created.
+  **2. Command**:
+  `fmt -c -u -c -u /test_data/fuzz_input_crown_and_uniform_4.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "jWLGz0cnHOPnrlqQZivMusCNu1PwpXTD5NpOercpBy4SYk1PPztLvwgzce4B5XADi6uftECavoPfzDXf3jpEjJfIFPZJh5DDhFWWSAPCL1AuqOQmtKFfLeyzOoFMzEnwUCzwW1oXOuVioyl06iMwerM\n\nXgfPew6ElLlquGXD4F4CJQbvrKDrUwSYPDQKzaw5efZHjaMgmBkL\n\n6bIBgrDsVXeTEXmyYGJMlSeOCoOspbZe8zDPzT24vP9QtDmqMGPJQJp02rbknHSgSBy8zvUwRcwCDDNegBb0ZCs8nAzomWDXzGvk6XwUdOBIpnOlT84iMGeKPdiMhBddwycbbQlPvr0qikPIQFczDjBmvGAOd70QwTge4BZMpWls3Vy7LFR3T\n\n28KtnT7g05ZiBjkyxomaeSbbBUR8FIdjS6gn8IcAbwcfxtpOTvNWIllgmAjKMAtI6XCjAqsgFbFyYSMU3\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains paragraphs of long, unbroken character sequences. Note that flags can be repeated.
+  - Command Behavior Analysis: The command is run with repeated `-c` and `-u` flags. The tool should handle repeated flags gracefully. The output is identical to the input, as the content is not formattable.
+  - Final State Changes (fs_diff): No files are changed.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

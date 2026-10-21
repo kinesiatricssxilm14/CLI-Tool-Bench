@@ -1,0 +1,21 @@
+{
+  "name": "sec-scanner",
+  "version": "1.0.0",
+  "description": "A security scanner CLI tool for analyzing .claude/settings.json files",
+  "main": "index.js",
+  "bin": {
+    "sec-scanner": "./bin/sec-scanner"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["security", "scanner", "cli", "claude"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^11.1.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

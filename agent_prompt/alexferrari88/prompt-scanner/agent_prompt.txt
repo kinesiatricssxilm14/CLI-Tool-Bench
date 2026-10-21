@@ -1,0 +1,366 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: prompt-scanner
+Repository Name: prompt-scanner
+Core Functionality Description:
+A language-aware CLI tool that automatically surfaces natural-language prompts for LLMs buried in code, templates, or config files. It recursively scans a given directory path to find potential prompts based on configurable heuristics like minimum length, variable keywords, content keywords, and placeholder patterns. It supports outputting results in text or JSON format, optionally ignoring files via `.gitignore`, scanning config files, and toggling the display of file paths and line numbers.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation: The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:
+  - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: prompt-scanner <path>
+- Function and Parameter Description:
+  - Scans the specified directory for LLM prompts using default heuristics.
+  - `<path>`: The target directory to scan.
+- Execution Context and Sample:
+1. Preparation:
+No prerequisite script operations. The following initial files were mounted:
+  - `/test_data/project/main.py` (contains a valid prompt and an unrelated string)
+  - `/test_data/project/service.go` (contains a valid prompt)
+  - `/test_data/project/prompts.yaml` (config file with a prompt)
+  - `/test_data/project/.env` (config file with a prompt)
+  - `/test_data/project/.gitignore` (ignores `ignored_dir/` and `*.log`)
+  - `/test_data/project/ignored_dir/should_be_skipped.py` (contains a prompt, inside an ignored dir)
+  - `/test_data/project/activity.log` (log file)
+2. Command:
+`prompt-scanner /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 2 potential prompts in 0.02s from '/test_data/project'.\nservice.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a mix of source code, config files, and ignored directories.
+  - Command Behavior Analysis: The CLI scans the directory. By default, it does not scan config files (`.yaml`, `.env`) and does not respect `.gitignore` (but it might skip hidden/ignored dirs by default or just didn't match the heuristics for the skipped file without `--greedy`). It finds the prompts in `service.go` and `main.py`.
+  - Final State Changes (fs_diff): No changes to the file system.
+##### Command Category: prompt-scanner --json <path>
+- Function and Parameter Description:
+  - Scans the directory and outputs the results in JSON format.
+  - `--json`: Output results in JSON format.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted as the previous command.
+2. Command:
+`prompt-scanner --json /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n[\n  {\n    \"filepath\": \"service.go\",\n    \"line\": 3,\n    \"content\": \"Summarize the following article for a 12-year-old reader.\"\n  },\n  {\n    \"filepath\": \"main.py\",\n    \"line\": 4,\n    \"content\": \"You are an expert coding assistant. Your task is to help users write better code.\"\n  }\n]\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: The CLI finds the same 2 prompts but formats the output as a JSON array (appended after the summary line).
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --scan-configs <path>
+- Function and Parameter Description:
+  - Scans the directory including common config files.
+  - `--scan-configs`: Also scan common config files (JSON, YAML, TOML, .env).
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --scan-configs /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 4 potential prompts in 0.01s from '/test_data/project'.\n.env:1\ttranslate the following text to French:\nprompts.yaml:3\tAct as a wise, unbiased career coach. Answer the following question from the user.\nservice.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: The CLI now includes `.env` and `prompts.yaml` in its scan, finding 4 prompts in total.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --greedy <path>
+- Function and Parameter Description:
+  - Uses aggressive heuristics to find more potential prompts.
+  - `--greedy`: Use aggressive heuristics.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --greedy /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 3 potential prompts in 0.01s from '/test_data/project'.\nservice.go:3\tSummarize the following article for a 12-year-old reader.\nignored_dir/should_be_skipped.py:1\tThis should not be found if gitignore is used\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: The greedy heuristic catches the string in `ignored_dir/should_be_skipped.py` which was previously ignored by the strict default rules.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --use-gitignore <path>
+- Function and Parameter Description:
+  - Skips files and directories listed in `.gitignore`.
+  - `--use-gitignore`: Respect `.gitignore` rules.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --use-gitignore /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 2 potential prompts in 0.05s from '/test_data/project'.\nservice.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Explicitly applies `.gitignore` rules. The output is the same as the default run because the default run didn't use greedy mode to catch the file in the ignored dir anyway, but the execution time or internal path traversal differs.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --min-len <N> <path>
+- Function and Parameter Description:
+  - Sets a minimum character length for a string to be considered a prompt.
+  - `--min-len=N`: Minimum character length.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --min-len=98 /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "service.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\nScan complete. Found 2 potential prompts in 0.02s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Filters prompts by length. (Note: The sample output shows the summary line at the end instead of the beginning, which must be replicated exactly).
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --var-keywords <kws> <path>
+- Function and Parameter Description:
+  - Customizes the variable/key names used for prompt detection.
+  - `--var-keywords`: Comma-separated keywords for variable or key names.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted, but `main.py` uses `system_prompt_2`.
+2. Command:
+`prompt-scanner --var-keywords='uyypat_o,mykipt_tz,oojesvyf' /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "service.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\nScan complete. Found 2 potential prompts in 0.02s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Overrides the default variable keywords. The tool still finds the prompts based on content heuristics even if the variable name doesn't match the new gibberish keywords.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --content-keywords <kws> <path>
+- Function and Parameter Description:
+  - Customizes the keywords to search for within string content.
+  - `--content-keywords`: Comma-separated keywords to match in content.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --content-keywords='unuejpcg,cqpdqijs,h_evx_ruun,fzsleg' /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "Scan complete. Found 0 potential prompts in 0.02s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Overrides the default content keywords with gibberish. Since the strict mode relies on these keywords, it finds 0 prompts.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --placeholder-patterns <ptns> <path>
+- Function and Parameter Description:
+  - Customizes regex patterns to identify templating placeholders.
+  - `--placeholder-patterns`: Comma-separated regexes.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --placeholder-patterns='\\{\\{[^}]*\\}\\},<[^>]*>' /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "service.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Uses custom placeholder patterns. Finds the standard 2 prompts.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --no-filepath <path>
+- Function and Parameter Description:
+  - Omits the filepath from the text output.
+  - `--no-filepath`: Omit file paths.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --no-filepath /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "3\tSummarize the following article for a 12-year-old reader.\n4\tYou are an expert coding assistant. Your task is to help users write better code.\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: The output lines start directly with the line number and a tab, omitting the file path.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --no-linenumber <path>
+- Function and Parameter Description:
+  - Omits the line number from the text output.
+  - `--no-linenumber`: Omit line numbers.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --no-linenumber /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "service.go\tSummarize the following article for a 12-year-old reader.\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\nmain.py\tYou are an expert coding assistant. Your task is to help users write better code.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: The output lines contain the file path and content, omitting the line number. Note the specific ordering of the summary line in the output.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --no-filepath --no-linenumber <path>
+- Function and Parameter Description:
+  - Omits both filepath and line number from the output.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --no-linenumber --no-filepath /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "You are an expert coding assistant. Your task is to help users write better code.\nSummarize the following article for a 12-year-old reader.\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Only the prompt content is printed.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --json --scan-configs --greedy <path>
+- Function and Parameter Description:
+  - Combines JSON output, config scanning, and greedy heuristics.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --json --greedy --scan-configs /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "[\n  {\n    \"filepath\": \".env\",\n    \"line\": 1,\n    \"content\": \"translate the following text to French:\"\n  },\n  {\n    \"filepath\": \"prompts.yaml\",\n    \"line\": 3,\n    \"content\": \"Act as a wise, unbiased career coach. Answer the following question from the user.\"\n  },\n  {\n    \"filepath\": \"service.go\",\n    \"line\": 3,\n    \"content\": \"Summarize the following article for a 12-year-old reader.\"\n  },\n  {\n    \"filepath\": \"main.py\",\n    \"line\": 4,\n    \"content\": \"You are an expert coding assistant. Your task is to help users write better code.\"\n  },\n  {\n    \"filepath\": \"ignored_dir/should_be_skipped.py\",\n    \"line\": 1,\n    \"content\": \"This should not be found if gitignore is used\"\n  }\n]\nScan complete. Found 5 potential prompts in 0.02s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Finds 5 prompts (including configs and the ignored dir due to greedy mode) and outputs them in a JSON array, followed by the summary line.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --min-len <N> --use-gitignore --var-keywords <kws> <path>
+- Function and Parameter Description:
+  - Combines min-len, gitignore, and custom var-keywords.
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --var-keywords='efchjyinev,sgqxf,zilav,htjvhdlsb' --use-gitignore --min-len=78 /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "service.go:3\tSummarize the following article for a 12-year-old reader.\nmain.py:4\tYou are an expert coding assistant. Your task is to help users write better code.\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Applies the combined filters and finds the 2 standard prompts.
+  - Final State Changes (fs_diff): No changes.
+##### Command Category: prompt-scanner --json --no-filepath --no-linenumber <path>
+- Function and Parameter Description:
+  - JSON output but omitting filepath and linenumber (note: in JSON, it seems they are still included or handled specifically based on the sample).
+- Execution Context and Sample:
+1. Preparation:
+Same initial files mounted.
+2. Command:
+`prompt-scanner --no-filepath --no-linenumber --json /test_data/project`
+3. Oracle Result:
+```json
+{
+  "exit_code": 0,
+  "stdout": "[\n  {\n    \"filepath\": \"service.go\",\n    \"line\": 3,\n    \"content\": \"Summarize the following article for a 12-year-old reader.\"\n  },\n  {\n    \"filepath\": \"main.py\",\n    \"line\": 4,\n    \"content\": \"You are an expert coding assistant. Your task is to help users write better code.\"\n  }\n]\nScan complete. Found 2 potential prompts in 0.01s from '/test_data/project'.\n",
+  "stderr": "",
+  "fs_diff": {}
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Same as above.
+  - Command Behavior Analysis: Interestingly, even with `--no-filepath` and `--no-linenumber`, the JSON output still contains the `filepath` and `line` keys. The CLI must ignore these omission flags when `--json` is active.
+  - Final State Changes (fs_diff): No changes.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

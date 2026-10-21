@@ -1,0 +1,398 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: ymldiff
+**Repository Name**: ymldiff
+**Core Functionality Description**:
+This project is to create an intelligent YAML comparison tool. Unlike simple text diffs, this tool understands YAML structure to provide meaningful output. It identifies and reports additions, deletions, and modifications between two YAML files. The output format can be controlled via flags, such as disabling document separator comments and colorization.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `ymldiff <file1> <file2>`
+- **Function and Parameter Description**:
+  Performs a basic structural comparison of two YAML files, `file1.yaml` and `file2.yaml`. It identifies differences and prints them to standard output. By default, the output is colored and includes a document separator comment.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_basic_1.yaml`:
+    ```yaml
+    6UoyuM: v0yBoub0uvAJaFkhX
+    aVUoRaOE13: 4V9ry1O7Af74nOnQ
+    active: false
+    anKmwT: qaywJEl4mFclImyeg0Y
+    as8VW5: UfjtNhtubikISp6
+    e2LPPCewQ: CHypd0nfHWZlk
+    id: 914
+    q5nqU: wCemAdBHe31
+    zODzL: 3RKm6qKISnrf
+    zTpeH8mml: j80HX2zm436g
+    ```
+  - `/test_data/fuzz_file2_basic_1.yaml`:
+    ```yaml
+    6UoyuM: v0yBoub0uvAJaFkhX
+    aVUoRaOE13: 4V9ry1O7Af74nOnQ
+    active: false
+    as8VW5: UfjtNhtubikISp6
+    e2LPPCewQ: CHypd0nfHWZlk
+    id: 914
+    q5nqU: wCemAdBHe31
+    zODzL: 3RKm6qKISnrf
+    zTpeH8mml: j80HX2zm436g
+    ```
+  **2. Command**:
+  `ymldiff /test_data/fuzz_file1_basic_1.yaml /test_data/fuzz_file2_basic_1.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- # YAML Document: 1/1\n- .anKmwT: qaywJEl4mFclImyeg0Y\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. `fuzz_file1_basic_1.yaml` contains a key `anKmwT` which is absent in `fuzz_file2_basic_1.yaml`.
+  - Command Behavior Analysis: The tool is invoked without any flags, so it performs a default comparison. It parses both YAML files, compares their key-value pairs at the root level, and detects that the key `anKmwT` was removed from the second file. The output starts with the default document separator `--- # YAML Document: 1/1`. It then prints the deleted key-value pair, prefixed with `- ` to indicate a deletion. The path to the key is shown as `.anKmwT`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff --disable-comments <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files. The `--disable-comments` (or `-c`) flag is intended to suppress comments from the output, though the provided sample does not contain comments to demonstrate this effect.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_disable_comments_2.yaml`:
+    ```yaml
+    2tLcJXSEas: MkF6Kvp411Z
+    4VDBE82iw4: BCyWRdZrU6h1hKjwVlJd
+    D9Ag6: psL8KIw1HhPPN0
+    GlD3qdfXFf: zn8TP2n3bUOr
+    aHMZJLvH: 0Ku4vvJQpMNSZA7
+    active: true
+    id: 948
+    mahohh: aIOIgvjOxVHr8hGlpK
+    rTUa1r: 82W18118iWeHLHh0NpG
+    s6dvcVRYb: J7V03WyRuWl8I3hsITA
+    ```
+  - `/test_data/fuzz_file2_disable_comments_2.yaml`:
+    ```yaml
+    2tLcJXSEas: MkF6Kvp411Z
+    4VDBE82iw4: BCyWRdZrU6h1hKjwVlJd
+    D9Ag6: psL8KIw1HhPPN0
+    GlD3qdfXFf: zn8TP2n3bUOr
+    aHMZJLvH: 0Ku4vvJQpMNSZA7
+    active: true
+    ccafffacc: 749
+    id: 948
+    mahohh: aIOIgvjOxVHr8hGlpK
+    rTUa1r: 82W18118iWeHLHh0NpG
+    s6dvcVRYb: J7V03WyRuWl8I3hsITA
+    ```
+  **2. Command**:
+  `ymldiff --disable-comments /test_data/fuzz_file1_disable_comments_2.yaml /test_data/fuzz_file2_disable_comments_2.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- # YAML Document: 1/1\n+ .ccafffacc: 749\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. `fuzz_file2_disable_comments_2.yaml` contains an additional key `ccafffacc` that is not in the first file.
+  - Command Behavior Analysis: The tool is invoked with the `--disable-comments` flag. It compares the files and identifies the new key `ccafffacc` in the second file. The output correctly reports this as an addition, prefixed with `+ `. The default document separator `--- # YAML Document: 1/1` is printed as the `--no-doc-comment` flag was not used.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff --no-doc-comment <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files. The `--no-doc-comment` (or `-d`) flag prevents the ` # YAML Document: X/Y` comment from being printed after the `---` separator.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_no_doc_comment_2.yaml`:
+    ```yaml
+    0VqRtE: yalyM1A2XRqicyMgwpIp
+    BEZGy: 6LqzESjT8t
+    IqWzzE: T0MgLjlSigL
+    KdYjnWvn8I: cIxd8AFHbN6WcOJysx
+    active: false
+    byCC13b8: OgW0vQieg15VZFDEPp
+    ekqH9zys: 7EZ7lf4peEGVY
+    id: 20
+    kEX3u3r: qvptu9d61RnG
+    xVvQX: fO2lK9S8P1uXEeWwTy43
+    ```
+  - `/test_data/fuzz_file2_no_doc_comment_2.yaml`:
+    ```yaml
+    0VqRtE: yalyM1A2XRqicyMgwpIp
+    BEZGy: 6LqzESjT8t
+    IqWzzE: T0MgLjlSigL
+    KdYjnWvn8I: cIxd8AFHbN6WcOJysx
+    aafead: 976
+    active: false
+    byCC13b8: OgW0vQieg15VZFDEPp
+    ekqH9zys: 7EZ7lf4peEGVY
+    id: 20
+    kEX3u3r: qvptu9d61RnG
+    xVvQX: fO2lK9S8P1uXEeWwTy43
+    ```
+  **2. Command**:
+  `ymldiff --no-doc-comment /test_data/fuzz_file1_no_doc_comment_2.yaml /test_data/fuzz_file2_no_doc_comment_2.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "---\n+ .aafead: 976\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. The second file, `fuzz_file2_no_doc_comment_2.yaml`, has an extra key `aafead`.
+  - Command Behavior Analysis: The tool is invoked with `--no-doc-comment`. It detects the added key `aafead` and reports it with a `+ ` prefix. Because of the flag, the output starts with just `---` followed by a newline, omitting the `# YAML Document: 1/1` part.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff --no-color <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files. The `--no-color` (or `-n`) flag disables colored output, making it suitable for piping or logging.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_no_color_2.yaml`:
+    ```yaml
+    5PGZAV0d: P3mTHt8PbilZ
+    AFrbYzBRtx: rQK7tSGAxgBMmmKSJ9Lx
+    HK7EpgXwcF: vKQe2B9Htj
+    active: false
+    fQZ9IR: pMtgtaqG9Y
+    gMwwHpYS: jTDeC7Htf6nvxh
+    id: 58
+    k1gM0B: oLTqwut4rt
+    rIty5YW: 3RXH77nBRps9iDg5ra
+    wJauEAQX: zVpf16k2I3IJ6w7Ma
+    ```
+  - `/test_data/fuzz_file2_no_color_2.yaml`:
+    ```yaml
+    5PGZAV0d: P3mTHt8PbilZ
+    AFrbYzBRtx: rQK7tSGAxgBMmmKSJ9Lx
+    HK7EpgXwcF: vKQe2B9Htj
+    active: UTSTOPi3
+    fQZ9IR: pMtgtaqG9Y
+    gMwwHpYS: jTDeC7Htf6nvxh
+    id: 58
+    k1gM0B: oLTqwut4rt
+    rIty5YW: 3RXH77nBRps9iDg5ra
+    wJauEAQX: zVpf16k2I3IJ6w7Ma
+    ```
+  **2. Command**:
+  `ymldiff --no-color /test_data/fuzz_file1_no_color_2.yaml /test_data/fuzz_file2_no_color_2.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- # YAML Document: 1/1\n~ .active: false \u2192 UTSTOPi3\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. The value of the `active` key differs between them (`false` vs. `UTSTOPi3`).
+  - Command Behavior Analysis: The tool is invoked with `--no-color`. It detects the value change for the key `active` and reports it as a modification, prefixed with `~ `. The output shows the old and new values separated by `→`. The default document separator is present. The output must not contain any ANSI color escape codes.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff -cd <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files, combining the `-c` (`--disable-comments`) and `-d` (`--no-doc-comment`) flags. The output will not contain comments and will not have the document separator comment.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_disable_comments_no_doc_1.yaml`:
+    ```yaml
+    KGqhi391UD: Lj4CsJe1cpzd9CqAJy
+    Kttx43LY: 3Dqq7ioy8bidFwdAa9u
+    XZ11vFA: 3YDfnN8lah6loxZ1C
+    Zyd64Al3wH: hz18MvqeSHL91yj86wG
+    active: true
+    id: 42
+    iuCzqixHT: 1pbxWVpvt1dlAO
+    keIFqhr: CmKcac5V2bsf
+    mhrHEqRx: nB3ShOWYNcZgI2Q
+    wnLM1z95p: sX5Z47HOA9R9aSyE9
+    ```
+  - `/test_data/fuzz_file2_disable_comments_no_doc_1.yaml`:
+    ```yaml
+    KGqhi391UD: Lj4CsJe1cpzd9CqAJy
+    Kttx43LY: 3Dqq7ioy8bidFwdAa9u
+    XZ11vFA: 3YDfnN8lah6loxZ1C
+    Zyd64Al3wH: hz18MvqeSHL91yj86wG
+    active: true
+    id: 42
+    keIFqhr: CmKcac5V2bsf
+    mhrHEqRx: nB3ShOWYNcZgI2Q
+    wnLM1z95p: sX5Z47HOA9R9aSyE9
+    ```
+  **2. Command**:
+  `ymldiff -cd /test_data/fuzz_file1_disable_comments_no_doc_1.yaml /test_data/fuzz_file2_disable_comments_no_doc_1.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "---\n- .iuCzqixHT: 1pbxWVpvt1dlAO\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. The first file has a key `iuCzqixHT` that is missing from the second file.
+  - Command Behavior Analysis: The tool is invoked with combined short flags `-cd`. It detects the deleted key `iuCzqixHT` and reports it with a `- ` prefix. Due to the `-d` flag, the output header is just `---`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff -cn <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files, combining the `-c` (`--disable-comments`) and `-n` (`--no-color`) flags. The output will be uncolored and will not show comments.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_disable_comments_no_color_4.yaml`:
+    ```yaml
+    2ArEkGvd: wz9zqeAwfobBZ7d0eI2p
+    3PmEzKk: hiq5rvLxpJ3
+    4CHe9CuRXk: 3QHFL4vCLWItA
+    LTiWF8zY: i0iHvlkY7YUs
+    UKakPd: FbjqN2ZznX6ktP
+    YtK4yj28Er: l1P9M93Mq028Im9b
+    ZVw90Sh: PlmsEa0AJmSF5TsmZ
+    active: true
+    id: 976
+    vFqDCds2i1: nFxLOme3mwQQN
+    ```
+  - `/test_data/fuzz_file2_disable_comments_no_color_4.yaml`:
+    ```yaml
+    2ArEkGvd: wz9zqeAwfobBZ7d0eI2p
+    3PmEzKk: hiq5rvLxpJ3
+    4CHe9CuRXk: 3QHFL4vCLWItA
+    LTiWF8zY: i0iHvlkY7YUs
+    UKakPd: FbjqN2ZznX6ktP
+    YtK4yj28Er: l1P9M93Mq028Im9b
+    ZVw90Sh: PlmsEa0AJmSF5TsmZ
+    active: true
+    cacefbc: 758
+    id: 976
+    vFqDCds2i1: nFxLOme3mwQQN
+    ```
+  **2. Command**:
+  `ymldiff -cn /test_data/fuzz_file1_disable_comments_no_color_4.yaml /test_data/fuzz_file2_disable_comments_no_color_4.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "--- # YAML Document: 1/1\n+ .cacefbc: 758\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. The second file has an extra key `cacefbc`.
+  - Command Behavior Analysis: The tool is invoked with combined short flags `-cn`. It detects the added key `cacefbc` and reports it with a `+ ` prefix. The default document separator `--- # YAML Document: 1/1` is present. The output must be uncolored due to the `-n` flag.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff -dn <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files, combining the `-d` (`--no-doc-comment`) and `-n` (`--no-color`) flags. The output will be uncolored and will not have the document separator comment.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_no_doc_no_color_0.yaml`:
+    ```yaml
+    2xtvSMhPYN: zOWrA7O1nQQxnQkG4oSy
+    3ecjorO5: BqKWNdtcuR86IGKq0
+    aCoD8U8Tzq: l00eg5rTmaYv4j
+    active: true
+    id: 885
+    ```
+  - `/test_data/fuzz_file2_no_doc_no_color_0.yaml`:
+    ```
+    hvY2J7,qI7q
+    gEjSmpPPRpmb,pTARC
+    TDx9W34xiJFEfa,GgGA7RMT
+    8XW3nhAVRdQY0sf,foLf9nWCYG36MO
+    GILWPt6GZPNpV,bjY9EI5
+    uHsf17ep6XsMH,YtOnyqc6Yh
+    ```
+  **2. Command**:
+  `ymldiff -dn /test_data/fuzz_file1_no_doc_no_color_0.yaml /test_data/fuzz_file2_no_doc_no_color_0.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "---\n~ : 2xtvSMhPYN: zOWrA7O1nQQxnQkG4oSy\n3ecjorO5: BqKWNdtcuR86IGKq0\naCoD8U8Tzq: l00eg5rTmaYv4j\nactive: true\nid: 885 \u2192 hvY2J7,qI7q gEjSmpPPRpmb,pTARC TDx9W34xiJFEfa,GgGA7RMT 8XW3nhAVRdQY0sf,foLf9nWCYG36MO GILWPt6GZPNpV,bjY9EI5 uHsf17ep6XsMH,YtOnyqc6Yh\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: One valid YAML file and one file containing plain, non-YAML text are created.
+  - Command Behavior Analysis: The tool is invoked with `-dn`. It successfully parses the first file as YAML. It fails to parse the second file as YAML and appears to treat its entire content as a single string value. It then reports a modification (`~`) of the entire document root (indicated by a path of just `: `). The "old" value is the string representation of the first file's content, and the "new" value is the raw content of the second file. The output header is just `---` due to `-d`, and the output is uncolored due to `-n`.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `ymldiff -cdn <file1> <file2>`
+- **Function and Parameter Description**:
+  Compares two YAML files, combining all available flags: `-c` (`--disable-comments`), `-d` (`--no-doc-comment`), and `-n` (`--no-color`). The output will be uncolored, without comments, and without the document separator comment.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/fuzz_file1_all_options_4.yaml`:
+    ```yaml
+    7swJhREE: w8EcY4LLbiotHp1EM
+    9rUShgL: pmFrmb5wJJprjcqh
+    A9gKnJRShE: TEOvKqRB8h0xJSMp
+    QWTFen: 8vmu0BuU7zNRKaYrH0A
+    RM06dNrWa: ndR9PatuGwH33
+    active: false
+    id: 937
+    pg8hZGAy4: 4b5jjMqqys8YZmWEi1qU
+    tvYQ56xfSN: mmKDBsnk3LK38y
+    yvLl6Dz: UUQa1XNyNzQ
+    ```
+  - `/test_data/fuzz_file2_all_options_4.yaml`:
+    ```yaml
+    7swJhREE: w8EcY4LLbiotHp1EM
+    9rUShgL: pmFrmb5wJJprjcqh
+    A9gKnJRShE: TEOvKqRB8h0xJSMp
+    QWTFen: 8vmu0BuU7zNRKaYrH0A
+    RM06dNrWa: ndR9PatuGwH33
+    active: false
+    pg8hZGAy4: 4b5jjMqqys8YZmWEi1qU
+    tvYQ56xfSN: mmKDBsnk3LK38y
+    yvLl6Dz: UUQa1XNyNzQ
+    ```
+  **2. Command**:
+  `ymldiff -cdn /test_data/fuzz_file1_all_options_4.yaml /test_data/fuzz_file2_all_options_4.yaml`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "---\n- .id: 937\n\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Two YAML files are present. The first file has a key `id` with value `937`, which is missing from the second file.
+  - Command Behavior Analysis: The tool is invoked with all flags `-cdn`. It detects the deleted key `id` and reports it with a `- ` prefix. Due to the `-d` flag, the header is just `---`. Due to the `-n` flag, the output must be uncolored.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,240 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: `outlier-detect`
+**Repository Name**: `outlier-detect`
+**Core Functionality Description**:
+This tool detects outliers in 2D (x, y) datasets. It reads data from a CSV file, calculates the Cook's distance for each data point, and identifies points as outliers if their Cook's distance exceeds a specified threshold. The results, including the original data, Cook's distance, and an outlier flag, can be saved to a new CSV file. The tool also supports a verbose mode for logging its operations.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `outlier-detect --input <file>`
+- **Function and Parameter Description**:
+  - This command processes a 2D dataset from a CSV file to detect outliers.
+  - `--input <file>`: Specifies the path to the input CSV file. The file must contain 'x' and 'y' columns.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_ONLY_1.csv` is created with 47 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_ONLY_1.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV file `/test_data/input_INPUT_ONLY_1.csv`.
+  - Command Behavior Analysis: The program is called with only the `--input` argument. It should read and process the data internally (e.g., calculate Cook's distance). However, without an `--output` flag, it does not write any files. Without a `--verbose` flag, it does not print any logs to `stdout`.
+  - Final State Changes (fs_diff): There are no changes to the file system, and no output is printed to the console. The command simply executes and exits successfully.
+
+#### Command Category: `outlier-detect --input <file> --threshold <float>`
+- **Function and Parameter Description**:
+  - This command processes a 2D dataset from a CSV file to detect outliers using a custom threshold.
+  - `--input <file>`: Specifies the path to the input CSV file containing 'x' and 'y' columns.
+  - `--threshold <float>`: A floating-point value used as the cutoff for Cook's distance.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_THRESHOLD_3.csv` is created with 49 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_THRESHOLD_3.csv --threshold 0.62`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV file `/test_data/input_INPUT_THRESHOLD_3.csv`.
+  - Command Behavior Analysis: The program is called with an input file and a `--threshold` of `0.62`. It should read the data and perform the outlier detection calculation using this specific threshold. Since no `--output` or `--verbose` flags are provided, no file is created and no log is printed.
+  - Final State Changes (fs_diff): There are no changes to the file system. The command completes its internal calculations and exits successfully.
+
+#### Command Category: `outlier-detect --input <file> --output <file>`
+- **Function and Parameter Description**:
+  - This command processes a 2D dataset from a CSV file and saves the results to another CSV file.
+  - `--input <file>`: Specifies the path to the input CSV file with 'x' and 'y' columns.
+  - `--output <file>`: Specifies the path where the output CSV file will be created.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_OUTPUT_3.csv` is created with 45 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_OUTPUT_3.csv --output /test_data/output_INPUT_OUTPUT_3.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/output_INPUT_OUTPUT_3.csv": {
+              "type": "ADD",
+              "content": "x,y,cooks_distance,outlier\n166,-39,5.341221054077996e-07,False\n364,-134,0.0029093543701020083,False\n-413,-123,0.0058384647567906265,False\n223,-430,0.03313505608763442,False\n409,450,0.1214989227797012,False\n... [omitted 35 lines of similar content] ...\n188,-202,0.004942829432199067,False\n162,122,0.0046038847394353506,False\n-485,-444,0.12779628967090412,False\n2,-333,0.011216015429722198,False\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_OUTPUT_3.csv`.
+  - Command Behavior Analysis: The tool reads the input file, calculates Cook's distance for each point, and determines outlier status. Since no `--threshold` is specified, a default behavior is used which results in all points being marked as `False` for the `outlier` status.
+  - Final State Changes (fs_diff): A new file is created at `/test_data/output_INPUT_OUTPUT_3.csv`. This file contains the original `x` and `y` columns, plus two new columns: `cooks_distance` (a float) and `outlier` (a boolean). In this case, all `outlier` values are `False`.
+
+#### Command Category: `outlier-detect --input <file> --verbose`
+- **Function and Parameter Description**:
+  - This command processes a file and prints a log message indicating the start of the operation.
+  - `--input <file>`: Specifies the path to the input CSV file.
+  - `--verbose`: A flag that enables verbose logging to `stdout`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_VERBOSE_4.csv` is created with 46 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_VERBOSE_4.csv --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 05:29:10,955 - INFO - Starting outlier detection for file: /test_data/input_INPUT_VERBOSE_4.csv\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_VERBOSE_4.csv`.
+  - Command Behavior Analysis: The tool is invoked with `--input` and `--verbose`. It prints a log message to `stdout` indicating that the process has started for the specified file. The timestamp in the log is for illustration; the format and message content are what matter.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `outlier-detect --input <file> --threshold <float> --output <file>`
+- **Function and Parameter Description**:
+  - This command processes a dataset, uses a specific threshold, and saves the results to a file.
+  - `--input <file>`: Path to the input CSV file.
+  - `--threshold <float>`: Custom cutoff value for Cook's distance.
+  - `--output <file>`: Path to save the output CSV file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_THRESHOLD_OUTPUT_3.csv` is created with 49 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_THRESHOLD_OUTPUT_3.csv --threshold 0.78 --output /test_data/output_INPUT_THRESHOLD_OUTPUT_3.csv`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/output_INPUT_THRESHOLD_OUTPUT_3.csv": {
+              "type": "ADD",
+              "content": "x,y,cooks_distance,outlier\n-448,216,0.0001652538204422902,False\n146,214,1.4818841976653811e-06,False\n... [omitted 13 lines] ...\n-8087,6575,49.914758437372775,True\n133,-426,0.00298328311298085,False\n... [omitted 16 lines] ...\n5105,5517,8.899054532603694,True\n369,221,5.0926527279764935e-05,False\n... [omitted 13 lines] ...\n-34,60,0.0002631696729870346,False\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_THRESHOLD_OUTPUT_3.csv`.
+  - Command Behavior Analysis: The tool reads the input file, calculates Cook's distance for each point, and compares it against the provided threshold of `0.78`.
+  - Final State Changes (fs_diff): A new file is created at `/test_data/output_INPUT_THRESHOLD_OUTPUT_3.csv`. It contains the original data plus `cooks_distance` and `outlier` columns. The `outlier` column is `True` for any row where the `cooks_distance` is greater than `0.78`. In this sample, two rows are identified as outliers.
+
+#### Command Category: `outlier-detect --input <file> --threshold <float> --verbose`
+- **Function and Parameter Description**:
+  - Processes a file with a custom threshold and enables verbose logging.
+  - `--input <file>`: Path to the input CSV file.
+  - `--threshold <float>`: Custom cutoff value for Cook's distance.
+  - `--verbose`: Enables verbose logging to `stdout`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_THRESHOLD_VERBOSE_2.csv` is created with 49 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_THRESHOLD_VERBOSE_2.csv --threshold 3.71 --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 05:34:31,490 - INFO - Starting outlier detection for file: /test_data/input_INPUT_THRESHOLD_VERBOSE_2.csv\n",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_THRESHOLD_VERBOSE_2.csv`.
+  - Command Behavior Analysis: The tool is invoked with `--input`, `--threshold`, and `--verbose`. It prints a log message to `stdout` about starting the process. It performs the outlier calculation using the `3.71` threshold but does not save the result to a file as `--output` is not specified.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `outlier-detect --input <file> --output <file> --verbose`
+- **Function and Parameter Description**:
+  - Processes a file, saves the output, and provides verbose logging.
+  - `--input <file>`: Path to the input CSV file.
+  - `--output <file>`: Path to save the output CSV file.
+  - `--verbose`: Enables verbose logging to `stdout`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_OUTPUT_VERBOSE_3.csv` is created with 45 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_OUTPUT_VERBOSE_3.csv --output /test_data/output_INPUT_OUTPUT_VERBOSE_3.csv --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 05:38:44,352 - INFO - Starting outlier detection for file: /test_data/input_INPUT_OUTPUT_VERBOSE_3.csv\n2026-03-17 05:38:44,467 - INFO - Wrote results to: /test_data/output_INPUT_OUTPUT_VERBOSE_3.csv\n",
+      "fs_diff": {
+          "/test_data/output_INPUT_OUTPUT_VERBOSE_3.csv": {
+              "type": "ADD",
+              "content": "x,y,cooks_distance,outlier\n74,111,0.0001157347643201698,False\n187,7,0.005029419425027088,False\n... [omitted 23 lines] ...\n-5905,-6449,0.5082972063521101,True\n-123,173,0.003589100210638829,False\n... [omitted 3 lines] ...\n-7651,-9871,6.90342559796467,True\n361,-89,0.023742701798157653,False\n... [omitted 12 lines] ...\n-211,256,0.010743206171287807,False\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_OUTPUT_VERBOSE_3.csv`.
+  - Command Behavior Analysis: The tool is invoked with `--input`, `--output`, and `--verbose`. It prints a log message at the start of the operation. It then performs the outlier detection using a default threshold. After writing the results, it prints a second log message confirming the file was written.
+  - Final State Changes (fs_diff): A new file is created at `/test_data/output_INPUT_OUTPUT_VERBOSE_3.csv`. The file contains the analysis results. Since no `--threshold` was given, a default logic is applied, which in this case identifies two points as outliers.
+
+#### Command Category: `outlier-detect --input <file> --threshold <float> --output <file> --verbose`
+- **Function and Parameter Description**:
+  - The full-featured command: processes a file with a custom threshold, saves the output, and provides verbose logging.
+  - `--input <file>`: Path to the input CSV file.
+  - `--threshold <float>`: Custom cutoff value for Cook's distance.
+  - `--output <file>`: Path to save the output CSV file.
+  - `--verbose`: Enables verbose logging to `stdout`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  - An input file `/test_data/input_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv` is created with 47 rows of x,y coordinate data.
+  **2. Command**:
+  `outlier-detect --input /test_data/input_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv --threshold 0.02 --output /test_data/output_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv --verbose`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-17 05:42:09,038 - INFO - Starting outlier detection for file: /test_data/input_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv\n2026-03-17 05:42:09,045 - INFO - Wrote results to: /test_data/output_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv\n",
+      "fs_diff": {
+          "/test_data/output_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv": {
+              "type": "ADD",
+              "content": "x,y,cooks_distance,outlier\n247,-67,0.003407908461636798,False\n... [omitted 5 lines] ...\n386,-469,0.020900184978653716,True\n-382,314,0.012289246522845802,False\n... [omitted 7 lines] ...\n432,-482,0.02375316520553981,True\n-13,97,8.150285648792261e-05,False\n-460,451,0.022771453628271817,True\n-434,298,0.01402455917078279,False\n... [omitted 4 lines] ...\n-467,453,0.02333071279639649,True\n9799,8520,13.857666368689653,True\n-471,-227,0.001053758509292733,False\n... [omitted 2 lines] ...\n5835,8686,4.4069668987770205,True\n... [omitted 12 lines] ...\n91,448,0.00240939748612941,False\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input CSV `/test_data/input_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv`.
+  - Command Behavior Analysis: The tool is invoked with all available flags. It logs the start of the process, reads the input file, calculates Cook's distance, and compares each value to the `0.02` threshold. It then writes the results to the specified output file and logs that the write operation is complete.
+  - Final State Changes (fs_diff): A new file is created at `/test_data/output_INPUT_THRESHOLD_OUTPUT_VERBOSE_3.csv`. The `outlier` column is `True` for all rows where `cooks_distance` > `0.02`. In this sample, six rows are marked as outliers.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,204 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: `subwords`
+**Repository Name**: `subwords`
+**Core Functionality Description**:
+This tool processes a list of subdomains, which can be provided either from a file or via standard input. Its primary function is to extract individual words from these subdomains by splitting them using delimiters such as dots (`.`), hyphens (`-`), and underscores (`_`). After extraction, the tool compiles a list of unique words, sorts them alphabetically, and prints them to the standard output. It also offers options to display the frequency count for each word and to limit the total number of words in the output.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **go**.
+   - The code must run flawlessly in the official `golang:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `go install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `subwords -i <file>`
+- **Function and Parameter Description**:
+  - `subwords`: The base command for the tool.
+  - `-i string`: A flag to specify the path to an input file containing a list of subdomains, with one subdomain per line.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_file_2.txt` is created in the environment, containing a list of 47 subdomains.
+  **2. Command**:
+  `subwords -i /test_data/fuzz_from_file_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "aci\nalr\naqpe\nbdvm\nbkfh\nbrto\nbru\nbvsx\nbxuoxlb\ncbkytxrk\ncdsik\ncobac\ncom\ncypobad\ncysua\ndhor\ndnd\ndvy\ndwfjbdx\neqciii\nerbwgjzl\neyoatoud\nfddv\nfeaj\nfezwjaye\nfhwxzyv\nfls\nfvxb\nfxupl\nfygft\ngazlowc\ngvwr\nhavt\nhsrhrc\nhyc\nieyswu\niibialy\nikqgi\nimyn\ninonuwf\nio\niqldj\nispe\nizhfbjx\njbos\njdpnbbeu\njkjecti\njqhx\njshnpcs\njsvbyhgs\njvajnzx\nkfm\nkownagn\nkwpmf\nkzdxtqpc\nlajz\nlavmlwo\nldlq\nlgs\nlivx\nlmkkibpo\nlpgrda\nmahje\nmeyptl\nmhnd\nmmzguay\nmtoxj\nmvrp\nmwwcbgi\nnajpsjw\nnet\nnfm\nnhz\nnji\nnqevalu\nnsubupae\nnzz\nobscc\nobwrheh\noeayhpcp\nomc\norg\noywkwg\npnyrawv\nprlnknis\nqckbr\nqebpva\nqipb\nqjdxiet\nqjgmgter\nqoh\nqtp\nqvufwu\nqwmz\nqwv\nrowbm\nsesv\nsmyrr\nsveygo\ntbho\ntgh\ntjajn\ntjitblbg\ntjjgwbs\ntjp\ntlqmu\ntrra\ntuzzxs\ntvuxg\ntxsvbdqo\ntzdawwuc\nuate\nuezpb\numsagxj\nuqvfcli\nuumliy\nuysv\nuzeefgt\nvcmzkgyr\nvecfieos\nvgkzsqx\nvhqrjbp\nvjwpxno\nvpqqtdj\nvpykutw\nvsaiwvxl\nvwqiumx\nwfwh\nwhgzn\nwjx\nwnosjp\nxeq\nxldbbdg\nxleyczu\nxlqecn\nxoehrx\nyhbuce\nyidyjwgs\nyilwqk\nypriir\nyuuqtlia\nyyowd\nyzaw\nzipfdgr\nzvaet",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains a single text file at `/test_data/fuzz_from_file_2.txt`, which holds the input data.
+  - Command Behavior Analysis: The program is invoked with the `-i` flag, directing it to read from the specified file. It processes each line, splitting the subdomain strings by dots (`.`). It then gathers all resulting words, removes duplicates, and sorts the unique words alphabetically. Finally, it prints each word from the sorted list to standard output, with each word on a new line.
+  - Final State Changes (fs_diff): The `fs_diff` object is empty, indicating that the tool does not create, modify, or delete any files. It only reads input and writes to `stdout`.
+
+#### Command Category: `subwords -i <file> -limit <N>`
+- **Function and Parameter Description**:
+  - `-i string`: Specifies the input file with subdomains.
+  - `-limit int`: An integer flag that restricts the output to the top N most frequent words. If set to 0, all words are shown. The sample shows the words are sorted alphabetically before being limited.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_file_limit_3.txt` is created with a list of subdomains.
+  **2. Command**:
+  `subwords -i /test_data/fuzz_from_file_limit_3.txt -limit 39`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "abweycyq\nahplkwp\nanao\naoprignq\naurtgtln\nbjfcru\nboohv\nbrak\ncivat\ncizjytfn\ncom\nczb\nczgaitid\nczkawv\nczt\ndeiisbfi\neakszwy\nechasr\necyvh\negy\nekgca\nekll\nfjkhle\nfkjc\nftm\nftpmpx\nfvdr\nfxeguq\nhanbgv\nhayhugdj\nhkcbrnc\nhmfsfy\nhqg\nikn\nikoicpr\nio\nivulboim\nnet\norg",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input file `/test_data/fuzz_from_file_limit_3.txt`.
+  - Command Behavior Analysis: The tool reads the input file, extracts all words by splitting subdomains, and generates a unique, alphabetically sorted list of these words. The `-limit 39` flag then truncates this list, causing the tool to print only the first 39 words to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty, confirming the tool does not alter the file system.
+
+#### Command Category: `subwords -i <file> -stats`
+- **Function and Parameter Description**:
+  - `-i string`: Specifies the input file with subdomains.
+  - `-stats`: A boolean flag that, when present, modifies the output to include the frequency count of each word.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_file_stats_3.txt` is created with a list of subdomains.
+  **2. Command**:
+  `subwords -i /test_data/fuzz_from_file_stats_3.txt -stats`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "adxiti (1 occurrences)\najvtxl (1 occurrences)\nakje (1 occurrences)\n... [omitted 86 lines of similar content] ...\nzhcfx (1 occurrences)\nznxkhv (1 occurrences)\nzuwgg (1 occurrences)",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input file `/test_data/fuzz_from_file_stats_3.txt`.
+  - Command Behavior Analysis: The tool reads the file and extracts all words. It counts the occurrences of each unique word. After counting, it sorts the list of unique words alphabetically. Finally, due to the `-stats` flag, it prints each word followed by its count in the format `word (N occurrences)`.
+  - Final State Changes (fs_diff): `fs_diff` is empty, indicating no file system modifications.
+
+#### Command Category: `subwords -i <file> -limit <N> -stats`
+- **Function and Parameter Description**:
+  - `-i string`: Specifies the input file.
+  - `-limit int`: Limits the number of output lines.
+  - `-stats`: Includes frequency counts in the output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_file_limit_stats_3.txt` is created with a list of subdomains.
+  **2. Command**:
+  `subwords -i /test_data/fuzz_from_file_limit_stats_3.txt -stats -limit 36`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "abbcu (1 occurrences)\naiifehyj (1 occurrences)\naji (1 occurrences)\namgw (1 occurrences)\nankhwxzt (1 occurrences)\narrl (1 occurrences)\natdx (1 occurrences)\naukc (1 occurrences)\nbiklqsp (1 occurrences)\nbkryhhxj (1 occurrences)\nbllvn (1 occurrences)\nbuozuaw (1 occurrences)\nbuuxqff (1 occurrences)\nclsqt (1 occurrences)\ncom (12 occurrences)\ncvufere (1 occurrences)\nczdwguv (1 occurrences)\ndmwonlwh (1 occurrences)\ndngyefbm (1 occurrences)\ndnmyvrm (1 occurrences)\ndtcfc (1 occurrences)\ndwwvpq (1 occurrences)\ndzno (1 occurrences)\nebbnnrw (1 occurrences)\neeqtjw (1 occurrences)\neev (1 occurrences)\nefwq (1 occurrences)\nehqy (1 occurrences)\nemtdv (1 occurrences)\neric (1 occurrences)\nertclqv (1 occurrences)\neucv (1 occurrences)\nevepq (1 occurrences)\nio (8 occurrences)\nnet (12 occurrences)\norg (13 occurrences)",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains the input file `/test_data/fuzz_from_file_limit_stats_3.txt`.
+  - Command Behavior Analysis: The tool combines the functionalities of `-stats` and `-limit`. It reads the input file, counts word frequencies, and creates an alphabetically sorted list of unique words. It then takes the first 36 entries from this sorted list and prints each word along with its frequency count, formatted as `word (N occurrences)`.
+  - Final State Changes (fs_diff): `fs_diff` is empty.
+
+#### Command Category: `cat <file> | subwords`
+- **Function and Parameter Description**:
+  - This usage pattern demonstrates the tool's ability to read data from standard input (`stdin`) when no `-i` flag is provided. The subdomains are piped from another command's output.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_stdin_1.txt` is created.
+  **2. Command**:
+  `cat /test_data/fuzz_from_stdin_1.txt | subwords`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "aueyf\naxt\nayojug\n... [omitted 103 lines of similar content] ...\nyzek\nzhjbtrz\nzjaeo\nzrr\nzxvahcsg",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `/test_data/fuzz_from_stdin_1.txt`.
+  - Command Behavior Analysis: The `cat` command reads the file and pipes its content to the `subwords` process's standard input. The `subwords` tool detects that it's receiving data from `stdin` (as the `-i` flag is absent). It reads and processes the piped data, extracts unique words, sorts them alphabetically, and prints the result to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty.
+
+#### Command Category: `cat <file> | subwords -limit <N>`
+- **Function and Parameter Description**:
+  - This demonstrates combining `stdin` input with the `-limit` flag to restrict the number of outputted words.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_stdin_limit_3.txt` is created.
+  **2. Command**:
+  `cat /test_data/fuzz_from_stdin_limit_3.txt | subwords -limit 47`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "alkn\namoliy\natfzs\nawj\nazfork\nbajc\nbdo\nbqd\nbsdvewwr\nbugrt\nbzexxut\nccfickov\ncei\ncfmh\ncom\ndaxc\ndhhlhrfm\ndka\ndrgyeuo\nduxvi\ndzt\nelhsqkdw\nemrnyxk\neqjlcvgd\nesefg\neskdubvs\newcdxdme\nfeulj\nfmfcmwxt\nfmfpftc\nfmzmf\nfviwa\ngan\ngdz\ngftchxkr\ngikqp\ngslboais\ngueonc\ngzptjnbu\nhbh\nhcjzuh\nhgejgeg\nhmlmm\nhnssilxu\nio\nnet\norg",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `/test_data/fuzz_from_stdin_limit_3.txt`.
+  - Command Behavior Analysis: The tool reads subdomain data from `stdin`. It extracts, deduplicates, and alphabetically sorts the words. The `-limit 47` flag is applied, causing the tool to print only the first 47 words from the sorted list to standard output.
+  - Final State Changes (fs_diff): `fs_diff` is empty.
+
+#### Command Category: `cat <file> | subwords -stats`
+- **Function and Parameter Description**:
+  - This demonstrates combining `stdin` input with the `-stats` flag to show word frequencies.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_stdin_stats_4.txt` is created.
+  **2. Command**:
+  `cat /test_data/fuzz_from_stdin_stats_4.txt | subwords -stats`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "adekvora (1 occurrences)\nahtuwhs (1 occurrences)\nalg (1 occurrences)\n... [omitted 113 lines of similar content] ...\nzxzmbujx (1 occurrences)\nzyjl (1 occurrences)",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `/test_data/fuzz_from_stdin_stats_4.txt`.
+  - Command Behavior Analysis: The tool reads data from `stdin`, counts the frequency of each word, and sorts the unique words alphabetically. The `-stats` flag ensures the output for each word includes its frequency count in the format `word (N occurrences)`.
+  - Final State Changes (fs_diff): `fs_diff` is empty.
+
+#### Command Category: `cat <file> | subwords -limit <N> -stats`
+- **Function and Parameter Description**:
+  - This demonstrates combining `stdin` input with both `-limit` and `-stats` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/fuzz_from_stdin_limit_stats_3.txt` is created.
+  **2. Command**:
+  `cat /test_data/fuzz_from_stdin_limit_stats_3.txt | subwords -stats -limit 50`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "aapbwqni (1 occurrences)\naevhjku (1 occurrences)\naffxqa (1 occurrences)\nafrs (1 occurrences)\nahswn (1 occurrences)\naju (1 occurrences)\narie (1 occurrences)\nbezhne (1 occurrences)\nbfl (1 occurrences)\nbndgf (1 occurrences)\nbnrmgn (1 occurrences)\nbribwylo (1 occurrences)\nbskeli (1 occurrences)\nchutiv (1 occurrences)\ncom (5 occurrences)\ncpsadf (1 occurrences)\nddthvph (1 occurrences)\ndtmcqan (1 occurrences)\ndywmh (1 occurrences)\nedbdrtly (1 occurrences)\nekkum (1 occurrences)\neurvwa (1 occurrences)\nfchqtnp (1 occurrences)\nffqudp (1 occurrences)\nffvsdo (1 occurrences)\ngcfvw (1 occurrences)\ngdxk (1 occurrences)\ngebsjgpn (1 occurrences)\nglbg (1 occurrences)\nglja (1 occurrences)\ngueqeh (1 occurrences)\ngycs (1 occurrences)\nhgli (1 occurrences)\nhhrnuc (1 occurrences)\nhry (1 occurrences)\nialpyij (1 occurrences)\nifkjpu (1 occurrences)\niklezcv (1 occurrences)\nio (17 occurrences)\njmpgkx (1 occurrences)\njoe (1 occurrences)\njxhcm (1 occurrences)\njxooo (1 occurrences)\nkfgqwft (1 occurrences)\nkplwev (1 occurrences)\nktvzcarv (1 occurrences)\nkumgw (1 occurrences)\nldb (1 occurrences)\nnet (6 occurrences)\norg (12 occurrences)",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains `/test_data/fuzz_from_stdin_limit_stats_3.txt`.
+  - Command Behavior Analysis: The tool reads from `stdin`, counts word frequencies, and sorts the unique words alphabetically. It then applies the `-limit 50` filter, printing only the first 50 words from the sorted list, each with its corresponding frequency count as specified by the `-stats` flag.
+  - Final State Changes (fs_diff): `fs_diff` is empty.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

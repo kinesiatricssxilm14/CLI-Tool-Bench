@@ -1,0 +1,290 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: eyeling
+**Repository Name**: eyeling
+**Core Functionality Description**:
+This tool is a compact reasoner for a specific data notation. It processes input files containing facts and rules, performing forward and backward chaining. By default, it outputs newly derived facts. When specific query directives are present in the input, it outputs only the unique instantiated conclusion triples of those queries. The tool also supports outputting the Abstract Syntax Tree (AST) of the input file and including detailed proof comments for derived facts.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `<file.n3>`
+- **Function and Parameter Description**:
+  This is the default execution mode. The tool takes a single argument: the path to an input file in N3 format. It processes the facts and rules within the file. If a `log:query` directive is present, it outputs only the triples that satisfy the query's conclusion.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_BASIC_2.n3` is created with the following content:
+  ```n3
+  @prefix ex: <http://nlgvc.nksfqvxh.eztfe.com/>.
+  @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+  ex:if42tPe ex:1Ogck ex:e2tQUdh6 .
+  ex:IveqRLK ex:t5si ex:Q5Ba .
+  ex:qYY ex:u66a3hUsR5 ex:0X3s10ULN .
+  ex:iVbJJ ex:cx6thtZD ex:8XG .
+  ex:OgUhK ex:krNzVl ex:DBzlhCb .
+  { ?s ?p ?o . } => { ?s a ex:Processed . }.
+  { ?s a ex:Processed . } log:query { ?s a ex:QueryResult . }.
+  ```
+  **2. Command**:
+  `eyeling /test_data/fuzz_test_BASIC_2.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://nlgvc.nksfqvxh.eztfe.com/> .\n\nex:if42tPe a ex:QueryResult .\nex:iVbJJ a ex:QueryResult .\nex:IveqRLK a ex:QueryResult .\nex:OgUhK a ex:QueryResult .\nex:qYY a ex:QueryResult .\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The input file contains five initial facts (triples) and two rules.
+  - Command Behavior Analysis: The tool processes the input file. The first rule `{ ?s ?p ?o . } => { ?s a ex:Processed . }` implies that for every existing triple, its subject (`?s`) is of type `ex:Processed`. This applies to all five initial subjects. The second rule `{ ?s a ex:Processed . } log:query { ?s a ex:QueryResult . }` acts as a query. It finds all subjects that are of type `ex:Processed` and generates output triples where these subjects are of type `ex:QueryResult`. The final `stdout` correctly lists all five initial subjects with the type `ex:QueryResult`.
+  - Final State Changes (fs_diff): No changes are made to the file system. The tool only reads the input file and prints results to standard output.
+
+#### Command Category: `--ast <file.n3>`
+- **Function and Parameter Description**:
+  - `--ast`: This flag instructs the tool to parse the input file and output its Abstract Syntax Tree (AST) in JSON format to `stdout`, instead of performing reasoning.
+  - `<file.n3>`: The path to the input file to be parsed.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_AST_3.n3` is created with content similar in structure to the previous example.
+  **2. Command**:
+  `eyeling --ast /test_data/fuzz_test_AST_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "[\n  {\n    \"_type\": \"PrefixEnv\",\n    \"map\": {\n      \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\",\n      \"rdfs\": \"http://www.w3.org/2000/01/rdf-schema#\",\n      \"xsd\": \"http://www.w3.org/2001/XMLSchema#\",\n      \"log\": \"http://www.w3.org/2000/10/swap/log#\",\n      \"math\": \"http://www.w3.org/2000/10/swap/math#\",\n      \"string\": \"http://www.w3.org/2000/10/swap/string#\",\n      \"list\": \"http://www.w3.org/2000/10/swap/list#\",\n      \"time\": \"http://www.w3.org/2000/10/swap/time#\",\n      \"genid\": \"https://eyereasoner.github.io/.well-known/genid/\",\n      \"\": \"\",\n      \"ex\": \"http://xmqviw.yzj.ruqapgyh.io/\"\n    },\n    \"baseIri\": \"\"\n  },\n  [\n    {\n      \"_type\": \"Triple\",\n      \"s\": {\n        \"_type\": \"Iri\",\n        \"value\": \"http://xmqviw.yzj.ruqapgyh.io/DFWk\"\n      },\n      \"p\": {\n        \"_type\": \"Iri\",\n        \"value\": \"http://xmqviw.yzj.ruqapgyh.io/SIe6BB6itA\"\n      },\n      \"o\": {\n        \"_type\": \"Iri\",\n        \"value\": \"http://xmqviw.yzj.ruqapgyh.io/VoSuDQ\"\n      }\n    },\n    ... [omitted 4 similar Triple objects] ...\n  ],\n  [\n    {\n      \"_type\": \"Rule\",\n      \"premise\": [\n        {\n          \"_type\": \"Triple\",\n          \"s\": {\n            \"_type\": \"Var\",\n            \"name\": \"s\"\n          },\n          \"p\": {\n            \"_type\": \"Var\",\n            \"name\": \"p\"\n          },\n          \"o\": {\n            \"_type\": \"Var\",\n            \"name\": \"o\"\n          }\n        }\n      ],\n      \"conclusion\": [\n        {\n          \"_type\": \"Triple\",\n          \"s\": {\n            \"_type\": \"Var\",\n            \"name\": \"s\"\n          },\n          \"p\": {\n            \"_type\": \"Iri\",\n            \"value\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n          },\n          \"o\": {\n            \"_type\": \"Iri\",\n            \"value\": \"http://xmqviw.yzj.ruqapgyh.io/Processed\"\n          }\n        }\n      ],\n      \"isForward\": true,\n      \"isFuse\": false,\n      \"headBlankLabels\": []\n    }\n  ],\n  []\n]\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file exists at the specified path.
+  - Command Behavior Analysis: The `--ast` flag bypasses the reasoning engine. The tool parses the input file and serializes the resulting AST into a JSON string, which is then printed to `stdout`. The AST structure includes prefixes, a list of triples, a list of rules, and other structural elements.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--proof-comments <file.n3>`
+- **Function and Parameter Description**:
+  - `--proof-comments`: This flag enables the output of detailed proof explanations as comments alongside the derived triples.
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_PROOF_COMMENTS_3.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --proof-comments /test_data/fuzz_test_PROOF_COMMENTS_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://apcwfebr.qsrxtay.kfywzdmt.qkzoskvz.org/> .\n\n# ----------------------------------------------------------------------\n# Proof for derived triple:\n#   ex:0L26oYZ a ex:QueryResult .\n# It holds because the following instance of the rule body is provable:\n#   ex:0L26oYZ a ex:Processed .\n# via the schematic forward rule:\n#   {\n#     ?s a ex:Processed .\n#   } => {\n#     ?s a ex:QueryResult .\n#   } .\n# with substitution (on rule variables):\n#   ?s = ex:0L26oYZ\n# Therefore the derived triple above is entailed by the rules and facts.\n# ----------------------------------------------------------------------\n\nex:0L26oYZ a ex:QueryResult .\n\n... [omitted 4 similar proof blocks and derived triples] ...\n\nex:0fuYhQiNX a ex:QueryResult .\n\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool performs reasoning as in the default case. However, for each derived triple that is output, it first prints a detailed, multi-line comment block. This block explains which rule was used, what substitutions were made for the variables, and why the triple is entailed. The derived triple is printed immediately after its corresponding proof comment.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--strings <file.n3>`
+- **Function and Parameter Description**:
+  - `--strings`: A flag that modifies the output format. In the provided sample, it results in no output.
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_STRINGS_3.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --strings /test_data/fuzz_test_STRINGS_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with the `--strings` flag. Despite the input file containing facts and rules that would normally produce output, the `stdout` is empty. The implementation must correctly handle this flag, which appears to suppress the default triple output for this type of input.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--stream <file.n3>`
+- **Function and Parameter Description**:
+  - `--stream`: A flag that influences the reasoning or output process.
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_STREAM_3.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --stream /test_data/fuzz_test_STREAM_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://npkfkjz.dxglrsps.hrppq.iuerccgw.org/> .\n\nex:fAJYjw3sz9 a ex:QueryResult .\nex:FSOi a ex:QueryResult .\nex:gnwf5Bg a ex:QueryResult .\nex:h3q a ex:QueryResult .\nex:uqhijc25h a ex:QueryResult .\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with the `--stream` flag. It performs reasoning and produces the same set of derived triples as the default mode. The order of the output triples may differ. The implementation must recognize and handle this flag.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--deterministic-skolem <file.n3>`
+- **Function and Parameter Description**:
+  - `--deterministic-skolem`: A flag that likely ensures deterministic generation of certain identifiers (Skolem IRIs).
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_DETERMINISTIC_SKOLEM_2.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --deterministic-skolem /test_data/fuzz_test_DETERMINISTIC_SKOLEM_2.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://okxiclcw.zhwudsk.pmnt.com/> .\n\nex:0FnwZ a ex:QueryResult .\nex:8qlFtbX5 a ex:QueryResult .\nex:JvrHoOIwnb a ex:QueryResult .\nex:scp a ex:QueryResult .\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with the `--deterministic-skolem` flag. For the given input, which does not require Skolemization, the output is identical in content to the default mode. The implementation must recognize and handle this flag.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--enforce-https <file.n3>`
+- **Function and Parameter Description**:
+  - `--enforce-https`: A flag that likely enforces the use of HTTPS when fetching remote resources.
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_ENFORCE_HTTPS_2.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --enforce-https /test_data/fuzz_test_ENFORCE_HTTPS_2.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://nlcjzioj.gdruwef.rfflegz.com/> .\n\nex:61j a ex:QueryResult .\nex:nQh a ex:QueryResult .\nex:OKgH3B3g a ex:QueryResult .\nex:yf9Lb9708 a ex:QueryResult .\nex:ZAIaVKd a ex:QueryResult .\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with the `--enforce-https` flag. Since the operation is on a local file, this flag has no observable effect on the output, which is identical in content to the default mode. The implementation must recognize and handle this flag.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--super-restricted <file.n3>`
+- **Function and Parameter Description**:
+  - `--super-restricted`: A flag that likely enables a highly restricted operational mode, possibly disabling features like network access or certain built-in functions.
+  - `<file.n3>`: The path to the input N3 file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_SUPER_RESTRICTED_0.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --super-restricted /test_data/fuzz_test_SUPER_RESTRICTED_0.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://biboc.mlljkfv.jny.com/> .\n\nex:1hiNbmrY3h a ex:QueryResult .\nex:qyKu4 a ex:QueryResult .\nex:vm6LCp a ex:QueryResult .\nex:VXrrjfYE a ex:QueryResult .\nex:wYZ a ex:QueryResult .\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with the `--super-restricted` flag. For the given input, this flag has no observable effect on the output, which is identical in content to the default mode. The implementation must recognize and handle this flag.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--proof-comments --strings <file.n3>`
+- **Function and Parameter Description**:
+  - A combination of the `--proof-comments` and `--strings` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_PROOF_STRINGS_3.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --proof-comments --strings /test_data/fuzz_test_PROOF_STRINGS_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: When both `--proof-comments` and `--strings` are used, the `stdout` is empty. This indicates that the behavior of `--strings` (suppressing output for this input type) takes precedence or combines with `--proof-comments` to produce no output.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--stream --strings <file.n3>`
+- **Function and Parameter Description**:
+  - A combination of the `--stream` and `--strings` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_STREAM_STRINGS_3.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --stream --strings /test_data/fuzz_test_STREAM_STRINGS_3.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: When both `--stream` and `--strings` are used, the `stdout` is empty, similar to using `--strings` alone. The implementation must handle this combination of flags correctly.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+
+#### Command Category: `--deterministic-skolem --proof-comments <file.n3>`
+- **Function and Parameter Description**:
+  - A combination of the `--deterministic-skolem` and `--proof-comments` flags.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A single file `/test_data/fuzz_test_DETERMINISTIC_PROOF_1.n3` is created with content similar in structure to the first example.
+  **2. Command**:
+  `eyeling --deterministic-skolem --proof-comments /test_data/fuzz_test_DETERMINISTIC_PROOF_1.n3`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "@prefix ex: <http://hknwf.izrjz.ibth.lncwqhj.com/> .\n\n# ----------------------------------------------------------------------\n# Proof for derived triple:\n#   ex:CPf6W6rnj a ex:QueryResult .\n# It holds because the following instance of the rule body is provable:\n#   ex:CPf6W6rnj a ex:Processed .\n# via the schematic forward rule:\n#   {\n#     ?s a ex:Processed .\n#   } => {\n#     ?s a ex:QueryResult .\n#   } .\n# with substitution (on rule variables):\n#   ?s = ex:CPf6W6rnj\n# Therefore the derived triple above is entailed by the rules and facts.\n# ----------------------------------------------------------------------\n\nex:CPf6W6rnj a ex:QueryResult .\n\n... [omitted 4 similar proof blocks and derived triples] ...\n\nex:42O7a a ex:QueryResult .\n\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An N3 file with facts and rules is present.
+  - Command Behavior Analysis: The tool is executed with both `--deterministic-skolem` and `--proof-comments`. The output is identical in format to using `--proof-comments` alone, including the detailed proof blocks for each derived triple. The implementation must handle this flag combination.
+  - Final State Changes (fs_diff): No changes are made to the file system.
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

@@ -1,0 +1,75 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: scan-rsc-vuln
+**Repository Name**: scan-rsc-vuln
+**Core Functionality Description**:
+This is a CLI tool designed to scan a specified directory for Node.js projects. It recursively finds all `package.json` files, parses their dependencies (`dependencies`, `devDependencies`, `peerDependencies`), and checks them against a known list of security vulnerabilities related to React Server Components. The tool identifies both directly vulnerable packages and potentially affected frameworks, then outputs a comprehensive, color-coded report to the console. The report includes a summary of findings, details on vulnerable projects, and actionable remediation instructions.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `scan-rsc-vuln <path>`
+- **Function and Parameter Description**:
+  - **Command**: `scan-rsc-vuln <path>`
+  - **Purpose**: Scans a directory recursively for Node.js projects and checks for React Server Components vulnerabilities.
+  - **Parameter**:
+    - `<path>`: The absolute path to the directory that will be scanned. The tool will search for `package.json` files within this directory and its subdirectories.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  Before running the command, the file system is set up with a directory `/test_data/scan_dir_normal_2` containing two sub-projects.
+  - A file is created at `/test_data/scan_dir_normal_2/project_0/package.json` with the following content, declaring a vulnerable dependency:
+    ```json
+    {
+      "name": "project_0",
+      "version": "1.0.0",
+      "dependencies": {
+        "react-server-dom-webpack": "19.1.1"
+      }
+    }
+    ```
+  - A file is created at `/test_data/scan_dir_normal_2/project_1/package.json` with the following content, declaring a non-vulnerable dependency:
+    ```json
+    {
+      "name": "project_1",
+      "version": "1.0.0",
+      "dependencies": {
+        "react": "18.2.0"
+      }
+    }
+    ```
+  **2. Command**:
+  `scan-rsc-vuln /test_data/scan_dir_normal_2`
+  **3. Oracle Result**:
+  ```json
+  {
+    "exit_code": 0,
+    "stdout": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  React Server Components Vulnerability Scanner\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n  Checking for 3 CVEs:\n  \u2022 CVE-2025-55182 - RCE (CRITICAL, CVSS 10.0)\n  \u2022 CVE-2025-55184 - Denial of Service (HIGH, CVSS 7.5)\n  \u2022 CVE-2025-55183 - Source Code Exposure (MEDIUM, CVSS 5.3)\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  References:\n  https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components\n  https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components\n\n\ud83d\udd0d Scanning for package.json and bun.lock files...\n\n\ud83d\udcc2 Scan Directory: <path>\n\ud83d\udcca Total Projects Scanned: 2\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\ud83d\udccb All Scanned Projects:\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n   \u2022 project_0\n   \u2022 project_1\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\ud83d\udea8 VULNERABLE PACKAGES FOUND:\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n   \ud83d\udcc1 project_0\n      Path: <path>\n      Source: package.json\n      \u2022 react-server-dom-webpack@19.1.1 [VULNERABLE]\n        \u26a0\ufe0f  CVE-2025-55182: Remote Code Execution (React2Shell) (CRITICAL, CVSS 10)\n        \u26a0\ufe0f  CVE-2025-55184: Denial of Service (HIGH, CVSS 7.5)\n        \u26a0\ufe0f  CVE-2025-55183: Source Code Exposure (MEDIUM, CVSS 5.3)\n        \ud83d\udd27 Upgrade to: 19.0.2 or 19.1.3 or 19.2.2\n\n\n \u2705 No affected frameworks found!\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\ud83d\udcc8 SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n   Total projects scanned: 2\n   Projects with vulnerable packages: 1\n   Projects with affected frameworks: 0\n\n\u26a0\ufe0f  ACTION REQUIRED:\n   1. Update vulnerable packages immediately to 19.0.2, 19.1.3, or 19.2.2\n   2. Check node_modules for transitive dependencies\n   3. Run `npm ls react-server-dom-webpack` to check nested deps\n   4. References:\n      - https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components\n      - https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components\n\n",
+    "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system contains two projects, `project_0` and `project_1`. `project_0`'s `package.json` lists `react-server-dom-webpack` at version `19.1.1`, which is known to be vulnerable. `project_1`'s `package.json` lists a safe dependency.
+  - Command Behavior Analysis: The tool is invoked on the parent directory `/test_data/scan_dir_normal_2`. It begins by printing a header and reference links. It then recursively scans the directory, finding the two `package.json` files. It parses each file's dependencies. For `project_0`, it identifies `react-server-dom-webpack@19.1.1` as a match against its internal list of vulnerable packages and versions. It then generates a detailed report for this finding, listing the project name, path, the vulnerable package and version, the associated CVEs with their severity, and the recommended upgrade paths (`19.0.2`, `19.1.3`, or `19.2.2`). For `project_1`, it finds no vulnerable dependencies. Finally, it prints a summary of the scan: 2 projects scanned, 1 with vulnerable packages, and 0 with affected frameworks, followed by generic action-required steps.
+  - Final State Changes (fs_diff): The `fs_diff` is empty. This is the correct behavior, as the tool is a scanner and must operate in a read-only mode. It should not add, modify, or delete any files on the file system.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

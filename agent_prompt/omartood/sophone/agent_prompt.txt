@@ -1,0 +1,310 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: somali-phone-cli
+**Repository Name**: somali-phone-cli
+**Core Functionality Description**:
+This is a command-line tool for working with Somali phone numbers. Its core functionalities include:
+- Validating if a given number is a valid Somali phone number.
+- Formatting numbers into various standard formats (local, E.164, international).
+- Identifying the mobile operator (e.g., Hormuud, Somtel) associated with a number.
+- Detecting the primary mobile wallet (e.g., EVC, Sahal) for a number.
+- Displaying detailed information about operators and mobile wallets.
+- Listing all supported operators and wallets.
+- Processing a batch of phone numbers from a file.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `sophone validate <number>`
+- **Function and Parameter Description**:
+  - This command validates a given Somali phone number.
+  - `<number>`: The phone number string to validate. It can be in various formats.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone validate '+252 64 901 8302'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "\u2713 valid\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command takes the phone number `+252 64 901 8302` as input. It processes the number and determines it is a valid Somali phone number. It then prints the string `✓ valid` followed by a newline to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone format <number>`
+- **Function and Parameter Description**:
+  - This command formats a Somali phone number to the local format (e.g., `0XXX XXX XXX`).
+  - `<number>`: The phone number string to format.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone format '252777839952'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "0777 839 952\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command takes the number `252777839952` as input. It normalizes and reformats the number into the local Somali format, which includes a leading zero and spaces for readability. The result `0777 839 952` is printed to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone e164 <number>`
+- **Function and Parameter Description**:
+  - This command formats a Somali phone number to the E.164 international format (e.g., `+252XXXXXXXXX`).
+  - `<number>`: The phone number string to format.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone e164 '+252 68 887 9780'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "+252688879780\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command takes the number `+252 68 887 9780` as input. It strips all non-digit characters except the leading `+` and ensures it conforms to the E.164 standard. The resulting string `+252688879780` is printed to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone international <number>`
+- **Function and Parameter Description**:
+  - This command formats a Somali phone number to a spaced international format (e.g., `+252 XX XXX XXXX`).
+  - `<number>`: The phone number string to format.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone international '+252 69 087 7213'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "+252 69 087 7213\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command takes the number `+252 69 087 7213` as input. It normalizes and then reformats the number into a human-readable international format with spaces. The result `+252 69 087 7213` is printed to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone operator <number>`
+- **Function and Parameter Description**:
+  - This command identifies and prints the name of the mobile operator for a given Somali phone number.
+  - `<number>`: The phone number string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone operator '252690016514'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "NationLink\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command analyzes the prefix of the input number `252690016514` (which corresponds to the prefix `69`). It maps this prefix to the corresponding mobile operator, "NationLink", and prints the operator's name to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone wallet <number>`
+- **Function and Parameter Description**:
+  - This command identifies and prints the name of the primary mobile wallet associated with a given Somali phone number's operator.
+  - `<number>`: The phone number string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone wallet '+252641168851'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "No primary wallet available\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command first identifies the operator for the number `+252641168851`. It then checks if this operator has a primary mobile wallet service. In this case, the operator (SomLink, prefix 64) does not have a designated primary wallet, so the tool prints `No primary wallet available` to standard output.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone info <number>`
+- **Function and Parameter Description**:
+  - This command displays detailed information about the operator associated with a given Somali phone number.
+  - `<number>`: The phone number string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone info '+252617870709'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Operator: Hormuud Telecom Somalia\nPrefixes: 61, 77\nType: GSM\nWebsite: https://hormuud.com\nPrimary Wallet: EVC\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command identifies the operator for the number `+252617870709` as "Hormuud". It then retrieves and prints a multi-line, formatted summary of this operator's details, including its full name, prefixes, type, website, and primary wallet.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone walletinfo <number>`
+- **Function and Parameter Description**:
+  - This command displays detailed information about the mobile wallet associated with a given Somali phone number.
+  - `<number>`: The phone number string.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone walletinfo '252616889395'`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Wallet: EVC Plus\nFull Name: Electronic Virtual Cash Plus\nOperator: Hormuud\nDescription: Hormuud's flagship mobile money service\nFeatures: Send Money, Receive Money, Pay Bills, Buy Airtime, Merchant Payments\nUSSD Code: *770#\nWebsite: https://evcplus.so\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command identifies the operator (Hormuud) and its primary wallet (EVC) for the number `252616889395`. It then retrieves and prints a multi-line, formatted summary of the wallet's details, including its name, full name, operator, description, features, USSD code, and website.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone operators`
+- **Function and Parameter Description**:
+  - This command lists all supported mobile operators and their key information.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone operators`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Available Operators:\n  Hormuud Telecom Somalia (61, 77)\n    Website: https://hormuud.com\n    Primary Wallet: EVC\n  Somtel Network (62, 65, 66)\n    Website: https://somtel.com\n    Primary Wallet: Sahal\n  Telesom (63)\n    Website: https://telesom.net\n    Primary Wallet: ZAAD\n  SomLink (64)\n  SomNet (68)\n  NationLink Telecom (69)\n  Amtel (71)\n  Golis Telecom Somalia (60, 70, 72)\n    Website: https://golistelecom.com\n    Primary Wallet: GolisSahal\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command retrieves a pre-defined list of all supported Somali mobile operators. It then formats this information into a human-readable, indented list and prints it to standard output. For each operator, it shows the name, prefixes, and, if available, website and primary wallet.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone wallets`
+- **Function and Parameter Description**:
+  - This command lists all supported mobile wallets and their key information.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  No special preparation is needed. The file system is in its default state.
+  **2. Command**:
+  `sophone wallets`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Available Mobile Wallets:\n  EVC Plus (Hormuud)\n    USSD: *770#\n    Website: https://evcplus.so\n    Features: Send Money, Receive Money, Pay Bills, Buy Airtime, Merchant Payments\n  Sahal (Somtel)\n    USSD: *828#\n    Website: https://somtel.com/sahal\n    Features: Money Transfer, Bill Payment, Airtime Purchase, Merchant Services\n  ZAAD (Telesom)\n    USSD: *712#\n    Website: https://zaad.so\n    Features: Mobile Banking, Money Transfer, Bill Payments, Online Shopping\n  eDahab (Multi-operator)\n    USSD: *444#\n    Website: https://edahab.net\n    Features: International Remittance, Local Transfers, Bill Payment, Merchant Services\n  Jeeb (Multi-operator)\n    Features: Digital Payments, Money Transfer, Bill Payment, E-commerce\n  Golis Sahal (Golis)\n    USSD: *888#\n    Website: https://golistelecom.com/sahal\n    Features: Send Money, Receive Money, Pay Bills, Buy Airtime, Merchant Services\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system is empty.
+  - Command Behavior Analysis: The command retrieves a pre-defined list of all supported mobile wallets. It formats this information into a human-readable, indented list and prints it to standard output. For each wallet, it shows its name, associated operator, and other details like USSD code, website, and features.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+#### Command Category: `sophone batch <file>`
+- **Function and Parameter Description**:
+  - This command processes multiple phone numbers from a specified file, one number per line.
+  - `<file>`: The path to a text file containing phone numbers.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A file named `/test_data/batch_test_2.txt` is created with the following content:
+  ```
+  696878848
+  640039042
+  +252635004843
+  252779467219
+  +252 62 354 4581
+  0629730909
+  252635501889
+  6kAXcDicAzq
+  0632948938
+  252618868579
+  0773418194
+  +252655620081
+  uADqpB
+  252644069379
+  ```
+  **2. Command**:
+  `sophone batch /test_data/batch_test_2.txt`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "Processing numbers from file:\n\n\u2713 [input] \u2192 +252696878848 (NationLink)\n\u2713 [input] \u2192 +252640039042 (SomLink)\n\u2713 [input] \u2192 +252635004843 (Telesom | ZAAD)\n\u2713 [input] \u2192 +252779467219 (Hormuud | EVC)\n\u2713 [input] \u2192 +252623544581 (Somtel | Sahal)\n\u2713 [input] \u2192 +252629730909 (Somtel | Sahal)\n\u2713 [input] \u2192 +252635501889 (Telesom | ZAAD)\n\u2717 [input] \u2192 \"[input]\" is too short. Somali mobile numbers need 9 digits\n\u2713 [input] \u2192 +252632948938 (Telesom | ZAAD)\n\u2713 [input] \u2192 +252618868579 (Hormuud | EVC)\n\u2713 [input] \u2192 +252773418194 (Hormuud | EVC)\n\u2713 [input] \u2192 +252655620081 (Somtel | Sahal)\n\u2717 [input] \u2192 \"[input]\" contains no valid digits\n\u2713 [input] \u2192 +252644069379 (SomLink)\n\nSummary: [counts]\n",
+      "stderr": "",
+      "fs_diff": {}
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A text file exists at `/test_data/batch_test_2.txt` containing 14 lines, each with a potential phone number.
+  - Command Behavior Analysis: The command reads the file specified by the path. It iterates through each line of the file, treating each line as a phone number input. For each line, it performs validation and analysis.
+    - If the number is valid, it prints a line starting with `✓`, followed by the original input, an arrow, the E.164 formatted number, and the operator/wallet information in parentheses.
+    - If the number is invalid, it prints a line starting with `✗`, followed by the original input, an arrow, and an error message.
+    - After processing all lines, it prints a summary line with the total counts of valid and invalid numbers.
+    - **Note on output format**: The sample output uses `[input]` and `[counts]` as placeholders. Your implementation should replace `[input]` with the actual content from the corresponding line in the input file. The `[counts]` placeholder should be replaced with a calculated summary, for example: `Summary: 12 valid, 2 invalid`.
+  - Final State Changes (fs_diff): The command does not create, modify, or delete any files.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

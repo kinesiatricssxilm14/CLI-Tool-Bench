@@ -1,0 +1,252 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+CLI Tool Name: obfuscator
+Repository Name: obfuscator
+Core Functionality Description:
+A CLI tool to obfuscate R code by renaming variables, functions, and file names while preserving functionality. It parses R code to identify identifiers, generates obfuscated names based on a provided encryption key, and consistently replaces them throughout the codebase. It also supports prepending license text to obfuscated files, protecting specific tokens from being renamed, ignoring specific directories, and reversing the process via a deobfuscation flag.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. Naming and Invocation:  The global invocation command for the CLI must be exactly identical to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. Language and Environment:
+  - Must be implemented entirely in Go.
+  - The code must run flawlessly in the official `golang:latest` environment.
+3. Dependencies and Installation (CRITICAL):
+  - The validation environment will ONLY execute the following single installation command in the repository root directory:
+`go install .`
+  - It will ABSOLUTELY NOT execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file `go.mod`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. Output Consistency:   - Normal Cases: The standard output stream `stdout`) must be as strictly consistent as possible with the provided samples.
+  - Error Cases: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you MUST ensure the return code `exit_code`) is not 0, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements.
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key>
+- Function and Parameter Description:
+Basic obfuscation of R files in a directory.
+  - `-in`: Directory of R files to obfuscate.
+  - `-out`: Directory where to write the obfuscated files.
+  - `-key`: Key used for the obfuscation algorithm.
+- Execution Context and Sample:
+1. Preparation:
+Creates input and output directories (`/test_data/in`, `/test_data/out`). Mounts a test R script `script_0.R` containing basic functions and variable assignments.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "WSd5VLW0"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/gOAhOA/qOAWOACPAyNAmOAgOAWOAoNA.R": {
+            "type": "ADD",
+            "content": "ZOAaOAmOAsNAYOANOAYOArOA=\\(vOA){vOA+0x42;};kOAeOAuOAAOAgOAaOAjOAuOA=\\(vOA){ZOAaOAmOAsNAYOANOAYOArOA(vOA*0x3);};pOAYOADPAKOAiOAgOA=kOAeOAuOAAOAgOAaOAjOAuOA(0x1f);print(pOAYOADPAKOAiOAgOA);"
+        }
+    }
+}
+```
+Deep Sample Analysis (Implementation Logic Reference):
+- Initial State Analysis: An input directory containing a single R script with plaintext variable names (`bgbcbaag`, `mkjkjnlj`, `result`) and numeric literals.
+- Command Behavior Analysis: The tool reads the R script, applies obfuscation using the key "WSd5VLW0", renames variables, functions, and the filename itself, and converts numeric literals to hex format.
+- Final State Changes (fs_diff): A new obfuscated file is created in the output directory. The filename and directory name are obfuscated. The content shows obfuscated identifiers and hex numbers (e.g., `66` becomes `0x42`).
+- - .
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -license <file>
+- Function and Parameter Description:
+Obfuscates R files and prepends a license text to each output file.
+  - `-in`, `-out`, `-key`: Same as above.
+  - `-license`: Path to a text file containing license information to prepend.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts an R script along with a `license.txt` file containing a test license.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "SMwwJS" -license "/test_data/license.txt"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/PNAONA/ZNADNAINAzMANNAaNAFNAEMA.R": {
+            "type": "ADD",
+            "content": "# Test License File\n# (c) 2024\nLNAENAvMAtMA=\\(eNA){eNA+0x46;};ONAJNABNAENAFNASNAONA=\\(eNA){LNAENAvMAtMA(eNA*0x7);};YNAFNAJNALNAJNAaNA=ONAJNABNAENAFNASNAONA(0x26);print(YNAFNAJNALNAJNAaNA);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input directory with an R script and a separate license text file.
+  - Command Behavior Analysis: The tool obfuscates the code and reads the license file. It formats the license text as R comments.
+  - Final State Changes (fs_diff): The output file starts with the commented license text (`# Test License File\n# (c) 2024`), followed by the obfuscated code.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -protect <tokens>
+- Function and Parameter Description:
+Obfuscates R files but leaves specified tokens unchanged.
+  - `-in`, `-out`, `-key`: Same as above.
+  - `-protect`: Comma-separated list of identifiers that should not be obfuscated.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories and mounts an R script containing functions `adgbffc` and `jklln`.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "UOSOJcMBEyjPLLye" -protect "adgbffc,jklln"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/WdAVdA/gdAKdAddAQdASdAvdAEdAybA.R": {
+            "type": "ADD",
+            "content": "adgbffc=\\(ldA){ldA+0x53;};jklln=\\(ldA){adgbffc(ldA*0x6);};fdAMdAedAcdAOdAvdA=jklln(0x1);print(fdAMdAedAcdAOdAvdA);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input script with specific function names.
+  - Command Behavior Analysis: The tool obfuscates the code but skips renaming any identifier that matches the protected tokens list.
+  - Final State Changes (fs_diff): In the output file, `adgbffc` and `jklln` remain in plaintext, while other variables (like `result` and `x`) are obfuscated.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -ignore <dirs>
+- Function and Parameter Description:
+Obfuscates R files but skips specified directories.
+  - `-in`, `-out`, `-key`: Same as above.
+  - `-ignore`: Comma-separated directories to ignore.
+- Execution Context and Sample:
+1. Preparation:
+Creates directories including a `renv` subdirectory. Mounts a main script and an `ignored.R` script inside `renv`.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "JOP9UOETh8fRq" -ignore "renv"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/vWAFXA/FXAuWAKXAeWANXALXAgWAAWA.R": {
+            "type": "ADD",
+            "content": "sWAvWAzWAbWA=\\(KXA){KXA+0x58;};yWADXAEXAfWALXAEXAtWA=\\(KXA){sWAvWAzWAbWA(KXA*0x5);};EXAwWALXAqWAJXALXA=yWADXAEXAfWALXAEXAtWA(0xc);print(EXAwWALXAqWAJXALXA);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Input directory contains a root script and a script inside a `renv` folder.
+  - Command Behavior Analysis: The tool processes the root directory but skips the `renv` directory entirely because it matches the `-ignore` flag.
+  - Final State Changes (fs_diff): Only the root script is obfuscated and outputted. The `renv/ignored.R` file is not processed or copied to the output.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -license <file> -protect <tokens>
+- Function and Parameter Description:
+Combines license prepending and token protection during obfuscation.
+  - Combines `-license` and `-protect` flags.
+- Execution Context and Sample:
+1. Preparation:
+Mounts an R script and a license file.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "mX8r4" -license "/test_data/license.txt" -protect "abbaca,knhjk"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/JKAtKA/TKAiKARKAOKALKAUKAeKADJA.R": {
+            "type": "ADD",
+            "content": "# Test License File\n# (c) 2024\nabbaca=\\(YKA){YKA+0x4e;};knhjk=\\(YKA){abbaca(YKA*0x1);};SKAkKASKAaKAHKAUKA=knhjk(0x1e);print(SKAkKASKAaKAHKAUKA);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Script with functions `abbaca` and `knhjk`, plus a license file.
+  - Command Behavior Analysis: Applies both license commenting and token protection.
+  - Final State Changes (fs_diff): Output contains the commented license at the top, protected tokens remain plaintext, and the rest is obfuscated.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -protect <tokens> -ignore <dirs>
+- Function and Parameter Description:
+Combines token protection and directory ignoring.
+  - Combines `-protect` and `-ignore` flags.
+- Execution Context and Sample:
+1. Preparation:
+Mounts a root script, an ignored script in `renv`, and sets up directories.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "MdLTLW" -protect "bdgbd,hhmlkki" -ignore "renv"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/GMAiMA/QMAXMAOMANMAMMAbMAwLAYLA.R": {
+            "type": "ADD",
+            "content": "bdgbd=\\(VMA){VMA+0x52;};hhmlkki=\\(VMA){bdgbd(VMA*0x3);};PMAZMAPMAZMAIMAbMA=hhmlkki(0x3);print(PMAZMAPMAZMAIMAbMA);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Root script with specific functions, and a `renv` directory.
+  - Command Behavior Analysis: Protects specified tokens and ignores the `renv` directory.
+  - Final State Changes (fs_diff): Only the root script is outputted, with protected tokens preserved.
+##### Command Category: obfuscator -in <dir> -out <dir> -key <key> -license <file> -protect <tokens> -ignore <dirs>
+- Function and Parameter Description:
+Combines all optional flags with edge-case inputs (path traversal keys, unicode tokens, long ignore strings).
+- Execution Context and Sample:
+1. Preparation:
+Mounts a script with a long string of 9s, a license file containing `reboot`, and an ignored script in `renv`.
+2. Command:
+`obfuscator -in /test_data/in -out /test_data/out -key "../../etc/passwd" -license "/test_data/license.txt" -protect "中文测试🚀" -ignore "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/ubAzbA/EcAobAEcAubABcAGcAnbAIaA.R": {
+            "type": "ADD",
+            "content": "# `reboot`\n9999999999999999999999999999;"
+        },
+        "/test_data/out/ubAzbA/DcAqbAAcAHcA/ubAsbAAcAAcADcArbAsbA.R": {
+            "type": "ADD",
+            "content": "# `reboot`\nprint('This file should be ignored');"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Edge case inputs provided for flags. The ignore flag does not match the actual `renv` directory.
+  - Command Behavior Analysis: The tool processes all files (including `renv` since it wasn't ignored). It applies the license to all processed files.
+  - Final State Changes (fs_diff): Both the root script and the `renv` script are obfuscated and outputted. The license is prepended to both.
+##### Command Category: obfuscator -deobfuscate -in <dir> -out <dir> -key <key>
+- Function and Parameter Description:
+Reverses the obfuscation process using the key.
+  - `-deobfuscate`: Flag to reverse the obfuscation process.
+  - `-in`: Directory of obfuscated R files.
+  - `-out`: Directory to write deobfuscated files.
+  - `-key`: Key used during obfuscation.
+- Execution Context and Sample:
+1. Preparation:
+Mounts an already obfuscated R script.
+2. Command:
+`obfuscator -deobfuscate -in /test_data/in -out /test_data/out -key "d3iAlzBgn6"`
+3. Oracle Result:
+```json
+{
+    "exit_code": 0,
+    "stdout": "",
+    "fs_diff": {
+        "/test_data/out/Invalid ciphertext length/Invalid ciphertext length.R": {
+            "type": "ADD",
+            "content": "\uff53\uff7f\uffaf=\\(\uff65){\uff65+0x0;x1;};\uff4f\uff71\uffb2=\\(\uff65){\uff53\uff7f\uffaf(\uff65);};\uff4f\uff71\uffba=\\(\uff65){\uff4f\uff71\uffb2(\uff65);};\uff4f\uff71\uffba(0x0,x2a);"
+        }
+    }
+}
+```
+- Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: An obfuscated script is provided as input.
+  - Command Behavior Analysis: The tool attempts to deobfuscate the file using the provided key. In this specific sample, the key or ciphertext length seems to trigger an edge case resulting in a specific directory name and unicode output.
+  - Final State Changes (fs_diff): A file is created in a directory named `Invalid ciphertext length` with partially decoded/garbled unicode content, reflecting the tool's behavior when deobfuscating under these specific conditions.
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

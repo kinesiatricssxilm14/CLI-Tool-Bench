@@ -1,0 +1,148 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: remove-unused-vars
+**Repository Name**: remove-unused-vars
+**Core Functionality Description**:
+This tool processes JSON-formatted linter reports to automatically remove unused variables and functions from source code files. It parses the report, which specifies the file paths and exact locations of the unused code, and then modifies the corresponding source files to remove the reported definitions. The tool can receive the JSON report either from a file path provided as a command-line argument or by reading from standard input.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **javascript**.
+   - The code must run flawlessly in the official `node:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `npm install && npm install -g .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`package.json`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `remove-unused-vars <file>`
+- **Function and Parameter Description**:
+  The tool is invoked with a single argument, which is the path to a JSON file. This file contains a linter report detailing unused variables. The tool will parse this file and modify the source code files mentioned within the report.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/report_file_input_4.json`: A JSON file containing the linter report. It specifies that in `source_file_input_4.js`, the variable `unused_var` and the function `unused_func` are unused, providing their exact locations.
+    ```json
+    [
+      {
+        "filePath": "/test_data/source_file_input_4.js",
+        "messages": [
+          {
+            "ruleId": "no-unused-vars",
+            "message": "'unused_var' is defined but never used.",
+            "line": 1,
+            "column": 7,
+            "endLine": 1,
+            "endColumn": 17
+          },
+          {
+            "ruleId": "no-unused-vars",
+            "message": "'unused_func' is defined but never used.",
+            "line": 2,
+            "column": 10,
+            "endLine": 2,
+            "endColumn": 21
+          }
+        ]
+      }
+    ]
+    ```
+  - `/test_data/source_file_input_4.js`: The target source code file containing both unused and used code.
+    ```javascript
+    const unused_var = 1;
+    function unused_func() {}
+    const used = 2; console.log(used);
+    ```
+  **2. Command**:
+  `remove-unused-vars /test_data/report_file_input_4.json`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/source_file_input_4.js": {
+              "type": "MOD",
+              "content": "\nconst used = 2; console.log(used);"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: Before execution, a source file `/test_data/source_file_input_4.js` exists with three lines of code. A separate JSON report file `/test_data/report_file_input_4.json` lists the first two definitions (`unused_var` and `unused_func`) as unused.
+  - Command Behavior Analysis: The program is called with the path to the report file. It must read and parse this JSON file. The JSON structure is an array of objects, where each object contains a `filePath` and a `messages` array. The tool iterates through these messages to identify which file to modify and what code ranges to remove. The tool does not produce any standard output.
+  - Final State Changes (fs_diff): The tool modifies the file specified in the report's `filePath` field (`/test_data/source_file_input_4.js`). It removes the entire lines containing the unused variable and function definitions. Specifically, the first two lines (`const unused_var = 1;` and `function unused_func() {}`) are deleted, leaving only the line with the used code.
+
+#### Command Category: `cat <file> | remove-unused-vars`
+- **Function and Parameter Description**:
+  The tool is invoked without any arguments. It reads JSON-formatted linter report data from standard input (`stdin`). The tool will parse this data and modify the source code files mentioned within the report.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The following files are created in the `/test_data/` directory:
+  - `/test_data/report_pipe_input_4.json`: A JSON file containing the linter report, identical in structure to the previous example.
+    ```json
+    [
+      {
+        "filePath": "/test_data/source_pipe_input_4.js",
+        "messages": [
+          {
+            "ruleId": "no-unused-vars",
+            "message": "'unused_var' is defined but never used.",
+            "line": 1,
+            "column": 7,
+            "endLine": 1,
+            "endColumn": 17
+          },
+          {
+            "ruleId": "no-unused-vars",
+            "message": "'unused_func' is defined but never used.",
+            "line": 2,
+            "column": 10,
+            "endLine": 2,
+            "endColumn": 21
+          }
+        ]
+      }
+    ]
+    ```
+  - `/test_data/source_pipe_input_4.js`: The target source code file.
+    ```javascript
+    const unused_var = 1;
+    function unused_func() {}
+    const used = 2; console.log(used);
+    ```
+  **2. Command**:
+  `cat /test_data/report_pipe_input_4.json | remove-unused-vars`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "",
+      "fs_diff": {
+          "/test_data/source_pipe_input_4.js": {
+              "type": "MOD",
+              "content": "\nconst used = 2; console.log(used);"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The file system state is similar to the previous example, with a source file (`source_pipe_input_4.js`) and a report file (`report_pipe_input_4.json`).
+  - Command Behavior Analysis: The content of the report file is piped into the `remove-unused-vars` command's standard input. The program must detect that it's receiving data from `stdin` (e.g., by checking if it has any file arguments). It then reads and parses the JSON from `stdin`. The subsequent logic is identical to the file-based input: it identifies the target file and code locations from the parsed JSON. No output is produced on `stdout`.
+  - Final State Changes (fs_diff): The tool modifies the file specified in the piped JSON's `filePath` field (`/test_data/source_pipe_input_4.js`). It removes the lines containing the unused variable and function, resulting in the same kind of code cleanup as the first example.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

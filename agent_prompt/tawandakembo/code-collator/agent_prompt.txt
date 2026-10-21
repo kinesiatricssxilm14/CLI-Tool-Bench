@@ -1,0 +1,219 @@
+<Role>
+You are a top-tier senior software engineer and architect, proficient in the target programming language and Command Line Interface (CLI) development. You are an AI Agent equipped with tool-calling capabilities, excelling at building well-structured, robust, and maintainable engineering projects from scratch. Your task is to use your tools to write a complete, globally installable CLI tool repository from scratch in the current working directory, based on the following requirements.
+</Role>
+<Project_Overview>
+**CLI Tool Name**: code-collator
+**Repository Name**: code-collator
+**Core Functionality Description**:
+The CLI tool's primary function is to collate an entire codebase from a specified directory into a single, organized Markdown file. It recursively scans the directory, reads the content of each file, and appends it to the output file. The tool supports ignoring files and directories specified in a `.gitignore` file found in the source directory. It also provides an option to strip comments and docstrings from the code before adding it to the final Markdown file. The output file name and location can be customized.
+</Project_Overview>
+<Strict_Constraints>
+When implementing this project, you must strictly adhere to all the following red-line constraints. Any violation will result in acceptance failure:
+1. **Naming and Invocation**:  The global invocation command for the CLI must be **exactly identical** to the 【CLI Tool Name】 above (case and symbol sensitive).
+2. **Language and Environment**:
+   - Must be implemented entirely in **python**.
+   - The code must run flawlessly in the official `python:latest` environment.
+3. **Dependencies and Installation (CRITICAL)**:
+   - The validation environment will **ONLY** execute the following single installation command in the repository root directory:
+     `pip install .`
+   - It will **ABSOLUTELY NOT** execute any other extra dependency installation commands. Therefore, if you introduce third-party dependencies, you must declare them correctly through the language's standard package management configuration file (`pyproject.toml/setup.py`), ensuring the single command above can automatically fetch and complete all dependency installations.
+4. **Output Consistency**:    - **Normal Cases**: The standard output stream (`stdout`) must be **as strictly consistent as possible** with the provided samples.
+   - **Error Cases**: For invalid inputs (e.g., missing parameters, format errors), strict consistency of `stderr` is not forced, but you **MUST ensure the return code (`exit_code`) is not 0**, and output an appropriate error signal.
+</Strict_Constraints>
+<Command_Specifications>
+Below are all the command types this CLI tool needs to implement and their detailed requirements. 
+** CORE ATTENTION: You ONLY need to implement the commands listed below. Any commands not listed here (even if they normally should exist) do NOT need to be implemented, and you should not write redundant code for them.**
+Please carefully read the preparation steps, execution commands, and execution results to ensure perfect logic implementation.
+#### Command Category: `code-collator --path <path>`
+- **Function and Parameter Description**:
+  - This command collates all files from a specified source directory into a single Markdown file.
+  - `-p, --path PATH`: Specifies the path to the codebase directory to be collated. If not provided, it defaults to the current directory.
+  - By default, the output is written to `collated-code.md` in the current working directory, and comments are included.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  The file system is prepared with a source directory `/test_data/fuzz_src_path_only_0/` containing several files and a `.gitignore` file.
+  - `/test_data/fuzz_src_path_only_0/.gitignore`: `*.log\nbuild/`
+  - `/test_data/fuzz_src_path_only_0/ignored_file.log`: `This content should not appear.`
+  - `/test_data/fuzz_src_path_only_0/build/ignored.txt`: `This dir should be ignored.`
+  - `/test_data/fuzz_src_path_only_0/__.md`: (empty)
+  - `/test_data/fuzz_src_path_only_0/app/file_1.js`: `'; DROP TABLE users; --`
+  - `/test_data/fuzz_src_path_only_0/app/file_2.txt`: `\t`
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_only_0"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:18:59,342 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_only_0\n2026-03-16 17:18:59,342 - INFO - Loaded .gitignore patterns from /test_data/fuzz_src_path_only_0/.gitignore\n2026-03-16 17:18:59,343 - INFO - File /test_data/fuzz_src_path_only_0/__.md is binary: False\n2026-03-16 17:18:59,343 - INFO - Ignored file /test_data/fuzz_src_path_only_0/ignored_file.log\n2026-03-16 17:18:59,343 - INFO - File /test_data/fuzz_src_path_only_0/.gitignore is binary: False\n2026-03-16 17:18:59,343 - INFO - File /test_data/fuzz_src_path_only_0/app/file_1.js is binary: False\n2026-03-16 17:18:59,343 - INFO - File /test_data/fuzz_src_path_only_0/app/file_2.txt is binary: False\n2026-03-16 17:18:59,343 - INFO - Ignored file /test_data/fuzz_src_path_only_0/build/ignored.txt\n2026-03-16 17:18:59,343 - INFO - Collated codebase written to collated-code.md\n2026-03-16 17:18:59,343 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/collated-code.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_only_0/__.md\n\n```\n\n```\n\n## /test_data/fuzz_src_path_only_0/.gitignore\n\n```\n*.log\nbuild/\n```\n\n## /test_data/fuzz_src_path_only_0/app/file_1.js\n\n```\n'; DROP TABLE users; --\n```\n\n## /test_data/fuzz_src_path_only_0/app/file_2.txt\n\n```\n\t\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The directory `/test_data/fuzz_src_path_only_0` is populated with files. A `.gitignore` file is present, which specifies that all `.log` files and the `build/` directory should be ignored.
+  - Command Behavior Analysis: The tool is invoked with the path to the source directory. It starts by logging the operation and loading the `.gitignore` patterns. It then traverses the directory structure, processing each file. It correctly ignores `ignored_file.log` and the contents of the `build` directory (`build/ignored.txt`) as per the `.gitignore` rules. For each valid file, it reads its content.
+  - Final State Changes (fs_diff): A new file named `collated-code.md` is created in the current working directory. This file starts with a title `# Collated Codebase`. It then includes the content of each non-ignored file, preceded by a level-2 Markdown header (`##`) with the file's full path, and the content itself is wrapped in a Markdown code block (```).
+
+#### Command Category: `code-collator --path <path> --output <output>`
+- **Function and Parameter Description**:
+  - This command extends the basic functionality by allowing the user to specify a custom output file path.
+  - `-p, --path PATH`: Specifies the source codebase directory.
+  - `-o, --output OUTPUT`: Specifies the path for the output Markdown file.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source directory `/test_data/fuzz_src_path_and_output_2/` is created with a `.gitignore` and several files in subdirectories.
+  - `/test_data/fuzz_src_path_and_output_2/.gitignore`: `*.log\nbuild/`
+  - `/test_data/fuzz_src_path_and_output_2/file_0.js`: `// JS comment\nconsole.log('Hello from JS');`
+  - `/test_data/fuzz_src_path_and_output_2/app/file_1.py`: `# Python comment\ndef main():\n  print('Hello from Python')\n`
+  - Other files for ignoring and collation are also present.
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_and_output_2" --output "/test_data/output_path_and_output_2.md"`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:23:14,188 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_and_output_2\n2026-03-16 17:23:14,188 - INFO - Loaded .gitignore patterns from /test_data/fuzz_src_path_and_output_2/.gitignore\n2026-03-16 17:23:14,189 - INFO - Ignored file /test_data/fuzz_src_path_and_output_2/ignored_file.log\n2026-03-16 17:23:14,189 - INFO - File /test_data/fuzz_src_path_and_output_2/.gitignore is binary: False\n2026-03-16 17:23:14,189 - INFO - File /test_data/fuzz_src_path_and_output_2/file_0.js is binary: False\n2026-03-16 17:23:14,189 - INFO - File /test_data/fuzz_src_path_and_output_2/app/file_1.py is binary: False\n2026-03-16 17:23:14,189 - INFO - File /test_data/fuzz_src_path_and_output_2/utils/file_2.txt is binary: False\n2026-03-16 17:23:14,189 - INFO - Ignored file /test_data/fuzz_src_path_and_output_2/build/ignored.txt\n2026-03-16 17:23:14,189 - INFO - Collated codebase written to /test_data/output_path_and_output_2.md\n2026-03-16 17:23:14,189 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/test_data/output_path_and_output_2.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_and_output_2/.gitignore\n\n```\n*.log\nbuild/\n```\n\n## /test_data/fuzz_src_path_and_output_2/file_0.js\n\n```\n// JS comment\nconsole.log('Hello from JS');\n```\n\n## /test_data/fuzz_src_path_and_output_2/app/file_1.py\n\n```\n# Python comment\ndef main():\n  print('Hello from Python')\n\n```\n\n## /test_data/fuzz_src_path_and_output_2/utils/file_2.txt\n\n```\noLMqohn7TNb04hYPmIEgJaWTkdTP7UPzI2JVYZL\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A project structure is set up at `/test_data/fuzz_src_path_and_output_2`.
+  - Command Behavior Analysis: The command includes both `--path` and `--output` arguments. The tool processes the source directory as before, respecting the `.gitignore` file.
+  - Final State Changes (fs_diff): Instead of creating `collated-code.md`, the tool creates the file specified by the `--output` argument, which is `/test_data/output_path_and_output_2.md`. The content and format of this file are identical to the default case.
+
+#### Command Category: `code-collator --path <path> --comments off`
+- **Function and Parameter Description**:
+  - This command adds the ability to exclude comments and docstrings from the collated code.
+  - `-p, --path PATH`: Specifies the source codebase directory.
+  - `-c, --comments {on,off}`: A flag to control the inclusion of comments. `off` means comments should be stripped. The default is `on`.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source directory `/test_data/fuzz_src_path_and_comments_off_1/` is created with Python and JavaScript files containing comments.
+  - `/test_data/fuzz_src_path_and_comments_off_1/utils/file_0.py`: `# Python comment\ndef main():\n  print('Hello from Python')\n`
+  - `/test_data/fuzz_src_path_and_comments_off_1/file_2.js`: `// JS comment\nconsole.log('Hello from JS');`
+  - Other text files are also present.
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_and_comments_off_1" --comments off`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:25:41,632 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_and_comments_off_1\n2026-03-16 17:25:41,633 - INFO - File /test_data/fuzz_src_path_and_comments_off_1/file_3.js is binary: False\n2026-03-16 17:25:41,751 - INFO - File /test_data/fuzz_src_path_and_comments_off_1/file_2.js is binary: False\n2026-03-16 17:25:41,752 - INFO - File /test_data/fuzz_src_path_and_comments_off_1/app/file_1.txt is binary: False\n2026-03-16 17:25:41,756 - INFO - File /test_data/fuzz_src_path_and_comments_off_1/utils/file_0.py is binary: False\n2026-03-16 17:25:41,846 - INFO - File /test_data/fuzz_src_path_and_comments_off_1/utils/file_4.txt is binary: False\n2026-03-16 17:25:41,847 - INFO - Collated codebase written to collated-code.md\n2026-03-16 17:25:41,847 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/collated-code.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_and_comments_off_1/file_3.js\n\n```\nconsole.log('Hello from JS');\n```\n\n## /test_data/fuzz_src_path_and_comments_off_1/file_2.js\n\n```\nconsole.log('Hello from JS');\n```\n\n## /test_data/fuzz_src_path_and_comments_off_1/app/file_1.txt\n\n```\nlZDomSM7oSwEvE9f5ZXK8o3fAITCPEs0qgC82EyWY39H3WSyb8Xmgo1ruVeksN\n```\n\n## /test_data/fuzz_src_path_and_comments_off_1/utils/file_0.py\n\n```\ndef main():\n  print('Hello from Python')\n```\n\n## /test_data/fuzz_src_path_and_comments_off_1/utils/file_4.txt\n\n```\nwAbJya1Pc8cmjXwKtc0SLYWIM9BboXJfwcAiEV\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: The source directory contains code files with comments. No `.gitignore` is present in this sample.
+  - Command Behavior Analysis: The `--comments off` flag is used. The tool must identify code files (like `.py` and `.js`) and apply logic to remove comments. For Python, it should remove lines starting with `#`. For JavaScript, it should remove lines starting with `//`. Other files like `.txt` should be included as-is.
+  - Final State Changes (fs_diff): The output `collated-code.md` is created. The content for `file_0.py` and `file_2.js` is now missing the comment lines that were present in the original files. The content of `.txt` files remains unchanged.
+
+#### Command Category: `code-collator --path <path> --comments on`
+- **Function and Parameter Description**:
+  - This command explicitly requests that comments be included, which is the default behavior.
+  - `-p, --path PATH`: Specifies the source codebase directory.
+  - `-c, --comments {on,off}`: Setting this to `on` ensures comments are preserved.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source directory `/test_data/fuzz_src_path_and_comments_on_0/` is created with a `.gitignore` and various files, including ones with unicode characters.
+  - `/test_data/fuzz_src_path_and_comments_on_0/.gitignore`: `*.log\nbuild/`
+  - `/test_data/fuzz_src_path_and_comments_on_0/file_3.md`: `中文测试🚀`
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_and_comments_on_0" --comments on`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:28:11,298 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_and_comments_on_0\n2026-03-16 17:28:11,298 - INFO - Loaded .gitignore patterns from /test_data/fuzz_src_path_and_comments_on_0/.gitignore\n2026-03-16 17:28:11,306 - INFO - Ignored file /test_data/fuzz_src_path_and_comments_on_0/ignored_file.log\n2026-03-16 17:28:11,307 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/.gitignore is binary: False\n2026-03-16 17:28:11,307 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/file_4.py is binary: False\n2026-03-16 17:28:11,308 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/file_3.md is binary: False\n2026-03-16 17:28:11,308 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/app/file_2.md is binary: False\n2026-03-16 17:28:11,308 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/utils/file_1.py is binary: False\n2026-03-16 17:28:11,308 - INFO - File /test_data/fuzz_src_path_and_comments_on_0/utils/_.js is binary: False\n2026-03-16 17:28:11,308 - INFO - Ignored file /test_data/fuzz_src_path_and_comments_on_0/build/ignored.txt\n2026-03-16 17:28:11,308 - INFO - Collated codebase written to collated-code.md\n2026-03-16 17:28:11,308 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/collated-code.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_and_comments_on_0/.gitignore\n\n```\n*.log\nbuild/\n```\n\n## /test_data/fuzz_src_path_and_comments_on_0/file_4.py\n\n```\n\t\n```\n\n## /test_data/fuzz_src_path_and_comments_on_0/file_3.md\n\n```\n中文测试🚀\n```\n\n## /test_data/fuzz_src_path_and_comments_on_0/app/file_2.md\n\n```\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n```\n\n## /test_data/fuzz_src_path_and_comments_on_0/utils/file_1.py\n\n```\n9999999999999999999999999999\n```\n\n## /test_data/fuzz_src_path_and_comments_on_0/utils/_.js\n\n```\n../../etc/passwd\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory is prepared with various files, including one with non-ASCII characters.
+  - Command Behavior Analysis: The `--comments on` flag is used. This is the default behavior, so the tool should simply read the files and append their content without any modification (other than checking for binary content, which is always logged as `False` in the samples). The tool must correctly handle UTF-8 encoded files.
+  - Final State Changes (fs_diff): The output `collated-code.md` is created, and the content of all non-ignored files is included verbatim, including the file with unicode characters.
+
+#### Command Category: `code-collator --path <path> --output <output> --comments off`
+- **Function and Parameter Description**:
+  - This command combines all available options: specifying a source path, a custom output file, and stripping comments.
+  - `-p, --path PATH`: Specifies the source codebase directory.
+  - `-o, --output OUTPUT`: Specifies the path for the output Markdown file.
+  - `-c, --comments {on,off}`: `off` to strip comments.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source directory `/test_data/fuzz_src_path_output_comments_off_1/` is created with JS files containing comments and other text files.
+  - `/test_data/fuzz_src_path_output_comments_off_1/app/file_1.js`: `// JS comment\nconsole.log('Hello from JS');`
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_output_comments_off_1" --output "/test_data/output_path_output_comments_off_1.md" --comments off`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:31:50,868 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_output_comments_off_1\n2026-03-16 17:31:50,869 - INFO - File /test_data/fuzz_src_path_output_comments_off_1/file_3.js is binary: False\n2026-03-16 17:31:50,980 - INFO - File /test_data/fuzz_src_path_output_comments_off_1/file_4.md is binary: False\n2026-03-16 17:31:51,004 - INFO - File /test_data/fuzz_src_path_output_comments_off_1/app/file_1.js is binary: False\n2026-03-16 17:31:51,006 - INFO - File /test_data/fuzz_src_path_output_comments_off_1/utils/file_0.txt is binary: False\n2026-03-16 17:31:51,009 - INFO - File /test_data/fuzz_src_path_output_comments_off_1/utils/file_2.txt is binary: False\n2026-03-16 17:31:51,011 - INFO - Collated codebase written to /test_data/output_path_output_comments_off_1.md\n2026-03-16 17:31:51,011 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/test_data/output_path_output_comments_off_1.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_output_comments_off_1/file_3.js\n\n```\nconsole.log('Hello from JS');\n```\n\n## /test_data/fuzz_src_path_output_comments_off_1/file_4.md\n\n```\nXWGJq4b1Emdvq6FB1CabSiaQwU5ZQalmBsnTI5q0eVmVcPouyGy90uaFcwp5EeewX8WoLC7Ij0rz1SP7YE05IlRe\n```\n\n## /test_data/fuzz_src_path_output_comments_off_1/app/file_1.js\n\n```\nconsole.log('Hello from JS');\n```\n\n## /test_data/fuzz_src_path_output_comments_off_1/utils/file_0.txt\n\n```\nzMLWk7GOnoZ4UJk2YgmhnxdIvYqZmLGhU3WiWRFtzQZCnSpPcB8tUnbZ3id0mNyQZcaIs7hrl\n```\n\n## /test_data/fuzz_src_path_output_comments_off_1/utils/file_2.txt\n\n```\nl00lGvOl1sw8mUbtecf2Heqnum1XW08kv5AlRSdy7CS56GKOyWg3JYBeMzRsbNTea30rWFachJZgybvqmis7OjlDZQtKHGmnpFL\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory with code files containing comments is prepared.
+  - Command Behavior Analysis: The tool is invoked with all three arguments. It must parse the source path, the output path, and the comment flag. It should then traverse the source, strip comments from relevant files, and write the result to the specified output file.
+  - Final State Changes (fs_diff): A new file is created at the path specified by `--output`. Its content is the collated code from the source directory, with comments removed from the JavaScript files.
+
+#### Command Category: `code-collator --path <path> --output <output> --comments on`
+- **Function and Parameter Description**:
+  - This command combines specifying a source path and a custom output file, while explicitly keeping comments.
+  - `-p, --path PATH`: Specifies the source codebase directory.
+  - `-o, --output OUTPUT`: Specifies the path for the output Markdown file.
+  - `-c, --comments {on,off}`: `on` to preserve comments.
+- **Execution Context and Sample**:
+  **1. Preparation**:
+  A source directory `/test_data/fuzz_src_path_output_comments_on_2/` is created with a `.gitignore` and Python files containing comments.
+  - `/test_data/fuzz_src_path_output_comments_on_2/utils/file_2.py`: `# Python comment\ndef main():\n  print('Hello from Python')\n`
+  **2. Command**:
+  `code-collator --path "/test_data/fuzz_src_path_output_comments_on_2" --output "/test_data/output_path_output_comments_on_2.md" --comments on`
+  **3. Oracle Result**:
+  ```json
+  {
+      "exit_code": 0,
+      "stdout": "2026-03-16 17:35:07,512 - INFO - Starting code collation for directory: /test_data/fuzz_src_path_output_comments_on_2\n2026-03-16 17:35:07,512 - INFO - Loaded .gitignore patterns from /test_data/fuzz_src_path_output_comments_on_2/.gitignore\n2026-03-16 17:35:07,513 - INFO - Ignored file /test_data/fuzz_src_path_output_comments_on_2/ignored_file.log\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/.gitignore is binary: False\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/file_1.txt is binary: False\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/file_4.py is binary: False\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/app/file_3.txt is binary: False\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/utils/file_0.txt is binary: False\n2026-03-16 17:35:07,513 - INFO - File /test_data/fuzz_src_path_output_comments_on_2/utils/file_2.py is binary: False\n2026-03-16 17:35:07,514 - INFO - Ignored file /test_data/fuzz_src_path_output_comments_on_2/build/ignored.txt\n2026-03-16 17:35:07,514 - INFO - Collated codebase written to /test_data/output_path_output_comments_on_2.md\n2026-03-16 17:35:07,514 - INFO - Code collation completed.\n",
+      "fs_diff": {
+          "/test_data/output_path_output_comments_on_2.md": {
+              "type": "ADD",
+              "content": "# Collated Codebase\n\n## /test_data/fuzz_src_path_output_comments_on_2/.gitignore\n\n```\n*.log\nbuild/\n```\n\n## /test_data/fuzz_src_path_output_comments_on_2/file_1.txt\n\n```\nyVyaKecLRT57KOmPhB5oKrWkpBfWUtuIULDsYpvqUi5IYXqvXKPrQ3FkaHMsffHhnY33KIOafQTmSYmZ6gsPwkrXBglZN41PC\n```\n\n## /test_data/fuzz_src_path_output_comments_on_2/file_4.py\n\n```\n# Python comment\ndef main():\n  print('Hello from Python')\n\n```\n\n## /test_data/fuzz_src_path_output_comments_on_2/app/file_3.txt\n\n```\nIaCPGnCrZDOK5dc9J56a5hU00IfL3z5EG7SkJOKCDMxgOraVvl52uxF2z1PEweFLvQ\n```\n\n## /test_data/fuzz_src_path_output_comments_on_2/utils/file_0.txt\n\n```\n58FsiHrfJLRwwpeVnQiMpKzVXOMAEyZDe40MMyguK\n```\n\n## /test_data/fuzz_src_path_output_comments_on_2/utils/file_2.py\n\n```\n# Python comment\ndef main():\n  print('Hello from Python')\n\n```\n\n"
+          }
+      }
+  }
+  ```
+- **Deep Sample Analysis (Implementation Logic Reference):
+  - Initial State Analysis: A directory with a `.gitignore` and Python files containing comments is prepared.
+  - Command Behavior Analysis: The tool is invoked with all three arguments, with `--comments on`. It should parse the source path and output path, respect the `.gitignore`, and since comments are on, it should read file contents verbatim.
+  - Final State Changes (fs_diff): A new file is created at the path specified by `--output`. Its content is the collated code from the source directory, with comments preserved in the Python files.
+
+</Command_Specifications>
+<Execution_And_Stop_Criteria>
+As an Agent, please directly use your tools (e.g., file creation, code writing) to generate all necessary files (including code files and package management configuration files) in the current working directory.
+Stop Strategy (CRITICAL):
+Please Do not over-verify. Your primary task is to accurately generate the code and configuration files. Once you believe you have completed writing all the code according to the requirements and are logically confident it meets the installation and execution conditions, please stop and conclude the task immediately. Do not engage in meaningless repetitive testing, self-correction loops, or run redundant checking commands.
+</Execution_And_Stop_Criteria>

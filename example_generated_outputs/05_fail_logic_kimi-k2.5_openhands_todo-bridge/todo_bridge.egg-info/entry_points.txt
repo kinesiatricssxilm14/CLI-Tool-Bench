@@ -1,0 +1,2 @@
+[console_scripts]
+todo-bridge = todo_bridge.cli:main
